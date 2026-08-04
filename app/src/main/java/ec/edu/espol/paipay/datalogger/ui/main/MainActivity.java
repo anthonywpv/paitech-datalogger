@@ -1,6 +1,5 @@
 package ec.edu.espol.paipay.datalogger.ui.main;
 
-import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -17,7 +16,6 @@ import ec.edu.espol.paipay.datalogger.sync.SincronizacionWorker;
 import ec.edu.espol.paipay.datalogger.ui.historial.HistorialFragment;
 import ec.edu.espol.paipay.datalogger.ui.registro.RegistroFragment;
 import ec.edu.espol.paipay.datalogger.ui.semaforo.SemaforoFragment;
-import ec.edu.espol.paipay.datalogger.ui.login.LoginActivity;
 import ec.edu.espol.paipay.datalogger.ui.sync.SincronizacionFragment;
 
 /** Contenedor principal con las cuatro secciones de la app. */
@@ -29,19 +27,17 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setTheme(R.style.Theme_Paipay);
         vista = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(vista.getRoot());
 
+        // No se exige sesión para entrar: el productor registra en campo sin
+        // cuenta y sin señal. Las credenciales se piden al sincronizar.
         sesion = SesionManager.obtener(this);
-        if (!sesion.haySesionActiva()) {
-            irALogin();
-            return;
-        }
 
         // Se usa la Toolbar directamente (sin setSupportActionBar) para que el
         // menú declarado con app:menu conserve su propio listener.
         vista.barraHerramientas.setTitle(getString(R.string.app_name));
-        vista.barraHerramientas.setSubtitle(sesion.getNombre());
 
         vista.barraHerramientas.setOnMenuItemClickListener(item -> {
             if (item.getItemId() == R.id.accion_cerrar_sesion) {
@@ -71,6 +67,26 @@ public class MainActivity extends AppCompatActivity {
         SincronizacionWorker.programar(this);
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        pintarSesion();
+    }
+
+    /**
+     * La barra dice quién está identificado, o avisa de que no hay nadie.
+     * Sin sesión no se puede subir nada, y es mejor que se vea antes de que el
+     * productor camine hasta el punto con señal.
+     */
+    private void pintarSesion() {
+        boolean hay = sesion.haySesionActiva();
+        vista.barraHerramientas.setSubtitle(hay
+                ? sesion.getNombre()
+                : getString(R.string.sesion_sin_iniciar));
+        vista.barraHerramientas.getMenu()
+                .findItem(R.id.accion_cerrar_sesion).setVisible(hay);
+    }
+
     private boolean mostrar(@NonNull Fragment fragmento) {
         getSupportFragmentManager()
                 .beginTransaction()
@@ -91,16 +107,12 @@ public class MainActivity extends AppCompatActivity {
                 .setMessage(R.string.cerrar_sesion_pregunta)
                 .setNegativeButton(R.string.cancelar, null)
                 .setPositiveButton(R.string.aceptar, (d, w) -> {
+                    // No se sale de la app: solo se olvida quién era. El
+                    // productor puede seguir registrando; se le volverán a
+                    // pedir credenciales la próxima vez que sincronice.
                     new AutenticacionRepositorio(this).cerrarSesion();
-                    irALogin();
+                    pintarSesion();
                 })
                 .show();
-    }
-
-    private void irALogin() {
-        Intent i = new Intent(this, LoginActivity.class);
-        i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        startActivity(i);
-        finish();
     }
 }

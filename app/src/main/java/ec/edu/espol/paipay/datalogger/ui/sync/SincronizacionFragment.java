@@ -1,10 +1,14 @@
 package ec.edu.espol.paipay.datalogger.ui.sync;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
@@ -21,6 +25,7 @@ import ec.edu.espol.paipay.datalogger.databinding.FragmentSincronizacionBinding;
 import ec.edu.espol.paipay.datalogger.sync.ResultadoSincronizacion;
 import ec.edu.espol.paipay.datalogger.sync.ResumenPendientes;
 import ec.edu.espol.paipay.datalogger.sync.SincronizacionRepositorio;
+import ec.edu.espol.paipay.datalogger.ui.login.LoginActivity;
 import ec.edu.espol.paipay.datalogger.util.FechaUtil;
 import ec.edu.espol.paipay.datalogger.util.RedUtil;
 
@@ -41,6 +46,19 @@ public class SincronizacionFragment extends Fragment {
     private SincronizacionRepositorio sincronizacion;
     private SesionManager sesion;
 
+    /**
+     * Vuelta de la pantalla de credenciales. Si el productor se identificó, la
+     * subida continúa sola: no tiene que volver a pulsar [Sincronizar].
+     */
+    private final ActivityResultLauncher<Intent> pedirCredenciales =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
+                    resultado -> {
+                        if (resultado.getResultCode() == Activity.RESULT_OK) {
+                            pedirConfirmacion();
+                        }
+                        refrescar();
+                    });
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup contenedor,
@@ -56,7 +74,7 @@ public class SincronizacionFragment extends Fragment {
         sincronizacion = new SincronizacionRepositorio(requireContext());
         sesion = SesionManager.obtener(requireContext());
 
-        vista.botonSincronizar.setOnClickListener(v -> pedirConfirmacion());
+        vista.botonSincronizar.setOnClickListener(v -> iniciarSubida());
         refrescar();
     }
 
@@ -106,6 +124,34 @@ public class SincronizacionFragment extends Fragment {
                 conectado ? R.color.semaforo_verde : R.color.semaforo_rojo));
         vista.tarjetaConexion.setCardBackgroundColor(ContextCompat.getColor(requireContext(),
                 conectado ? R.color.semaforo_verde_fondo : R.color.semaforo_rojo_fondo));
+    }
+
+    // ---------------------------------------------------------------
+    //  Credenciales
+    // ---------------------------------------------------------------
+
+    /**
+     * Puerta de entrada de [Sincronizar].
+     *
+     * Registrar no exige cuenta, pero subir sí: la base principal tiene que
+     * saber quién manda cada dato. Si todavía no hay sesión se piden las
+     * credenciales y, al volver, la subida sigue sola.
+     */
+    private void iniciarSubida() {
+        if (sesion.haySesionActiva()) {
+            pedirConfirmacion();
+            return;
+        }
+
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.sync_credenciales_titulo)
+                .setIcon(R.drawable.ic_candado)
+                .setMessage(R.string.sync_credenciales_mensaje)
+                .setNegativeButton(R.string.cancelar, null)
+                .setPositiveButton(R.string.sync_credenciales_entrar,
+                        (d, w) -> pedirCredenciales.launch(
+                                LoginActivity.intent(requireContext())))
+                .show();
     }
 
     // ---------------------------------------------------------------
@@ -194,7 +240,18 @@ public class SincronizacionFragment extends Fragment {
                 break;
 
             case SESION_EXPIRADA:
-                avisoSimple(R.string.sync_parcial, getString(R.string.sync_sesion_expirada));
+                // La cookie ya no sirve. Se olvida y se vuelve a pedir en el
+                // sitio, en vez de mandar al productor a buscar el menú.
+                sesion.cerrarSesion();
+                new MaterialAlertDialogBuilder(requireContext())
+                        .setTitle(R.string.sync_parcial)
+                        .setIcon(R.drawable.ic_candado)
+                        .setMessage(R.string.sync_sesion_expirada)
+                        .setNegativeButton(R.string.cancelar, null)
+                        .setPositiveButton(R.string.sync_credenciales_entrar,
+                                (d, w) -> pedirCredenciales.launch(
+                                        LoginActivity.intent(requireContext())))
+                        .show();
                 break;
 
             default:

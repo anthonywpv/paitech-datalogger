@@ -14,8 +14,14 @@
         android:usesCleartextTraffic="false"
         android:theme="@style/Theme.Paipay">
 
+        <!--
+          La app abre directo al semáforo: registrar datos en campo no exige
+          cuenta ni señal. Las credenciales solo hacen falta para SUBIR, así que
+          LoginActivity dejó de ser el punto de entrada y ahora la abre la
+          pantalla de sincronización cuando de verdad se necesita.
+        -->
         <activity
-            android:name=".ui.login.LoginActivity"
+            android:name=".ui.main.MainActivity"
             android:exported="true"
             android:theme="@style/Theme.Paipay.Splash"
             android:windowSoftInputMode="adjustResize">
@@ -26,7 +32,7 @@
         </activity>
 
         <activity
-            android:name=".ui.main.MainActivity"
+            android:name=".ui.login.LoginActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
 

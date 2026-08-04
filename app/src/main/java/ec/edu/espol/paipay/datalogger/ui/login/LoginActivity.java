@@ -1,5 +1,6 @@
 package ec.edu.espol.paipay.datalogger.ui.login;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -11,31 +12,40 @@ import ec.edu.espol.paipay.datalogger.R;
 import ec.edu.espol.paipay.datalogger.data.repo.AutenticacionRepositorio;
 import ec.edu.espol.paipay.datalogger.data.repo.SesionManager;
 import ec.edu.espol.paipay.datalogger.databinding.ActivityLoginBinding;
-import ec.edu.espol.paipay.datalogger.ui.main.MainActivity;
 
 /**
- * Pantalla de ingreso.
+ * Pantalla de credenciales.
  *
- * Solo se muestra la PRIMERA vez. Si ya existe una sesión guardada,
- * la actividad se salta por completo y el productor entra directo al
- * formulario, con o sin internet.
+ * NO es el punto de entrada de la app: registrar datos en campo no exige cuenta
+ * ni señal. Esta pantalla la abre la sección de sincronización cuando hace falta
+ * saber quién sube los datos, y devuelve RESULT_OK para que la subida continúe
+ * donde se quedó.
+ *
+ * La sesión sigue siendo persistente: se pide una sola vez y a partir de ahí las
+ * siguientes subidas no vuelven a preguntar, hasta que el productor cierre
+ * sesión desde el menú.
  */
 public class LoginActivity extends AppCompatActivity {
 
     private ActivityLoginBinding vista;
     private AutenticacionRepositorio autenticacion;
 
+    /** Intent para pedir credenciales desde cualquier pantalla. */
+    public static Intent intent(Context contexto) {
+        return new Intent(contexto, LoginActivity.class);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // --- Sesión persistente: si ya inició sesión antes, no se le vuelve a pedir ---
+        // Si ya hay sesión no hay nada que preguntar: se devuelve el control.
         if (SesionManager.obtener(this).haySesionActiva()) {
-            irAPrincipal();
+            setResult(RESULT_OK);
+            finish();
             return;
         }
 
-        setTheme(R.style.Theme_Paipay);
         vista = ActivityLoginBinding.inflate(getLayoutInflater());
         setContentView(vista.getRoot());
 
@@ -66,7 +76,8 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onExito(String nombre) {
                 mostrarCargando(false);
-                irAPrincipal();
+                setResult(RESULT_OK);
+                finish();
             }
 
             @Override
@@ -81,7 +92,9 @@ public class LoginActivity extends AppCompatActivity {
                         mensaje = R.string.login_error_credenciales;
                         break;
                     default:
-                        mensaje = R.string.sync_error;
+                        // Antes reutilizaba el texto de sincronización, que en
+                        // esta pantalla no venía a cuento.
+                        mensaje = R.string.login_error_servidor;
                         break;
                 }
                 vista.textoMensaje.setText(mensaje);
@@ -96,10 +109,5 @@ public class LoginActivity extends AppCompatActivity {
         vista.botonEntrar.setText(cargando ? getString(R.string.login_verificando)
                                            : getString(R.string.login_entrar));
         if (cargando) vista.textoMensaje.setVisibility(View.GONE);
-    }
-
-    private void irAPrincipal() {
-        startActivity(new Intent(this, MainActivity.class));
-        finish();
     }
 }

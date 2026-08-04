@@ -96,6 +96,16 @@ public class SincronizacionRepositorio {
             return;
         }
 
+        // Sin credenciales no se sube: la base principal tiene que saber quién
+        // responde por cada dato. La UI las pide antes de llegar aquí; esto es
+        // la red de seguridad para el Worker automático.
+        final String correo = sesion.getUsuario();
+        if (correo == null || correo.isEmpty()) {
+            AppExecutors.enHiloPrincipal(() ->
+                    callback.terminado(ResultadoSincronizacion.sesionExpirada()));
+            return;
+        }
+
         AppExecutors.io().execute(() -> {
             int subidos = 0;
             int fallidos = 0;
@@ -113,6 +123,7 @@ public class SincronizacionRepositorio {
                     List<BiometriaDto> cuerpo = new ArrayList<>(lote.size());
                     List<String> uuids = new ArrayList<>(lote.size());
                     for (RegistroBiometria r : lote) {
+                        r.registradoPor = correo;
                         cuerpo.add(BiometriaDto.desde(r, momento));
                         uuids.add(r.uuid);
                     }
@@ -121,7 +132,7 @@ public class SincronizacionRepositorio {
                                 .subirBiometria(NeonApiService.PREFER_UPSERT, cuerpo)
                                 .execute();
                         if (resp.isSuccessful()) {
-                            db.biometriaDao().marcarSincronizados(uuids, momento);
+                            db.biometriaDao().marcarSincronizados(uuids, momento, correo);
                             subidos += lote.size();
                         } else {
                             fallidos += lote.size();
@@ -146,6 +157,7 @@ public class SincronizacionRepositorio {
                     List<AguaDto> cuerpo = new ArrayList<>(lote.size());
                     List<String> uuids = new ArrayList<>(lote.size());
                     for (RegistroAgua r : lote) {
+                        r.registradoPor = correo;
                         cuerpo.add(AguaDto.desde(r, momento));
                         uuids.add(r.uuid);
                     }
@@ -154,7 +166,7 @@ public class SincronizacionRepositorio {
                                 .subirAgua(NeonApiService.PREFER_UPSERT, cuerpo)
                                 .execute();
                         if (resp.isSuccessful()) {
-                            db.aguaDao().marcarSincronizados(uuids, momento);
+                            db.aguaDao().marcarSincronizados(uuids, momento, correo);
                             subidos += lote.size();
                         } else {
                             fallidos += lote.size();
@@ -179,6 +191,7 @@ public class SincronizacionRepositorio {
                     List<LaboratorioDto> cuerpo = new ArrayList<>(lote.size());
                     List<String> uuids = new ArrayList<>(lote.size());
                     for (EnsayoLaboratorio e : lote) {
+                        e.registradoPor = correo;
                         cuerpo.add(LaboratorioDto.desde(e, momento));
                         uuids.add(e.uuid);
                     }
@@ -187,7 +200,7 @@ public class SincronizacionRepositorio {
                                 .subirLaboratorio(NeonApiService.PREFER_UPSERT, cuerpo)
                                 .execute();
                         if (resp.isSuccessful()) {
-                            db.laboratorioDao().marcarSincronizados(uuids, momento);
+                            db.laboratorioDao().marcarSincronizados(uuids, momento, correo);
                             subidos += lote.size();
                         } else {
                             fallidos += lote.size();

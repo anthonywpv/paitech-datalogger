@@ -123,7 +123,7 @@ ec.edu.espol.paipay.datalogger
 ├── sync/               Motor de sincronización diferida (manual y automático)
 │
 ├── ui/
-│   ├── login/          Ingreso único
+│   ├── login/          Credenciales, solo al sincronizar
 │   ├── main/           Contenedor con navegación inferior
 │   ├── registro/       Formularios: peces, agua, laboratorio
 │   ├── semaforo/       Tarjetas de alerta por piscina
@@ -141,6 +141,16 @@ dentro del APK. Cualquiera puede descompilar un APK. Con la Data API:
 - la app solo conoce un JWT temporal (~15 min) del propio productor;
 - Postgres aplica **Row Level Security** del lado del servidor;
 - si se pierde un teléfono, se revoca esa sesión y nada más.
+
+### Por qué la app no pide login al abrir
+
+Registrar datos en campo no exige cuenta ni señal: la app abre directo al semáforo. Exigir
+un ingreso al arrancar contradiría el motivo de existir de la app, porque un productor sin
+cobertura no podría ni siquiera anotar lo que acaba de medir.
+
+Las credenciales se piden en el momento de **subir**, que es cuando la base principal
+necesita saber quién responde por el dato. Por eso `registrado_por` no se rellena al
+guardar sino al sincronizar, con el correo de quien se identificó para esa subida.
 
 ### Cómo se logra iniciar sesión una sola vez
 

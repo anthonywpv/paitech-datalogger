@@ -102,8 +102,11 @@ public class HistorialFragment extends Fragment {
                             Toast.LENGTH_LONG).show();
                     return;
                 case SIN_INTERNET:
-                case SIN_SESION:
                     mensaje = R.string.historial_refresco_sin_internet;
+                    break;
+                case SIN_SESION:
+                    // Ya no es un caso raro: la app arranca sin sesión.
+                    mensaje = R.string.historial_refresco_sin_sesion;
                     break;
                 default:
                     mensaje = R.string.historial_refresco_error;

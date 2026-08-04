@@ -13,6 +13,14 @@
     <string name="login_error_credenciales">Usuario o contraseña incorrectos</string>
     <string name="login_error_sin_internet">Necesitas internet solo para este primer ingreso</string>
     <string name="login_verificando">Verificando…</string>
+    <string name="login_error_servidor">No se pudo verificar tus credenciales. Revisa tu conexión e inténtalo de nuevo.</string>
+    <string name="sesion_sin_iniciar">Sin sesión · registro sin conexión</string>
+
+    <!-- Credenciales al sincronizar -->
+    <string name="sync_credenciales_titulo">Identifícate para subir</string>
+    <string name="sync_credenciales_mensaje">Registrar datos no necesita cuenta, pero para subirlos a la Base de Datos principal hay que saber quién los envía.\n\nSolo se te pedirá una vez: la app recordará tu sesión.</string>
+    <string name="sync_credenciales_entrar">Escribir credenciales</string>
+    <string name="historial_refresco_sin_sesion">Necesitas identificarte para traer tus registros del servidor. Se muestra lo guardado en este teléfono.</string>
 
     <!-- Navegación -->
     <string name="nav_registro">Registrar</string>

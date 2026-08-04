@@ -29,8 +29,14 @@ public interface LaboratorioDao {
     @Query("SELECT COUNT(*) FROM ensayo_laboratorio WHERE sincronizado = 0")
     LiveData<Integer> observarPendientes();
 
-    @Query("UPDATE ensayo_laboratorio SET sincronizado = 1, sincronizado_en = :momento WHERE uuid IN (:uuids)")
-    void marcarSincronizados(List<String> uuids, long momento);
+    /**
+     * Marca el lote como subido y deja constancia de QUIEN lo subio.
+     * El correo se sella aqui y no al guardar: en campo la app no pide
+     * credenciales, asi que hasta este momento no se sabia.
+     */
+    @Query("UPDATE ensayo_laboratorio SET sincronizado = 1, sincronizado_en = :momento, "
+            + "registrado_por = :correo WHERE uuid IN (:uuids)")
+    void marcarSincronizados(List<String> uuids, long momento, String correo);
 
     @Query("SELECT * FROM ensayo_laboratorio WHERE uuid = :uuid LIMIT 1")
     EnsayoLaboratorio porUuid(String uuid);

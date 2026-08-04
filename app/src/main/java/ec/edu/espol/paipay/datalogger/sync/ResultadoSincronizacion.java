@@ -24,4 +24,9 @@ public class ResultadoSincronizacion {
     public static ResultadoSincronizacion sinPendientes() {
         return new ResultadoSincronizacion(Estado.SIN_PENDIENTES, 0, 0, null);
     }
+
+    /** No hay con qué identificarse: o nunca se inició sesión, o ya caducó. */
+    public static ResultadoSincronizacion sesionExpirada() {
+        return new ResultadoSincronizacion(Estado.SESION_EXPIRADA, 0, 0, null);
+    }
 }

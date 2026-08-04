@@ -29,8 +29,14 @@ public interface AguaDao {
     @Query("SELECT COUNT(*) FROM registro_agua WHERE sincronizado = 0")
     LiveData<Integer> observarPendientes();
 
-    @Query("UPDATE registro_agua SET sincronizado = 1, sincronizado_en = :momento WHERE uuid IN (:uuids)")
-    void marcarSincronizados(List<String> uuids, long momento);
+    /**
+     * Marca el lote como subido y deja constancia de QUIEN lo subio.
+     * El correo se sella aqui y no al guardar: en campo la app no pide
+     * credenciales, asi que hasta este momento no se sabia.
+     */
+    @Query("UPDATE registro_agua SET sincronizado = 1, sincronizado_en = :momento, "
+            + "registrado_por = :correo WHERE uuid IN (:uuids)")
+    void marcarSincronizados(List<String> uuids, long momento, String correo);
 
     /**
      * Última medición de cada piscina. Es la consulta que alimenta el

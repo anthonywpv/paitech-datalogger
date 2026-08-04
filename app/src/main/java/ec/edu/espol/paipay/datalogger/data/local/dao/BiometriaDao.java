@@ -29,8 +29,14 @@ public interface BiometriaDao {
     @Query("SELECT COUNT(*) FROM registro_biometria WHERE sincronizado = 0")
     LiveData<Integer> observarPendientes();
 
-    @Query("UPDATE registro_biometria SET sincronizado = 1, sincronizado_en = :momento WHERE uuid IN (:uuids)")
-    void marcarSincronizados(List<String> uuids, long momento);
+    /**
+     * Marca el lote como subido y deja constancia de QUIEN lo subio.
+     * El correo se sella aqui y no al guardar: en campo la app no pide
+     * credenciales, asi que hasta este momento no se sabia.
+     */
+    @Query("UPDATE registro_biometria SET sincronizado = 1, sincronizado_en = :momento, "
+            + "registrado_por = :correo WHERE uuid IN (:uuids)")
+    void marcarSincronizados(List<String> uuids, long momento, String correo);
 
     @Query("SELECT * FROM registro_biometria WHERE piscina = :piscina ORDER BY fecha_muestreo DESC")
     List<RegistroBiometria> porPiscina(String piscina);

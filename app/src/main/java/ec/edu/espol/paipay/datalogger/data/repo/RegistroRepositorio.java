@@ -20,6 +20,12 @@ import ec.edu.espol.paipay.datalogger.util.SeguridadUtil;
  * TODO registro se guarda SIEMPRE primero en la base local, marcado como
  * pendiente (sincronizado = false). La app nunca depende de la red para que
  * el productor pueda trabajar.
+ *
+ * OJO con registradoPor: aquí se deja VACÍO a propósito. La app no pide
+ * credenciales para registrar en campo, así que al guardar todavía no se sabe
+ * quién es; el correo se sella al SUBIR, en SincronizacionRepositorio, con el
+ * de quien se identificó para esa subida. Que es además lo que interesa saber:
+ * quién responde por ese dato en la base principal.
  */
 public class RegistroRepositorio {
 
@@ -41,7 +47,6 @@ public class RegistroRepositorio {
         AppExecutors.io().execute(() -> {
             r.uuid = SeguridadUtil.nuevoUuid();
             r.creadoEn = System.currentTimeMillis();
-            r.registradoPor = sesion.getUsuario();
             r.sincronizado = false;
             long id = db.biometriaDao().insertar(r);
             AppExecutors.enHiloPrincipal(() -> callback.listo(id));
@@ -52,7 +57,6 @@ public class RegistroRepositorio {
         AppExecutors.io().execute(() -> {
             r.uuid = SeguridadUtil.nuevoUuid();
             r.creadoEn = System.currentTimeMillis();
-            r.registradoPor = sesion.getUsuario();
             r.sincronizado = false;
             long id = db.aguaDao().insertar(r);
             AppExecutors.enHiloPrincipal(() -> callback.listo(id));
@@ -63,7 +67,6 @@ public class RegistroRepositorio {
         AppExecutors.io().execute(() -> {
             e.uuid = SeguridadUtil.nuevoUuid();
             e.creadoEn = System.currentTimeMillis();
-            e.registradoPor = sesion.getUsuario();
             e.sincronizado = false;
             long id = db.laboratorioDao().insertar(e);
             AppExecutors.enHiloPrincipal(() -> callback.listo(id));
