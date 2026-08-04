@@ -2,7 +2,6 @@ package ec.edu.espol.paipay.datalogger.data.remote;
 
 import android.content.Context;
 
-import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 import ec.edu.espol.paipay.datalogger.BuildConfig;
@@ -108,7 +107,7 @@ public final class NeonCliente {
                     // Se adjunta un JWT fresco a cada petición a la Data API.
                     String jwt = TokenManager.obtener(app).jwtValido();
                     if (jwt == null) {
-                        throw new IOException("SESION_EXPIRADA");
+                        throw new SesionExpiradaException();
                     }
                     Request original = cadena.request();
                     return cadena.proceed(original.newBuilder()

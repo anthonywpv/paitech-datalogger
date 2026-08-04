@@ -12,6 +12,7 @@
         android:layout_height="?attr/actionBarSize"
         android:background="@drawable/fondo_encabezado"
         app:menu="@menu/menu_superior"
+        app:logo="@drawable/logo_paipay_letra"
         app:title="@string/app_name"
         app:titleTextColor="@color/blanco"
         app:subtitleTextColor="#D8E3BE" />

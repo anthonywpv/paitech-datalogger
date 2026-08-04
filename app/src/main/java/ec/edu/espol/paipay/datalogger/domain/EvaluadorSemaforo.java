@@ -36,6 +36,13 @@ import ec.edu.espol.paipay.datalogger.data.local.entity.RegistroAgua;
  * retiene menos oxígeno, por eso una piscina a 31 °C con 4.5 mg/L es más
  * riesgosa de lo que sugiere cada parámetro por separado; ese acoplamiento se
  * refleja en el método evaluarRiesgoCombinado().
+ *
+ * OJO — LÓGICA DUPLICADA: estos mismos umbrales están reescritos en SQL en la
+ * vista v_semaforo_actual (sql/04_vistas_analisis.sql), que existe para
+ * contrastar el estado calculado en el servidor contra el que envió el
+ * teléfono. Al cambiar un umbral aquí hay que cambiarlo allá y volver a
+ * ejecutar ese script en Neon; si no, la comparación empieza a señalar
+ * discrepancias que en realidad no existen.
  */
 public final class EvaluadorSemaforo {
 

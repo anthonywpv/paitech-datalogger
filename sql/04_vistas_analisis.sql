@@ -6,7 +6,14 @@
 -- ===========================================================================
 
 -- 1. Última medición de agua por piscina, con el semáforo recalculado en el
---    servidor. Sirve de contraste contra el estado que envió el dispositivo.
+--    servidor. Sirve de contraste contra el estado que envió el dispositivo:
+--    si estado_servidor y estado_dispositivo difieren, o la app va desactualizada
+--    o alguien insertó filas sin pasar por ella.
+--
+--    OJO — LÓGICA DUPLICADA: este CASE es la traducción a SQL de
+--    domain/EvaluadorSemaforo.java. Los umbrales viven en dos idiomas y no hay
+--    nada que los mantenga sincronizados: al mover uno, mover el otro, o la
+--    comparación de arriba empieza a dar discrepancias falsas.
 CREATE OR REPLACE VIEW public.v_semaforo_actual AS
 SELECT DISTINCT ON (piscina)
        piscina,
@@ -16,8 +23,17 @@ SELECT DISTINCT ON (piscina)
        ph,
        estado_alerta AS estado_dispositivo,
        CASE
-           WHEN oxigeno_mg_l < 3.0  OR temperatura_c < 20.0 OR temperatura_c > 32.0 THEN 'ROJO'
-           WHEN oxigeno_mg_l < 5.0  OR temperatura_c < 24.0 OR temperatura_c > 30.0 THEN 'AMARILLO'
+           WHEN oxigeno_mg_l < 3.0
+             OR temperatura_c < 20.0 OR temperatura_c > 32.0
+             OR (ph IS NOT NULL AND (ph < 6.0 OR ph > 9.0))
+             -- Riesgo combinado: agua caliente retiene menos oxígeno mientras
+             -- el pez consume más, así que un OD "aceptable" deja de serlo.
+             OR (temperatura_c > 30.0 AND oxigeno_mg_l < 5.0)
+                THEN 'ROJO'
+           WHEN oxigeno_mg_l < 5.0
+             OR temperatura_c < 24.0 OR temperatura_c > 30.0
+             OR (ph IS NOT NULL AND (ph < 6.5 OR ph > 8.5))
+                THEN 'AMARILLO'
            ELSE 'VERDE'
        END AS estado_servidor,
        creado_en

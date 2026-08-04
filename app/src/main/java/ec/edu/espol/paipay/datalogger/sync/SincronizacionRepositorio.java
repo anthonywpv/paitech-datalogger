@@ -11,6 +11,7 @@ import ec.edu.espol.paipay.datalogger.data.local.entity.RegistroAgua;
 import ec.edu.espol.paipay.datalogger.data.local.entity.RegistroBiometria;
 import ec.edu.espol.paipay.datalogger.data.remote.NeonApiService;
 import ec.edu.espol.paipay.datalogger.data.remote.NeonCliente;
+import ec.edu.espol.paipay.datalogger.data.remote.SesionExpiradaException;
 import ec.edu.espol.paipay.datalogger.data.remote.dto.AguaDto;
 import ec.edu.espol.paipay.datalogger.data.remote.dto.BiometriaDto;
 import ec.edu.espol.paipay.datalogger.data.remote.dto.LaboratorioDto;
@@ -98,6 +99,7 @@ public class SincronizacionRepositorio {
         AppExecutors.io().execute(() -> {
             int subidos = 0;
             int fallidos = 0;
+            boolean sesionExpirada = false;
             StringBuilder errores = new StringBuilder();
             long momento = System.currentTimeMillis();
 
@@ -125,6 +127,10 @@ public class SincronizacionRepositorio {
                             fallidos += lote.size();
                             errores.append("biometría HTTP ").append(resp.code()).append("; ");
                         }
+                    } catch (SesionExpiradaException e) {
+                        sesionExpirada = true;
+                        fallidos += lote.size();
+                        errores.append("biometría: sesión expirada; ");
                     } catch (Exception e) {
                         fallidos += lote.size();
                         errores.append("biometría: ").append(e.getMessage()).append("; ");
@@ -154,6 +160,10 @@ public class SincronizacionRepositorio {
                             fallidos += lote.size();
                             errores.append("agua HTTP ").append(resp.code()).append("; ");
                         }
+                    } catch (SesionExpiradaException e) {
+                        sesionExpirada = true;
+                        fallidos += lote.size();
+                        errores.append("agua: sesión expirada; ");
                     } catch (Exception e) {
                         fallidos += lote.size();
                         errores.append("agua: ").append(e.getMessage()).append("; ");
@@ -183,6 +193,10 @@ public class SincronizacionRepositorio {
                             fallidos += lote.size();
                             errores.append("laboratorio HTTP ").append(resp.code()).append("; ");
                         }
+                    } catch (SesionExpiradaException e) {
+                        sesionExpirada = true;
+                        fallidos += lote.size();
+                        errores.append("laboratorio: sesión expirada; ");
                     } catch (Exception e) {
                         fallidos += lote.size();
                         errores.append("laboratorio: ").append(e.getMessage()).append("; ");
@@ -206,7 +220,9 @@ public class SincronizacionRepositorio {
             }
 
             ResultadoSincronizacion.Estado estado;
-            if (fErrores != null && fErrores.contains("SESION_EXPIRADA")) {
+            if (sesionExpirada) {
+                // Prioritario sobre PARCIAL: aunque algún lote haya subido, lo que
+                // el productor necesita saber es que tiene que volver a entrar.
                 estado = ResultadoSincronizacion.Estado.SESION_EXPIRADA;
             } else if (fFallidos == 0) {
                 estado = ResultadoSincronizacion.Estado.EXITO;

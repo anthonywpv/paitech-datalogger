@@ -227,10 +227,12 @@ Vistas de análisis listas para el trabajo de Ciencia de Datos:
 
 ## 9. Pendientes conocidos
 
-- El logotipo (`res/drawable/ic_logo_paipay.xml`) es una reconstrucción vectorial de
-  trabajo. Para la entrega final, importar el SVG oficial de FADCOM con
-  *File → New → Vector Asset*.
+- Los logotipos ya son los oficiales (`images/Paipay-logo.png` y `images/Paipay-letra.png`,
+  exportados a `res/drawable-*/`). Se entregaron en PNG; si más adelante aparece el SVG
+  de FADCOM, conviene reimportarlo como Vector Asset para que escale sin pérdida.
 - La tipografía Studio Gothic Alternative no se incluye por licencia; la app usa la
   tipográfica del sistema. Si el equipo consigue la licencia, va en `res/font/`.
-- Aún no hay pruebas instrumentadas de la sincronización. `EvaluadorSemaforo` es Java
-  puro y se puede cubrir con JUnit sin emulador: es el mejor punto de partida.
+- La sincronización aún no tiene pruebas. `EvaluadorSemaforo` sí está cubierto
+  (`EvaluadorSemaforoTest`, 13 casos sobre los bordes de cada umbral); lo que falta es
+  `SincronizacionRepositorio`, que necesita un servidor HTTP simulado y una base Room
+  en memoria.

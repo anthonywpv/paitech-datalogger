@@ -16,13 +16,28 @@
         android:paddingTop="@dimen/espacio_xl"
         android:paddingBottom="@dimen/espacio_l">
 
-        <ImageView
-            android:id="@+id/logo"
-            android:layout_width="130dp"
-            android:layout_height="130dp"
+        <!--
+          El logotipo oficial lleva la palabra "aipay" en marrón #433116, el mismo
+          color con el que arranca el degradado del fondo. Por eso va sobre una
+          tarjeta blanca: es el tratamiento que exige la marca sobre fondo oscuro.
+        -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/espacio_l"
-            android:contentDescription="@string/app_name"
-            android:src="@drawable/ic_logo_paipay" />
+            app:cardBackgroundColor="@color/paipay_superficie"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="6dp"
+            app:contentPadding="@dimen/espacio_m">
+
+            <ImageView
+                android:id="@+id/logo"
+                android:layout_width="wrap_content"
+                android:layout_height="76dp"
+                android:adjustViewBounds="true"
+                android:contentDescription="@string/app_name"
+                android:src="@drawable/logo_paipay_completo" />
+        </com.google.android.material.card.MaterialCardView>
 
         <TextView
             android:layout_width="wrap_content"
