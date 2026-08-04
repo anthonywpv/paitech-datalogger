@@ -2,6 +2,7 @@ package ec.edu.espol.paipay.datalogger.ui.registro;
 
 import android.os.Bundle;
 import android.text.Editable;
+import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,13 +13,34 @@ import androidx.annotation.Nullable;
 
 import java.util.Locale;
 
+import ec.edu.espol.paipay.datalogger.R;
 import ec.edu.espol.paipay.datalogger.data.local.entity.RegistroBiometria;
 import ec.edu.espol.paipay.datalogger.databinding.FragmentFormBiometriaBinding;
+import ec.edu.espol.paipay.datalogger.util.FechaUtil;
 
-/** Formulario de biometría de Vieja Azul: fecha, piscina, peso, talla. */
+/**
+ * Biometría de Vieja Azul: UN PEZ POR REGISTRO.
+ *
+ * El productor mide un pez, escribe peso y talla, guarda, y el formulario se
+ * deja listo para el siguiente conservando fecha y piscina. Los peces medidos
+ * el mismo día forman un muestreo ("M-04082026") y el contador de arriba le
+ * dice cuántos lleva, que es la referencia que necesita en el borde de la
+ * piscina para saber si ya completó la muestra.
+ *
+ * El mismo fragmento sirve para corregir un registro existente: se abre con
+ * {@link #paraEditar(String)} desde el historial.
+ */
 public class BiometriaFragment extends FormularioBase {
 
     private FragmentFormBiometriaBinding vista;
+    private RegistroBiometria registroEnEdicion;
+
+    /** Abre el formulario para corregir un registro ya guardado. */
+    public static BiometriaFragment paraEditar(String uuid) {
+        BiometriaFragment f = new BiometriaFragment();
+        f.setArguments(argumentosDeEdicion(uuid));
+        return f;
+    }
 
     @Nullable
     @Override
@@ -43,8 +65,79 @@ public class BiometriaFragment extends FormularioBase {
         vista.campoPesoTexto.addTextChangedListener(recalcular);
         vista.campoTallaTexto.addTextChangedListener(recalcular);
 
+        // Al elegir piscina cambia el muestreo en curso, así que se recuenta.
+        vista.campoPiscinaTexto.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int a, int b, int c) { }
+            @Override public void onTextChanged(CharSequence s, int a, int b, int c) { }
+            @Override public void afterTextChanged(Editable s) { refrescarConteoMuestreo(); }
+        });
+
         vista.botonGuardar.setOnClickListener(v -> guardar());
         vista.botonLimpiar.setOnClickListener(v -> limpiar());
+
+        if (estaEditando()) {
+            prepararEdicion();
+        } else {
+            refrescarConteoMuestreo();
+        }
+    }
+
+    // ------------------------------------------------------------------
+    //  MODO CORRECCIÓN
+    // ------------------------------------------------------------------
+
+    private void prepararEdicion() {
+        vista.botonGuardar.setText(R.string.accion_guardar_cambios);
+        vista.botonLimpiar.setVisibility(View.GONE);
+
+        repositorio.biometriaPorUuid(uuidEnEdicion, registro -> {
+            if (registro == null || vista == null) return;
+            registroEnEdicion = registro;
+
+            fechaIso = registro.fechaMuestreo;
+            vista.campoFechaTexto.setText(FechaUtil.legibleDesdeIso(fechaIso));
+            vista.campoPiscinaTexto.setText(registro.piscina, false);
+            vista.campoPesoTexto.setText(String.valueOf(registro.pesoGramos));
+            vista.campoTallaTexto.setText(String.valueOf(registro.tallaCm));
+            vista.campoObservacionTexto.setText(registro.observacion);
+
+            vista.textoMuestreo.setText(R.string.edicion_aviso);
+            vista.textoMuestreo.setVisibility(View.VISIBLE);
+        });
+    }
+
+    // ------------------------------------------------------------------
+    //  MUESTREO EN CURSO
+    // ------------------------------------------------------------------
+
+    @Override
+    protected void onFechaCambiada() {
+        refrescarConteoMuestreo();
+    }
+
+    /**
+     * Muestra "Muestreo M-04082026 · P-01 — 7 peces medidos".
+     * Solo tiene sentido durante el alta: al corregir, ese hueco lo ocupa el
+     * aviso de que el registro volverá a quedar pendiente.
+     */
+    private void refrescarConteoMuestreo() {
+        if (vista == null || estaEditando()) return;
+
+        String piscina = codigoDePiscina(texto(vista.campoPiscinaTexto));
+        if (TextUtils.isEmpty(piscina)) {
+            vista.textoMuestreo.setVisibility(View.GONE);
+            return;
+        }
+
+        final String codigo = FechaUtil.codigoMuestreo(fechaIso);
+        repositorio.contarEnMuestreo(fechaIso, piscina, cuantos -> {
+            if (vista == null) return;
+            vista.textoMuestreo.setText(getString(
+                    cuantos == 1 ? R.string.biometria_muestreo_conteo
+                                 : R.string.biometria_muestreo_conteo_plural,
+                    codigo, piscina, cuantos));
+            vista.textoMuestreo.setVisibility(View.VISIBLE);
+        });
     }
 
     /**
@@ -80,15 +173,18 @@ public class BiometriaFragment extends FormularioBase {
         }
     }
 
+    // ------------------------------------------------------------------
+    //  GUARDADO
+    // ------------------------------------------------------------------
+
     private void guardar() {
         String piscina = codigoDePiscina(texto(vista.campoPiscinaTexto));
         boolean valido = exigir(vista.campoPiscina, piscina);
 
         double peso = numero(vista.campoPeso, texto(vista.campoPesoTexto), true);
         double talla = numero(vista.campoTalla, texto(vista.campoTallaTexto), true);
-        double cantidad = numero(vista.campoCantidad, texto(vista.campoCantidadTexto), false);
 
-        if (Double.isNaN(peso) || Double.isNaN(talla) || Double.isNaN(cantidad)) valido = false;
+        if (Double.isNaN(peso) || Double.isNaN(talla)) valido = false;
         if (!valido) return;
 
         if (peso <= 0) {
@@ -100,30 +196,50 @@ public class BiometriaFragment extends FormularioBase {
             return;
         }
 
+        if (registroEnEdicion != null) {
+            registroEnEdicion.fechaMuestreo = fechaIso;
+            registroEnEdicion.piscina = piscina;
+            registroEnEdicion.pesoGramos = peso;
+            registroEnEdicion.tallaCm = talla;
+            registroEnEdicion.observacion = texto(vista.campoObservacionTexto);
+
+            repositorio.actualizarBiometria(registroEnEdicion, id -> cerrarEdicion());
+            return;
+        }
+
         RegistroBiometria r = new RegistroBiometria();
         r.fechaMuestreo = fechaIso;
         r.piscina = piscina;
         r.pesoGramos = peso;
         r.tallaCm = talla;
-        r.cantidadMuestreada = esVacioOpcional(cantidad) ? 1 : (int) cantidad;
         r.observacion = texto(vista.campoObservacionTexto);
 
         repositorio.guardarBiometria(r, id -> {
-            avisarGuardado(String.format(Locale.US,
-                    "Piscina %s · %.1f g · %.1f cm", r.piscina, r.pesoGramos, r.tallaCm));
-            limpiar();
+            // No se avisa con un diálogo por cada pez: interrumpiría el ritmo de
+            // medir-escribir-guardar. La confirmación es el contador subiendo.
+            prepararSiguientePez();
         });
     }
 
-    private void limpiar() {
+    /** Deja el formulario listo para el pez siguiente, conservando el muestreo. */
+    private void prepararSiguientePez() {
+        if (vista == null) return;
         vista.campoPesoTexto.setText("");
         vista.campoTallaTexto.setText("");
-        vista.campoCantidadTexto.setText("");
         vista.campoObservacionTexto.setText("");
         vista.campoPeso.setError(null);
         vista.campoTalla.setError(null);
-        vista.campoCantidad.setError(null);
         vista.textoFactorCondicion.setVisibility(View.GONE);
+        vista.campoPesoTexto.requestFocus();
+        refrescarConteoMuestreo();
+    }
+
+    /** Vacía también la piscina: sirve para empezar un muestreo distinto. */
+    private void limpiar() {
+        prepararSiguientePez();
+        vista.campoPiscinaTexto.setText("", false);
+        vista.campoPiscina.setError(null);
+        vista.textoMuestreo.setVisibility(View.GONE);
     }
 
     @Override

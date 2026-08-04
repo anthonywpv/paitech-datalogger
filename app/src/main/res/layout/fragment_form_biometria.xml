@@ -30,13 +30,31 @@
                     android:src="@drawable/ic_pez"
                     app:tint="@color/paipay_verde_oscuro" />
 
-                <TextView
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="@dimen/espacio_m"
-                    android:text="Mide el peso y la talla de los peces de una piscina. No necesitas internet."
-                    android:textColor="@color/paipay_marron"
-                    android:textSize="14sp" />
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/biometria_ayuda"
+                        android:textColor="@color/paipay_marron"
+                        android:textSize="14sp" />
+
+                    <!-- Cuántos peces lleva medidos en este muestreo. Lo actualiza
+                         BiometriaFragment tras cada guardado. -->
+                    <TextView
+                        android:id="@+id/textoMuestreo"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/espacio_xs"
+                        android:textColor="@color/paipay_verde_oscuro"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:visibility="gone" />
+                </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
@@ -120,23 +138,6 @@
         </LinearLayout>
 
         <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/campoCantidad"
-            style="@style/Paipay.Campo"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/espacio_m"
-            android:hint="@string/campo_cantidad"
-            app:startIconDrawable="@drawable/ic_pez">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/campoCantidadTexto"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="number"
-                android:textSize="@dimen/texto_campo" />
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/campoObservacion"
             style="@style/Paipay.Campo"
             android:layout_width="match_parent"
@@ -170,7 +171,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/espacio_l"
-            android:text="@string/accion_guardar"
+            android:text="@string/accion_guardar_pez"
             app:icon="@drawable/ic_check" />
 
         <com.google.android.material.button.MaterialButton

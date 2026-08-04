@@ -61,7 +61,9 @@ public class MainActivity extends AppCompatActivity {
         });
 
         if (savedInstanceState == null) {
-            vista.navegacionInferior.setSelectedItemId(R.id.nav_registro);
+            // El semáforo es la pantalla de inicio: al abrir la app, lo primero
+            // que el productor tiene que ver es si alguna piscina está en rojo.
+            vista.navegacionInferior.setSelectedItemId(R.id.nav_semaforo);
         }
 
         // Si quedaron datos pendientes de una sesión anterior, se programa un

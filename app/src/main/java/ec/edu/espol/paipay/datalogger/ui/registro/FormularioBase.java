@@ -1,10 +1,12 @@
 package ec.edu.espol.paipay.datalogger.ui.registro;
 
 import android.content.Context;
+import android.os.Bundle;
 import android.text.TextUtils;
 import android.widget.ArrayAdapter;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.google.android.material.datepicker.MaterialDatePicker;
@@ -32,14 +34,42 @@ import ec.edu.espol.paipay.datalogger.util.FechaUtil;
  */
 public abstract class FormularioBase extends Fragment {
 
+    /** Clave del uuid a corregir. Ausente = alta de un registro nuevo. */
+    protected static final String ARG_UUID = "uuid";
+
     protected RegistroRepositorio repositorio;
     /** Fecha seleccionada en formato yyyy-MM-dd. */
     protected String fechaIso = FechaUtil.hoyIso();
+
+    /** null = alta; con valor = corrección de un registro existente. */
+    protected String uuidEnEdicion;
+
+    /** Argumentos para abrir cualquiera de los tres formularios en modo corrección. */
+    protected static Bundle argumentosDeEdicion(String uuid) {
+        Bundle args = new Bundle();
+        args.putString(ARG_UUID, uuid);
+        return args;
+    }
 
     @Override
     public void onAttach(@NonNull Context contexto) {
         super.onAttach(contexto);
         repositorio = new RegistroRepositorio(contexto);
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        uuidEnEdicion = getArguments() == null ? null : getArguments().getString(ARG_UUID);
+    }
+
+    protected boolean estaEditando() {
+        return uuidEnEdicion != null;
+    }
+
+    /** Vuelve a la pantalla desde la que se abrió la corrección. */
+    protected void cerrarEdicion() {
+        if (isAdded()) getParentFragmentManager().popBackStack();
     }
 
     // ---------------------- FECHA ----------------------
@@ -54,10 +84,17 @@ public abstract class FormularioBase extends Fragment {
             selector.addOnPositiveButtonClickListener(millis -> {
                 fechaIso = FechaUtil.iso(millis);
                 campo.setText(FechaUtil.legibleDesdeIso(fechaIso));
+                onFechaCambiada();
             });
             selector.show(getChildFragmentManager(), "selector_fecha");
         });
     }
+
+    /**
+     * Gancho para los formularios que muestran algo dependiente de la fecha.
+     * Biometría lo usa para recontar los peces del muestreo al cambiar de día.
+     */
+    protected void onFechaCambiada() { }
 
     // ---------------------- PISCINAS ----------------------
 

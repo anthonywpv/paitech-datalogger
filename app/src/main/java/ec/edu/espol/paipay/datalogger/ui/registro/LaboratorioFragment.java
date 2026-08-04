@@ -14,6 +14,7 @@ import java.util.Locale;
 import ec.edu.espol.paipay.datalogger.R;
 import ec.edu.espol.paipay.datalogger.data.local.entity.EnsayoLaboratorio;
 import ec.edu.espol.paipay.datalogger.databinding.FragmentFormLaboratorioBinding;
+import ec.edu.espol.paipay.datalogger.util.FechaUtil;
 
 /**
  * Formulario de ensayos de laboratorio.
@@ -25,6 +26,14 @@ import ec.edu.espol.paipay.datalogger.databinding.FragmentFormLaboratorioBinding
 public class LaboratorioFragment extends FormularioBase {
 
     private FragmentFormLaboratorioBinding vista;
+    private EnsayoLaboratorio ensayoEnEdicion;
+
+    /** Abre el formulario para corregir un ensayo ya guardado. */
+    public static LaboratorioFragment paraEditar(String uuid) {
+        LaboratorioFragment f = new LaboratorioFragment();
+        f.setArguments(argumentosDeEdicion(uuid));
+        return f;
+    }
 
     @Nullable
     @Override
@@ -55,6 +64,29 @@ public class LaboratorioFragment extends FormularioBase {
 
         vista.botonGuardar.setOnClickListener(v -> guardar());
         vista.botonLimpiar.setOnClickListener(v -> limpiar());
+
+        if (estaEditando()) prepararEdicion();
+    }
+
+    private void prepararEdicion() {
+        vista.botonGuardar.setText(R.string.accion_guardar_cambios);
+        vista.botonLimpiar.setVisibility(View.GONE);
+
+        repositorio.laboratorioPorUuid(uuidEnEdicion, ensayo -> {
+            if (ensayo == null || vista == null) return;
+            ensayoEnEdicion = ensayo;
+
+            fechaIso = ensayo.fechaMuestreo;
+            vista.campoFechaTexto.setText(FechaUtil.legibleDesdeIso(fechaIso));
+            vista.campoPiscinaTexto.setText(ensayo.piscina, false);
+            vista.campoTipoMuestraTexto.setText(ensayo.tipoMuestra, false);
+            vista.campoParametroTexto.setText(ensayo.parametro, false);
+            vista.campoValorTexto.setText(String.valueOf(ensayo.valor));
+            vista.campoUnidadTexto.setText(ensayo.unidad, false);
+            vista.campoCodigoMuestraTexto.setText(ensayo.codigoMuestra);
+            vista.campoLaboratorioTexto.setText(ensayo.laboratorio);
+            vista.campoObservacionTexto.setText(ensayo.observacion);
+        });
     }
 
     private void guardar() {
@@ -69,6 +101,21 @@ public class LaboratorioFragment extends FormularioBase {
         double valor = numero(vista.campoValor, texto(vista.campoValorTexto), true);
         if (Double.isNaN(valor)) valido = false;
         if (!valido) return;
+
+        if (ensayoEnEdicion != null) {
+            ensayoEnEdicion.fechaMuestreo = fechaIso;
+            ensayoEnEdicion.piscina = piscina;
+            ensayoEnEdicion.tipoMuestra = tipo;
+            ensayoEnEdicion.parametro = parametro;
+            ensayoEnEdicion.valor = valor;
+            ensayoEnEdicion.unidad = texto(vista.campoUnidadTexto);
+            ensayoEnEdicion.codigoMuestra = texto(vista.campoCodigoMuestraTexto);
+            ensayoEnEdicion.laboratorio = texto(vista.campoLaboratorioTexto);
+            ensayoEnEdicion.observacion = texto(vista.campoObservacionTexto);
+
+            repositorio.actualizarLaboratorio(ensayoEnEdicion, id -> cerrarEdicion());
+            return;
+        }
 
         EnsayoLaboratorio e = new EnsayoLaboratorio();
         e.fechaMuestreo = fechaIso;

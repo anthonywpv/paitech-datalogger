@@ -20,6 +20,7 @@ import ec.edu.espol.paipay.datalogger.domain.EstadoAlerta;
 import ec.edu.espol.paipay.datalogger.domain.EvaluadorSemaforo;
 import ec.edu.espol.paipay.datalogger.domain.ResultadoSemaforo;
 import ec.edu.espol.paipay.datalogger.ui.semaforo.EstiloSemaforo;
+import ec.edu.espol.paipay.datalogger.util.FechaUtil;
 
 /**
  * Formulario de calidad de agua.
@@ -31,6 +32,14 @@ import ec.edu.espol.paipay.datalogger.ui.semaforo.EstiloSemaforo;
 public class AguaFragment extends FormularioBase {
 
     private FragmentFormAguaBinding vista;
+    private RegistroAgua registroEnEdicion;
+
+    /** Abre el formulario para corregir una medición ya guardada. */
+    public static AguaFragment paraEditar(String uuid) {
+        AguaFragment f = new AguaFragment();
+        f.setArguments(argumentosDeEdicion(uuid));
+        return f;
+    }
 
     @Nullable
     @Override
@@ -58,6 +67,28 @@ public class AguaFragment extends FormularioBase {
 
         vista.botonGuardar.setOnClickListener(v -> guardar());
         vista.botonLimpiar.setOnClickListener(v -> limpiar());
+
+        if (estaEditando()) prepararEdicion();
+    }
+
+    // ---------------- MODO CORRECCIÓN ----------------
+
+    private void prepararEdicion() {
+        vista.botonGuardar.setText(R.string.accion_guardar_cambios);
+        vista.botonLimpiar.setVisibility(View.GONE);
+
+        repositorio.aguaPorUuid(uuidEnEdicion, registro -> {
+            if (registro == null || vista == null) return;
+            registroEnEdicion = registro;
+
+            fechaIso = registro.fechaMuestreo;
+            vista.campoFechaTexto.setText(FechaUtil.legibleDesdeIso(fechaIso));
+            vista.campoPiscinaTexto.setText(registro.piscina, false);
+            vista.campoTemperaturaTexto.setText(String.valueOf(registro.temperaturaC));
+            vista.campoOxigenoTexto.setText(String.valueOf(registro.oxigenoMgL));
+            vista.campoPhTexto.setText(registro.ph == null ? "" : String.valueOf(registro.ph));
+            vista.campoObservacionTexto.setText(registro.observacion);
+        });
     }
 
     // ---------------- VISTA PREVIA DEL SEMÁFORO ----------------
@@ -129,6 +160,18 @@ public class AguaFragment extends FormularioBase {
         }
         if (!esVacioOpcional(ph) && (ph < 0 || ph > 14)) {
             vista.campoPh.setError("El pH va de 0 a 14");
+            return;
+        }
+
+        if (registroEnEdicion != null) {
+            registroEnEdicion.fechaMuestreo = fechaIso;
+            registroEnEdicion.piscina = piscina;
+            registroEnEdicion.temperaturaC = t;
+            registroEnEdicion.oxigenoMgL = od;
+            registroEnEdicion.ph = esVacioOpcional(ph) ? null : ph;
+            registroEnEdicion.observacion = texto(vista.campoObservacionTexto);
+
+            repositorio.actualizarAgua(registroEnEdicion, id -> cerrarEdicion());
             return;
         }
 
