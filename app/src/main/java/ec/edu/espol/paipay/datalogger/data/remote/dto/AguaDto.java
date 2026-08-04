@@ -20,8 +20,9 @@ public class AguaDto {
     @SerializedName("observacion")    public String observacion;
     @SerializedName("registrado_por") public String registradoPor;
     @SerializedName("creado_en")      public String creadoEn;
+    @SerializedName("sincronizado_en")public String sincronizadoEn;
 
-    public static AguaDto desde(RegistroAgua r) {
+    public static AguaDto desde(RegistroAgua r, long momentoSubida) {
         AguaDto d = new AguaDto();
         d.uuid = r.uuid;
         d.fechaMuestreo = r.fechaMuestreo;
@@ -35,6 +36,24 @@ public class AguaDto {
         d.observacion = r.observacion;
         d.registradoPor = r.registradoPor;
         d.creadoEn = FechaUtil.isoUtc(r.creadoEn);
+        d.sincronizadoEn = FechaUtil.isoUtc(momentoSubida);
         return d;
+    }
+
+    /** Camino inverso: lo que devuelve Neon al refrescar el historial. */
+    public RegistroAgua aEntidad() {
+        RegistroAgua r = new RegistroAgua();
+        r.uuid = uuid == null ? "" : uuid;
+        r.fechaMuestreo = fechaMuestreo == null ? "" : fechaMuestreo;
+        r.piscina = piscina == null ? "" : piscina;
+        r.temperaturaC = temperaturaC;
+        r.oxigenoMgL = oxigenoMgL;
+        r.ph = ph;
+        r.observacion = observacion;
+        r.registradoPor = registradoPor;
+        r.creadoEn = FechaUtil.millisDesdeIsoUtc(creadoEn, System.currentTimeMillis());
+        r.sincronizado = true;
+        r.sincronizadoEn = FechaUtil.millisDesdeIsoUtc(sincronizadoEn, r.creadoEn);
+        return r;
     }
 }

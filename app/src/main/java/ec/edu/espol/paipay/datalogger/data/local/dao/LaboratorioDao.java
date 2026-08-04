@@ -3,7 +3,9 @@ package ec.edu.espol.paipay.datalogger.data.local.dao;
 import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
 import androidx.room.Insert;
+import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
+import androidx.room.Update;
 
 import java.util.List;
 
@@ -29,4 +31,16 @@ public interface LaboratorioDao {
 
     @Query("UPDATE ensayo_laboratorio SET sincronizado = 1, sincronizado_en = :momento WHERE uuid IN (:uuids)")
     void marcarSincronizados(List<String> uuids, long momento);
+
+    @Query("SELECT * FROM ensayo_laboratorio WHERE uuid = :uuid LIMIT 1")
+    EnsayoLaboratorio porUuid(String uuid);
+
+    @Update
+    void actualizar(EnsayoLaboratorio ensayo);
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    void insertarOReemplazar(List<EnsayoLaboratorio> ensayos);
+
+    @Query("SELECT uuid FROM ensayo_laboratorio")
+    List<String> todosLosUuids();
 }

@@ -1,0 +1,398 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 2,
+    "identityHash": "94599a8041b4ed7c382620b8976e3e76",
+    "entities": [
+      {
+        "tableName": "registro_biometria",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `uuid` TEXT NOT NULL, `fecha_muestreo` TEXT NOT NULL, `piscina` TEXT NOT NULL, `peso_g` REAL NOT NULL, `talla_cm` REAL NOT NULL, `observacion` TEXT, `registrado_por` TEXT, `creado_en` INTEGER NOT NULL, `sincronizado` INTEGER NOT NULL, `sincronizado_en` INTEGER)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "uuid",
+            "columnName": "uuid",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fechaMuestreo",
+            "columnName": "fecha_muestreo",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "piscina",
+            "columnName": "piscina",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "pesoGramos",
+            "columnName": "peso_g",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tallaCm",
+            "columnName": "talla_cm",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "observacion",
+            "columnName": "observacion",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "registradoPor",
+            "columnName": "registrado_por",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "creadoEn",
+            "columnName": "creado_en",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sincronizado",
+            "columnName": "sincronizado",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sincronizadoEn",
+            "columnName": "sincronizado_en",
+            "affinity": "INTEGER",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_registro_biometria_uuid",
+            "unique": true,
+            "columnNames": [
+              "uuid"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_registro_biometria_uuid` ON `${TABLE_NAME}` (`uuid`)"
+          },
+          {
+            "name": "index_registro_biometria_sincronizado",
+            "unique": false,
+            "columnNames": [
+              "sincronizado"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_registro_biometria_sincronizado` ON `${TABLE_NAME}` (`sincronizado`)"
+          },
+          {
+            "name": "index_registro_biometria_fecha_muestreo_piscina",
+            "unique": false,
+            "columnNames": [
+              "fecha_muestreo",
+              "piscina"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_registro_biometria_fecha_muestreo_piscina` ON `${TABLE_NAME}` (`fecha_muestreo`, `piscina`)"
+          }
+        ],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "registro_agua",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `uuid` TEXT NOT NULL, `fecha_muestreo` TEXT NOT NULL, `piscina` TEXT NOT NULL, `temperatura_c` REAL NOT NULL, `oxigeno_mg_l` REAL NOT NULL, `ph` REAL, `observacion` TEXT, `registrado_por` TEXT, `creado_en` INTEGER NOT NULL, `sincronizado` INTEGER NOT NULL, `sincronizado_en` INTEGER)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "uuid",
+            "columnName": "uuid",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fechaMuestreo",
+            "columnName": "fecha_muestreo",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "piscina",
+            "columnName": "piscina",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "temperaturaC",
+            "columnName": "temperatura_c",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "oxigenoMgL",
+            "columnName": "oxigeno_mg_l",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ph",
+            "columnName": "ph",
+            "affinity": "REAL",
+            "notNull": false
+          },
+          {
+            "fieldPath": "observacion",
+            "columnName": "observacion",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "registradoPor",
+            "columnName": "registrado_por",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "creadoEn",
+            "columnName": "creado_en",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sincronizado",
+            "columnName": "sincronizado",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sincronizadoEn",
+            "columnName": "sincronizado_en",
+            "affinity": "INTEGER",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_registro_agua_uuid",
+            "unique": true,
+            "columnNames": [
+              "uuid"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_registro_agua_uuid` ON `${TABLE_NAME}` (`uuid`)"
+          },
+          {
+            "name": "index_registro_agua_sincronizado",
+            "unique": false,
+            "columnNames": [
+              "sincronizado"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_registro_agua_sincronizado` ON `${TABLE_NAME}` (`sincronizado`)"
+          },
+          {
+            "name": "index_registro_agua_piscina",
+            "unique": false,
+            "columnNames": [
+              "piscina"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_registro_agua_piscina` ON `${TABLE_NAME}` (`piscina`)"
+          }
+        ],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "ensayo_laboratorio",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `uuid` TEXT NOT NULL, `fecha_muestreo` TEXT NOT NULL, `piscina` TEXT NOT NULL, `codigo_muestra` TEXT, `tipo_muestra` TEXT NOT NULL, `parametro` TEXT NOT NULL, `valor` REAL NOT NULL, `unidad` TEXT, `laboratorio` TEXT, `observacion` TEXT, `registrado_por` TEXT, `creado_en` INTEGER NOT NULL, `sincronizado` INTEGER NOT NULL, `sincronizado_en` INTEGER)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "uuid",
+            "columnName": "uuid",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fechaMuestreo",
+            "columnName": "fecha_muestreo",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "piscina",
+            "columnName": "piscina",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "codigoMuestra",
+            "columnName": "codigo_muestra",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "tipoMuestra",
+            "columnName": "tipo_muestra",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "parametro",
+            "columnName": "parametro",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "valor",
+            "columnName": "valor",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "unidad",
+            "columnName": "unidad",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "laboratorio",
+            "columnName": "laboratorio",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "observacion",
+            "columnName": "observacion",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "registradoPor",
+            "columnName": "registrado_por",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "creadoEn",
+            "columnName": "creado_en",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sincronizado",
+            "columnName": "sincronizado",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sincronizadoEn",
+            "columnName": "sincronizado_en",
+            "affinity": "INTEGER",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_ensayo_laboratorio_uuid",
+            "unique": true,
+            "columnNames": [
+              "uuid"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_ensayo_laboratorio_uuid` ON `${TABLE_NAME}` (`uuid`)"
+          },
+          {
+            "name": "index_ensayo_laboratorio_sincronizado",
+            "unique": false,
+            "columnNames": [
+              "sincronizado"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_ensayo_laboratorio_sincronizado` ON `${TABLE_NAME}` (`sincronizado`)"
+          }
+        ],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "piscina",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`codigo` TEXT NOT NULL, `nombre` TEXT, `area_m2` REAL, `activa` INTEGER NOT NULL, PRIMARY KEY(`codigo`))",
+        "fields": [
+          {
+            "fieldPath": "codigo",
+            "columnName": "codigo",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nombre",
+            "columnName": "nombre",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "areaM2",
+            "columnName": "area_m2",
+            "affinity": "REAL",
+            "notNull": false
+          },
+          {
+            "fieldPath": "activa",
+            "columnName": "activa",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "codigo"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      }
+    ],
+    "views": [],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '94599a8041b4ed7c382620b8976e3e76')"
+    ]
+  }
+}

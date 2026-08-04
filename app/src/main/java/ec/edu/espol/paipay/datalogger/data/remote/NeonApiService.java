@@ -35,6 +35,25 @@ public interface NeonApiService {
     @GET("piscina")
     Call<List<PiscinaDto>> listarPiscinas(@Query("activa") String activaEq);
 
+    // ------------------- LECTURA PARA EL HISTORIAL -------------------
+    //
+    // Alimentan el refresco del historial. El filtro va por registrado_por
+    // (el correo de la sesión) con la sintaxis de PostgREST: "eq.correo@dominio".
+    // RLS deja leer todo a cualquier autenticado, así que el recorte por usuario
+    // es una decisión de la pantalla, no una barrera de seguridad.
+
+    @GET("registro_biometria")
+    Call<List<BiometriaDto>> listarBiometria(@Query("registrado_por") String correoEq,
+                                             @Query("order") String orden);
+
+    @GET("registro_agua")
+    Call<List<AguaDto>> listarAgua(@Query("registrado_por") String correoEq,
+                                   @Query("order") String orden);
+
+    @GET("ensayo_laboratorio")
+    Call<List<LaboratorioDto>> listarLaboratorio(@Query("registrado_por") String correoEq,
+                                                 @Query("order") String orden);
+
     // ------------------- SUBIDA DE REGISTROS -------------------
 
     @POST("registro_biometria")

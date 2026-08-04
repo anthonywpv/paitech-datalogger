@@ -6,14 +6,26 @@ import androidx.room.Entity;
 import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
+import ec.edu.espol.paipay.datalogger.util.FechaUtil;
+
 /**
  * Registro de biometría de Vieja Azul (Andinoacara rivulatus) tomado en campo.
  * Corresponde a la actividad "Monitoreo y biometría de peces: medir talla y peso".
  *
+ * UNA FILA = UN PEZ. Antes la fila guardaba un peso y una talla junto a un
+ * "número de peces muestreados", lo que obligaba a promediar en campo y hacía
+ * imposible conocer la medida individual; sin medidas individuales no hay
+ * dispersión, y sin dispersión el factor de condición promedio engaña.
+ *
+ * Los peces medidos el mismo día forman un MUESTREO, identificado por
+ * FechaUtil.codigoMuestreo(fechaMuestreo) — "M-04082026". Ese código se deriva,
+ * no se guarda, para que no pueda quedar desfasado si se corrige la fecha.
+ *
  * Fuente del dato: IN SITU (productor o estudiante en la piscina).
  */
 @Entity(tableName = "registro_biometria",
-        indices = {@Index(value = "uuid", unique = true), @Index("sincronizado")})
+        indices = {@Index(value = "uuid", unique = true), @Index("sincronizado"),
+                   @Index({"fecha_muestreo", "piscina"})})
 public class RegistroBiometria {
 
     @PrimaryKey(autoGenerate = true)
@@ -33,17 +45,13 @@ public class RegistroBiometria {
     @ColumnInfo(name = "piscina")
     public String piscina = "";
 
-    /** Peso promedio del pez en gramos. */
+    /** Peso de ESTE pez en gramos. */
     @ColumnInfo(name = "peso_g")
     public double pesoGramos;
 
-    /** Talla (longitud total) en centímetros. */
+    /** Talla (longitud total) de ESTE pez en centímetros. */
     @ColumnInfo(name = "talla_cm")
     public double tallaCm;
-
-    /** Número de peces incluidos en la muestra. */
-    @ColumnInfo(name = "cantidad_muestreada")
-    public int cantidadMuestreada;
 
     @ColumnInfo(name = "observacion")
     public String observacion;
@@ -60,6 +68,11 @@ public class RegistroBiometria {
 
     @ColumnInfo(name = "sincronizado_en")
     public Long sincronizadoEn;
+
+    /** Muestreo al que pertenece este pez: "M-04082026". Derivado, no almacenado. */
+    public String codigoMuestreo() {
+        return FechaUtil.codigoMuestreo(fechaMuestreo);
+    }
 
     /**
      * Factor de condición de Fulton: K = 100 * peso(g) / talla(cm)^3.

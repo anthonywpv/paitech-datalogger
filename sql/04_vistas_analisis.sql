@@ -40,17 +40,44 @@ SELECT DISTINCT ON (piscina)
 FROM public.registro_agua
 ORDER BY piscina, creado_en DESC;
 
--- 2. Crecimiento por piscina: evolución del peso y la talla promedio.
+-- 2. Crecimiento por piscina: evolución del peso y la talla.
+--
+--    Desde que cada fila es UN PEZ, estas columnas dejaron de ser un promedio
+--    de promedios y pasaron a calcularse sobre las medidas individuales. Eso
+--    hace posible la desviación estándar, que es el dato que de verdad importa:
+--    dos piscinas con el mismo peso medio pero distinta dispersión están en
+--    situaciones muy diferentes — mucha dispersión suele indicar competencia
+--    por el alimento o siembra desigual.
 CREATE OR REPLACE VIEW public.v_crecimiento_mensual AS
 SELECT piscina,
        DATE_TRUNC('month', fecha_muestreo)::DATE AS mes,
-       COUNT(*)                    AS muestreos,
-       ROUND(AVG(peso_g), 2)       AS peso_promedio_g,
-       ROUND(AVG(talla_cm), 2)     AS talla_promedio_cm,
+       COUNT(DISTINCT codigo_muestreo) AS muestreos,
+       COUNT(*)                        AS peces_medidos,
+       ROUND(AVG(peso_g), 2)           AS peso_promedio_g,
+       ROUND(STDDEV_SAMP(peso_g), 2)   AS peso_desviacion_g,
+       ROUND(AVG(talla_cm), 2)         AS talla_promedio_cm,
+       ROUND(STDDEV_SAMP(talla_cm), 2) AS talla_desviacion_cm,
        ROUND(AVG(factor_condicion), 3) AS k_fulton_promedio
 FROM public.registro_biometria
 GROUP BY piscina, DATE_TRUNC('month', fecha_muestreo)
 ORDER BY piscina, mes;
+
+-- 2b. Un renglón por muestreo: lo que el productor midió en una jornada.
+CREATE OR REPLACE VIEW public.v_muestreo_biometria AS
+SELECT codigo_muestreo,
+       fecha_muestreo,
+       piscina,
+       COUNT(*)                        AS peces_medidos,
+       ROUND(AVG(peso_g), 2)           AS peso_promedio_g,
+       MIN(peso_g)                     AS peso_minimo_g,
+       MAX(peso_g)                     AS peso_maximo_g,
+       ROUND(STDDEV_SAMP(peso_g), 2)   AS peso_desviacion_g,
+       ROUND(AVG(talla_cm), 2)         AS talla_promedio_cm,
+       ROUND(AVG(factor_condicion), 3) AS k_fulton_promedio,
+       MIN(registrado_por)             AS registrado_por
+FROM public.registro_biometria
+GROUP BY codigo_muestreo, fecha_muestreo, piscina
+ORDER BY fecha_muestreo DESC, piscina;
 
 -- 3. CONSOLIDACIÓN: datos in situ + ensayos de laboratorio de la misma
 --    piscina y mes, en una sola fila lista para análisis.

@@ -3,7 +3,9 @@ package ec.edu.espol.paipay.datalogger.data.local.dao;
 import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
 import androidx.room.Insert;
+import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
+import androidx.room.Update;
 
 import java.util.List;
 
@@ -38,4 +40,16 @@ public interface AguaDao {
            "(SELECT MAX(r2.creado_en) FROM registro_agua r2 WHERE r2.piscina = r.piscina) " +
            "GROUP BY r.piscina ORDER BY r.piscina ASC")
     LiveData<List<RegistroAgua>> observarUltimaPorPiscina();
+
+    @Query("SELECT * FROM registro_agua WHERE uuid = :uuid LIMIT 1")
+    RegistroAgua porUuid(String uuid);
+
+    @Update
+    void actualizar(RegistroAgua registro);
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    void insertarOReemplazar(List<RegistroAgua> registros);
+
+    @Query("SELECT uuid FROM registro_agua")
+    List<String> todosLosUuids();
 }

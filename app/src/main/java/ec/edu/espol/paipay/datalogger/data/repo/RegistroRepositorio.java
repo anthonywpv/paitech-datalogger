@@ -70,7 +70,84 @@ public class RegistroRepositorio {
         });
     }
 
+    // ---------------------- EDICIÓN ----------------------
+
+    /**
+     * Corrige un registro ya guardado.
+     *
+     * Conserva el uuid y la fecha de creación original, y lo vuelve a marcar
+     * como PENDIENTE aunque ya estuviera sincronizado. Eso no duplica nada: el
+     * POST lleva Prefer: resolution=merge-duplicates, así que la próxima subida
+     * hace UPSERT sobre ese mismo uuid y actualiza la fila que ya existe en
+     * Neon. Es lo que permite arreglar un dato mal digitado de punta a punta.
+     */
+    public void actualizarBiometria(RegistroBiometria r, AlGuardar callback) {
+        AppExecutors.io().execute(() -> {
+            r.sincronizado = false;
+            r.sincronizadoEn = null;
+            db.biometriaDao().actualizar(r);
+            AppExecutors.enHiloPrincipal(() -> callback.listo(r.id));
+        });
+    }
+
+    public void actualizarAgua(RegistroAgua r, AlGuardar callback) {
+        AppExecutors.io().execute(() -> {
+            r.sincronizado = false;
+            r.sincronizadoEn = null;
+            db.aguaDao().actualizar(r);
+            AppExecutors.enHiloPrincipal(() -> callback.listo(r.id));
+        });
+    }
+
+    public void actualizarLaboratorio(EnsayoLaboratorio e, AlGuardar callback) {
+        AppExecutors.io().execute(() -> {
+            e.sincronizado = false;
+            e.sincronizadoEn = null;
+            db.laboratorioDao().actualizar(e);
+            AppExecutors.enHiloPrincipal(() -> callback.listo(e.id));
+        });
+    }
+
     // ---------------------- LECTURA ----------------------
+
+    public interface AlContar {
+        void listo(int cuantos);
+    }
+
+    /** Peces ya medidos en el muestreo en curso (misma fecha y misma piscina). */
+    public void contarEnMuestreo(String fechaIso, String piscina, AlContar callback) {
+        AppExecutors.io().execute(() -> {
+            int total = db.biometriaDao().contarEnMuestreo(fechaIso, piscina);
+            AppExecutors.enHiloPrincipal(() -> callback.listo(total));
+        });
+    }
+
+    /** Búsqueda puntual por uuid, para precargar el formulario de corrección. */
+    public interface AlBuscar<T> {
+        void listo(T registro);
+    }
+
+    public void biometriaPorUuid(String uuid, AlBuscar<RegistroBiometria> callback) {
+        AppExecutors.io().execute(() -> {
+            RegistroBiometria r = db.biometriaDao().porUuid(uuid);
+            AppExecutors.enHiloPrincipal(() -> callback.listo(r));
+        });
+    }
+
+    public void aguaPorUuid(String uuid, AlBuscar<RegistroAgua> callback) {
+        AppExecutors.io().execute(() -> {
+            RegistroAgua r = db.aguaDao().porUuid(uuid);
+            AppExecutors.enHiloPrincipal(() -> callback.listo(r));
+        });
+    }
+
+    public void laboratorioPorUuid(String uuid, AlBuscar<EnsayoLaboratorio> callback) {
+        AppExecutors.io().execute(() -> {
+            EnsayoLaboratorio e = db.laboratorioDao().porUuid(uuid);
+            AppExecutors.enHiloPrincipal(() -> callback.listo(e));
+        });
+    }
+
 
     public LiveData<List<RegistroBiometria>> biometrias() {
         return db.biometriaDao().observarTodos();

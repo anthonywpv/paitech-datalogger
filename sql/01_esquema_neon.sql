@@ -50,14 +50,23 @@ CREATE TABLE IF NOT EXISTS public.registro_biometria (
     -- Se rellena solo con el dueño del JWT: la app no puede suplantar a nadie
     user_id              TEXT          NOT NULL DEFAULT (auth.user_id()),
     fecha_muestreo       DATE          NOT NULL,
+    -- Muestreo al que pertenece el pez: todos los medidos el mismo día.
+    -- GENERATED ALWAYS: lo calcula Postgres, la app no lo envía. Es la forma de
+    -- garantizar que el muestreo que ve el productor y el que ve el análisis
+    -- sean el mismo, sin depender de que el teléfono lo calcule bien.
+    codigo_muestreo      TEXT GENERATED ALWAYS AS
+                         ('M-' || to_char(fecha_muestreo, 'DDMMYYYY')) STORED,
     piscina              TEXT          NOT NULL,
+    -- UNA FILA = UN PEZ. Antes había un cantidad_muestreada que obligaba a
+    -- promediar en campo; sin medidas individuales no hay dispersión, y sin
+    -- dispersión el factor de condición promedio engaña.
     peso_g               NUMERIC(10,2) NOT NULL CHECK (peso_g > 0),
     talla_cm             NUMERIC(10,2) NOT NULL CHECK (talla_cm > 0),
-    cantidad_muestreada  INTEGER       NOT NULL DEFAULT 1 CHECK (cantidad_muestreada > 0),
     factor_condicion     NUMERIC(10,3),
     observacion          TEXT,
     registrado_por       TEXT,
     creado_en            TIMESTAMPTZ   NOT NULL,
+    sincronizado_en      TIMESTAMPTZ,
     recibido_en          TIMESTAMPTZ   NOT NULL DEFAULT NOW()
 );
 
@@ -88,6 +97,7 @@ CREATE TABLE IF NOT EXISTS public.registro_agua (
     observacion     TEXT,
     registrado_por  TEXT,
     creado_en       TIMESTAMPTZ  NOT NULL,
+    sincronizado_en TIMESTAMPTZ,
     recibido_en     TIMESTAMPTZ  NOT NULL DEFAULT NOW()
 );
 
@@ -114,6 +124,7 @@ CREATE TABLE IF NOT EXISTS public.ensayo_laboratorio (
     observacion     TEXT,
     registrado_por  TEXT,
     creado_en       TIMESTAMPTZ   NOT NULL,
+    sincronizado_en TIMESTAMPTZ,
     recibido_en     TIMESTAMPTZ   NOT NULL DEFAULT NOW()
 );
 

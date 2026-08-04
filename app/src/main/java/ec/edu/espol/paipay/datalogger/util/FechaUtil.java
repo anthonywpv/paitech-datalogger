@@ -14,6 +14,7 @@ public final class FechaUtil {
     private static final SimpleDateFormat LEGIBLE = new SimpleDateFormat("dd 'de' MMMM 'de' yyyy", EC);
     private static final SimpleDateFormat CORTA = new SimpleDateFormat("dd/MM/yyyy", EC);
     private static final SimpleDateFormat CON_HORA = new SimpleDateFormat("dd/MM/yyyy HH:mm", EC);
+    private static final SimpleDateFormat DDMMYYYY = new SimpleDateFormat("ddMMyyyy", EC);
 
     /** Marca de tiempo en UTC lista para una columna timestamptz de Postgres. */
     private static final SimpleDateFormat ISO_UTC =
@@ -64,6 +65,64 @@ public final class FechaUtil {
      */
     public static String isoUtc(long millis) {
         return ISO_UTC.format(new Date(millis));
+    }
+
+    /**
+     * Código del muestreo al que pertenece un registro: "M-" + ddMMyyyy.
+     * Por ejemplo, todo lo medido el 4 de agosto de 2026 es "M-04082026".
+     *
+     * Se DERIVA de la fecha de muestreo, nunca se guarda en la base local: así
+     * no puede quedar desfasado si el productor corrige la fecha de un registro.
+     * Agrupa por la fecha en que se MIDIÓ, no por la de subida — si mide el lunes
+     * y sincroniza el miércoles, esos peces siguen siendo del muestreo del lunes,
+     * que es lo que importa para analizar el crecimiento.
+     *
+     * En Postgres la columna homóloga es GENERATED ALWAYS a partir de
+     * fecha_muestreo, de modo que servidor y app no pueden discrepar.
+     */
+    public static String codigoMuestreo(String fechaIso) {
+        try {
+            Date d = ISO.parse(fechaIso);
+            return d == null ? "M-" + fechaIso : "M-" + DDMMYYYY.format(d);
+        } catch (Exception e) {
+            return "M-" + fechaIso;
+        }
+    }
+
+    /**
+     * Inverso de isoUtc: convierte lo que devuelve Postgres en epoch millis.
+     *
+     * PostgREST entrega timestamptz como "2026-08-04T17:30:00+00:00" o con
+     * fracciones de segundo, así que se normaliza antes de parsear. Devuelve el
+     * valor de respaldo si el formato no se reconoce, para que un cambio en el
+     * servidor no tumbe el historial.
+     */
+    public static long millisDesdeIsoUtc(String texto, long respaldo) {
+        if (texto == null || texto.isEmpty()) return respaldo;
+        try {
+            String limpio = texto.trim().replace(' ', 'T');
+            int punto = limpio.indexOf('.');
+            if (punto > 0) {
+                // Se recorta la fracción de segundo: "…:00.123456+00:00" → "…:00+00:00"
+                int fin = punto + 1;
+                while (fin < limpio.length() && Character.isDigit(limpio.charAt(fin))) fin++;
+                limpio = limpio.substring(0, punto) + limpio.substring(fin);
+            }
+            if (limpio.endsWith("Z")) {
+                limpio = limpio.substring(0, limpio.length() - 1) + "+0000";
+            } else if (limpio.length() > 6 && limpio.charAt(limpio.length() - 3) == ':'
+                    && (limpio.charAt(limpio.length() - 6) == '+'
+                     || limpio.charAt(limpio.length() - 6) == '-')) {
+                limpio = limpio.substring(0, limpio.length() - 3)
+                       + limpio.substring(limpio.length() - 2);
+            } else {
+                limpio = limpio + "+0000";
+            }
+            Date d = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.US).parse(limpio);
+            return d == null ? respaldo : d.getTime();
+        } catch (Exception e) {
+            return respaldo;
+        }
     }
 
     public static long millisDesdeIso(String fechaIso) {

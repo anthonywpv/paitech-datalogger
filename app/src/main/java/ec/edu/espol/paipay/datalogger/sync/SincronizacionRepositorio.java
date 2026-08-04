@@ -113,7 +113,7 @@ public class SincronizacionRepositorio {
                     List<BiometriaDto> cuerpo = new ArrayList<>(lote.size());
                     List<String> uuids = new ArrayList<>(lote.size());
                     for (RegistroBiometria r : lote) {
-                        cuerpo.add(BiometriaDto.desde(r));
+                        cuerpo.add(BiometriaDto.desde(r, momento));
                         uuids.add(r.uuid);
                     }
                     try {
@@ -146,7 +146,7 @@ public class SincronizacionRepositorio {
                     List<AguaDto> cuerpo = new ArrayList<>(lote.size());
                     List<String> uuids = new ArrayList<>(lote.size());
                     for (RegistroAgua r : lote) {
-                        cuerpo.add(AguaDto.desde(r));
+                        cuerpo.add(AguaDto.desde(r, momento));
                         uuids.add(r.uuid);
                     }
                     try {
@@ -179,7 +179,7 @@ public class SincronizacionRepositorio {
                     List<LaboratorioDto> cuerpo = new ArrayList<>(lote.size());
                     List<String> uuids = new ArrayList<>(lote.size());
                     for (EnsayoLaboratorio e : lote) {
-                        cuerpo.add(LaboratorioDto.desde(e));
+                        cuerpo.add(LaboratorioDto.desde(e, momento));
                         uuids.add(e.uuid);
                     }
                     try {
