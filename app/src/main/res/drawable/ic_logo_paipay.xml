@@ -1,0 +1,22 @@
+<!--
+  Símbolo de la marca Paipay (letra "P" formada por 3 semillas del fruto paipay:
+  Unión, Perseverancia y Compromiso; con hoja interior por ley de cierre Gestalt).
+  Reconstrucción vectorial de trabajo. Para la entrega final reemplazar por el
+  SVG oficial entregado por FADCOM importándolo con Vector Asset Studio.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp" android:height="120dp"
+    android:viewportWidth="120" android:viewportHeight="120">
+
+    <!-- Tallo / descendente de la P -->
+    <path android:fillColor="#95B53D"
+        android:pathData="M24,26 m0,0 a12,12 0 0 1 24,0 l0,72 a12,12 0 0 1 -24,0 z" />
+
+    <!-- Bucle superior (semillas) -->
+    <path android:fillColor="#AEBD38"
+        android:pathData="M46,14 h22 a30,30 0 0 1 0,60 h-22 a30,30 0 0 1 0,-60 z" />
+
+    <!-- Hoja interior (espacio negativo) -->
+    <path android:fillColor="#FAFAF6"
+        android:pathData="M52,26 C70,28 82,38 84,58 C64,56 54,46 52,26 z" />
+</vector>

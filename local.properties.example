@@ -1,0 +1,19 @@
+# =============================================================================
+#  Copiar este archivo como  local.properties  (NO se sube a git)
+# =============================================================================
+# sdk.dir lo genera Android Studio automáticamente al abrir el proyecto:
+# sdk.dir=C\:\\Users\\TU_USUARIO\\AppData\\Local\\Android\\Sdk
+
+# -----------------------------------------------------------------------------
+#  NEON — Estas dos URL se copian de la consola de Neon (console.neon.tech)
+# -----------------------------------------------------------------------------
+
+# Página "Data API" → pestaña API → campo "API URL". Debe terminar en /rest/v1/
+NEON_DATA_API_URL=https://ep-xxxxx.apirest.us-east-2.aws.neon.tech/neondb/rest/v1/
+
+# Página "Auth" → pestaña Configuration → campo "Auth URL". Debe terminar en /auth/
+NEON_AUTH_URL=https://ep-xxxxx.neonauth.us-east-2.aws.neon.tech/neondb/auth/
+
+# Origen declarado en las peticiones a Neon Auth. Debe estar en la lista de
+# "Trusted origins" / CORS de la consola de Neon.
+NEON_ORIGIN=https://paipay.espol.edu.ec

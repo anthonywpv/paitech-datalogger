@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="tipos_muestra">
+        <item>Agua de piscina</item>
+        <item>Suelo</item>
+        <item>Humus de lombriz</item>
+        <item>Abono orgánico</item>
+        <item>Alimento balanceado</item>
+    </string-array>
+
+    <string-array name="parametros_laboratorio">
+        <item>Nitrógeno total</item>
+        <item>Fósforo disponible</item>
+        <item>Potasio</item>
+        <item>Materia orgánica</item>
+        <item>pH</item>
+        <item>Conductividad eléctrica</item>
+        <item>Amonio (NH4+)</item>
+        <item>Nitrito (NO2-)</item>
+        <item>Nitrato (NO3-)</item>
+        <item>Dureza total</item>
+        <item>Alcalinidad</item>
+        <item>Proteína cruda</item>
+    </string-array>
+
+    <string-array name="unidades_laboratorio">
+        <item>mg/L</item>
+        <item>ppm</item>
+        <item>%</item>
+        <item>µS/cm</item>
+        <item>meq/100g</item>
+        <item>adimensional</item>
+    </string-array>
+</resources>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="?android:attr/colorBackground">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/barraHerramientas"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@drawable/fondo_encabezado"
+        app:menu="@menu/menu_superior"
+        app:title="@string/app_name"
+        app:titleTextColor="@color/blanco"
+        app:subtitleTextColor="#D8E3BE" />
+
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/contenedor"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/navegacionInferior"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/paipay_superficie"
+        app:elevation="12dp"
+        app:labelVisibilityMode="labeled"
+        app:itemTextColor="@color/selector_nav"
+        app:itemIconTint="@color/selector_nav"
+        app:menu="@menu/menu_inferior" />
+
+</LinearLayout>

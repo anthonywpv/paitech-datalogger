@@ -1,0 +1,41 @@
+package ec.edu.espol.paipay.datalogger.data.local.dao;
+
+import androidx.lifecycle.LiveData;
+import androidx.room.Dao;
+import androidx.room.Insert;
+import androidx.room.Query;
+
+import java.util.List;
+
+import ec.edu.espol.paipay.datalogger.data.local.entity.RegistroAgua;
+
+@Dao
+public interface AguaDao {
+
+    @Insert
+    long insertar(RegistroAgua registro);
+
+    @Query("SELECT * FROM registro_agua ORDER BY creado_en DESC")
+    LiveData<List<RegistroAgua>> observarTodos();
+
+    @Query("SELECT * FROM registro_agua WHERE sincronizado = 0 ORDER BY creado_en ASC")
+    List<RegistroAgua> pendientes();
+
+    @Query("SELECT COUNT(*) FROM registro_agua WHERE sincronizado = 0")
+    int contarPendientes();
+
+    @Query("SELECT COUNT(*) FROM registro_agua WHERE sincronizado = 0")
+    LiveData<Integer> observarPendientes();
+
+    @Query("UPDATE registro_agua SET sincronizado = 1, sincronizado_en = :momento WHERE uuid IN (:uuids)")
+    void marcarSincronizados(List<String> uuids, long momento);
+
+    /**
+     * Última medición de cada piscina. Es la consulta que alimenta el
+     * Semáforo de Alertas: una fila por piscina, la más reciente.
+     */
+    @Query("SELECT * FROM registro_agua r WHERE r.creado_en = " +
+           "(SELECT MAX(r2.creado_en) FROM registro_agua r2 WHERE r2.piscina = r.piscina) " +
+           "GROUP BY r.piscina ORDER BY r.piscina ASC")
+    LiveData<List<RegistroAgua>> observarUltimaPorPiscina();
+}

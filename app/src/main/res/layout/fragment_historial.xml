@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="@dimen/espacio_m">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/historial_titulo"
+            android:textColor="@color/paipay_marron"
+            android:textSize="@dimen/texto_titulo"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/textoConteo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/paipay_gris_bajo"
+            android:textSize="14sp" />
+    </LinearLayout>
+
+    <com.google.android.material.chip.ChipGroup
+        android:id="@+id/grupoFiltros"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/espacio_s"
+        app:singleSelection="true"
+        app:selectionRequired="true">
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/filtroTodos"
+            style="@style/Widget.Material3.Chip.Filter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="@string/filtro_todos" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/filtroPendientes"
+            style="@style/Widget.Material3.Chip.Filter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/filtro_pendientes" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/filtroSincronizados"
+            style="@style/Widget.Material3.Chip.Filter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/filtro_sincronizados" />
+    </com.google.android.material.chip.ChipGroup>
+
+    <TextView
+        android:id="@+id/textoVacio"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/espacio_m"
+        android:background="@drawable/chip_neutro"
+        android:padding="@dimen/espacio_l"
+        android:text="@string/historial_vacio"
+        android:textColor="@color/paipay_marron"
+        android:textSize="15sp"
+        android:visibility="gone" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/lista"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="@dimen/espacio_m"
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:paddingBottom="@dimen/espacio_l" />
+</LinearLayout>

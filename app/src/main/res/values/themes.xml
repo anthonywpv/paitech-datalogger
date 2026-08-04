@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <style name="Theme.Paipay" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/paipay_verde_oscuro</item>
+        <item name="colorOnPrimary">@color/blanco</item>
+        <item name="colorPrimaryContainer">@color/paipay_verde_claro</item>
+        <item name="colorOnPrimaryContainer">@color/paipay_marron</item>
+
+        <item name="colorSecondary">@color/paipay_marron</item>
+        <item name="colorOnSecondary">@color/blanco</item>
+        <item name="colorSecondaryContainer">@color/paipay_verde_claro</item>
+        <item name="colorOnSecondaryContainer">@color/paipay_marron</item>
+
+        <item name="colorSurface">@color/paipay_superficie</item>
+        <item name="colorOnSurface">@color/paipay_marron</item>
+        <item name="android:colorBackground">@color/paipay_fondo</item>
+        <item name="colorOutline">@color/paipay_borde</item>
+        <item name="colorError">@color/semaforo_rojo</item>
+
+        <item name="android:statusBarColor">@color/paipay_marron</item>
+        <item name="android:navigationBarColor">@color/paipay_superficie</item>
+        <item name="materialCardViewStyle">@style/Paipay.Card</item>
+    </style>
+
+    <style name="Theme.Paipay.Splash" parent="Theme.Paipay">
+        <item name="android:windowBackground">@color/paipay_marron</item>
+        <item name="android:statusBarColor">@color/paipay_marron</item>
+    </style>
+
+    <!-- ===================== COMPONENTES ===================== -->
+    <style name="Paipay.Card" parent="Widget.Material3.CardView.Elevated">
+        <item name="cardCornerRadius">@dimen/radio_tarjeta</item>
+        <item name="cardElevation">2dp</item>
+        <item name="cardBackgroundColor">@color/paipay_superficie</item>
+        <item name="contentPadding">@dimen/espacio_m</item>
+    </style>
+
+    <!-- Botón principal: alto y de gran superficie táctil, pensado para
+         productores que usan el celular en campo, con guantes o al sol. -->
+    <style name="Paipay.Boton.Principal" parent="Widget.Material3.Button">
+        <item name="android:minHeight">@dimen/alto_boton</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:letterSpacing">0.01</item>
+        <item name="backgroundTint">@color/paipay_verde_oscuro</item>
+        <item name="android:textColor">@color/blanco</item>
+        <item name="cornerRadius">16dp</item>
+        <item name="iconGravity">textStart</item>
+        <item name="iconPadding">12dp</item>
+        <item name="iconTint">@color/blanco</item>
+    </style>
+
+    <style name="Paipay.Boton.Secundario" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="android:minHeight">52dp</item>
+        <item name="android:textSize">16sp</item>
+        <item name="strokeColor">@color/paipay_marron</item>
+        <item name="android:textColor">@color/paipay_marron</item>
+        <item name="cornerRadius">16dp</item>
+    </style>
+
+    <style name="Paipay.Campo" parent="Widget.Material3.TextInputLayout.OutlinedBox">
+        <item name="boxCornerRadiusTopStart">14dp</item>
+        <item name="boxCornerRadiusTopEnd">14dp</item>
+        <item name="boxCornerRadiusBottomStart">14dp</item>
+        <item name="boxCornerRadiusBottomEnd">14dp</item>
+        <item name="boxStrokeColor">@color/paipay_verde_oscuro</item>
+        <item name="hintTextColor">@color/paipay_verde_oscuro</item>
+        <item name="android:textColorHint">@color/paipay_gris_bajo</item>
+        <item name="startIconTint">@color/paipay_verde_oscuro</item>
+    </style>
+
+    <style name="Paipay.Campo.Menu" parent="Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+        <item name="boxCornerRadiusTopStart">14dp</item>
+        <item name="boxCornerRadiusTopEnd">14dp</item>
+        <item name="boxCornerRadiusBottomStart">14dp</item>
+        <item name="boxCornerRadiusBottomEnd">14dp</item>
+        <item name="boxStrokeColor">@color/paipay_verde_oscuro</item>
+        <item name="hintTextColor">@color/paipay_verde_oscuro</item>
+    </style>
+
+    <style name="Paipay.Titulo.Seccion" parent="">
+        <item name="android:textSize">@dimen/texto_titulo</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/paipay_marron</item>
+    </style>
+
+    <style name="Paipay.Etiqueta" parent="">
+        <item name="android:textSize">13sp</item>
+        <item name="android:textColor">@color/paipay_gris_bajo</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:letterSpacing">0.06</item>
+    </style>
+</resources>

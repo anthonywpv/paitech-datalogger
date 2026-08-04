@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Paipay DataLogger</string>
+    <string name="app_subtitulo">Recinto Paipayales · Santa Lucía</string>
+
+    <!-- Login -->
+    <string name="login_titulo">Bienvenido</string>
+    <string name="login_mensaje">Ingresa una sola vez. La app recordará tu sesión aunque no tengas internet.</string>
+    <string name="login_usuario">Usuario</string>
+    <string name="login_clave">Contraseña</string>
+    <string name="login_entrar">Entrar</string>
+    <string name="login_error_vacio">Escribe tu usuario y tu contraseña</string>
+    <string name="login_error_credenciales">Usuario o contraseña incorrectos</string>
+    <string name="login_error_sin_internet">Necesitas internet solo para este primer ingreso</string>
+    <string name="login_verificando">Verificando…</string>
+
+    <!-- Navegación -->
+    <string name="nav_registro">Registrar</string>
+    <string name="nav_semaforo">Semáforo</string>
+    <string name="nav_historial">Historial</string>
+    <string name="nav_sincronizar">Sincronizar</string>
+
+    <!-- Registro -->
+    <string name="registro_titulo">¿Qué vas a registrar?</string>
+    <string name="tab_biometria">Peces</string>
+    <string name="tab_agua">Agua</string>
+    <string name="tab_laboratorio">Laboratorio</string>
+
+    <string name="campo_fecha">Fecha</string>
+    <string name="campo_piscina">Piscina</string>
+    <string name="campo_peso">Peso (g)</string>
+    <string name="campo_talla">Talla (cm)</string>
+    <string name="campo_cantidad">N.° de peces muestreados</string>
+    <string name="campo_temperatura">Temperatura (°C)</string>
+    <string name="campo_oxigeno">Oxígeno disuelto (mg/L)</string>
+    <string name="campo_ph">pH</string>
+    <string name="campo_observacion">Observación (opcional)</string>
+    <string name="campo_tipo_muestra">Tipo de muestra</string>
+    <string name="campo_parametro">Parámetro analizado</string>
+    <string name="campo_valor">Valor</string>
+    <string name="campo_unidad">Unidad</string>
+    <string name="campo_laboratorio">Laboratorio / responsable</string>
+    <string name="campo_codigo_muestra">Código de muestra</string>
+
+    <string name="accion_guardar">Guardar registro</string>
+    <string name="accion_limpiar">Limpiar</string>
+    <string name="guardado_ok">Registro guardado en el teléfono</string>
+    <string name="guardado_ok_detalle">Se guardó sin necesidad de internet. Sincronízalo cuando tengas señal.</string>
+    <string name="error_campo_obligatorio">Este dato es obligatorio</string>
+    <string name="error_numero_invalido">Escribe un número válido</string>
+
+    <!-- Semáforo -->
+    <string name="semaforo_titulo">Semáforo de alertas</string>
+    <string name="semaforo_descripcion">Estado de cada piscina según la última medición de temperatura y oxígeno disuelto.</string>
+    <string name="semaforo_sin_datos">Aún no hay mediciones de agua registradas.</string>
+    <string name="semaforo_verde_texto">ÓPTIMO</string>
+    <string name="semaforo_amarillo_texto">PRECAUCIÓN</string>
+    <string name="semaforo_rojo_texto">CRÍTICO</string>
+    <string name="semaforo_gris_texto">SIN DATOS</string>
+
+    <!-- Historial -->
+    <string name="historial_titulo">Historial de registros</string>
+    <string name="historial_vacio">Todavía no has registrado datos.</string>
+    <string name="filtro_todos">Todos</string>
+    <string name="filtro_pendientes">Pendientes</string>
+    <string name="filtro_sincronizados">Sincronizados</string>
+
+    <!-- Sincronización -->
+    <string name="sync_titulo">Sincronización</string>
+    <string name="sync_boton">Sincronizar</string>
+    <string name="sync_dialogo_titulo">Antes de sincronizar</string>
+    <string name="sync_dialogo_encabezado">Antes de sincronizar, asegúrate de tener una conexión de Internet estable. Se van a subir los siguientes datos a la Base de Datos principal:</string>
+    <string name="sync_dialogo_confirmar">Sí, subir datos</string>
+    <string name="sync_dialogo_cancelar">Ahora no</string>
+    <string name="sync_sin_pendientes">No hay datos pendientes por subir. Todo está al día.</string>
+    <string name="sync_sin_internet">No se detecta conexión a Internet. Tus datos siguen guardados en el teléfono.</string>
+    <string name="sync_en_proceso">Subiendo datos a la base principal…</string>
+    <string name="sync_exito">Sincronización completada</string>
+    <string name="sync_parcial">Sincronización incompleta</string>
+    <string name="sync_error">No se pudo completar la sincronización. Tus datos NO se han perdido.</string>
+    <string name="sync_sesion_expirada">Tu sesión caducó en el servidor. Cierra sesión y vuelve a entrar con tu usuario y contraseña. Tus datos siguen guardados en el teléfono.</string>
+    <string name="login_usuario_email">Correo electrónico</string>
+    <string name="sync_estado_conectado">Conectado a Internet</string>
+    <string name="sync_estado_sin_conexion">Sin conexión a Internet</string>
+    <string name="sync_ultima">Última sincronización: %1$s</string>
+    <string name="sync_nunca">Nunca sincronizado</string>
+
+    <string name="etiqueta_pendiente">Pendiente</string>
+    <string name="etiqueta_sincronizado">Sincronizado</string>
+
+    <string name="menu_cerrar_sesion">Cerrar sesión</string>
+    <string name="cerrar_sesion_pregunta">¿Cerrar sesión? Los datos aún no sincronizados se conservan en el teléfono.</string>
+    <string name="aceptar">Aceptar</string>
+    <string name="cancelar">Cancelar</string>
+</resources>

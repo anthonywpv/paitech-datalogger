@@ -1,0 +1,5 @@
+-keepattributes Signature
+-keepattributes *Annotation*
+-keep class ec.edu.espol.paipay.datalogger.data.remote.dto.** { *; }
+-dontwarn okhttp3.**
+-dontwarn retrofit2.**

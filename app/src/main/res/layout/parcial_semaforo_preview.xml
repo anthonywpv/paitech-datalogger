@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/tarjetaPreview"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:visibility="gone"
+    app:cardElevation="0dp"
+    app:strokeWidth="2dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <View
+                android:id="@+id/puntoPreview"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:background="@drawable/punto_gris" />
+
+            <TextView
+                android:id="@+id/textoEstadoPreview"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/espacio_s"
+                android:layout_weight="1"
+                android:text="@string/semaforo_gris_texto"
+                android:textColor="@color/paipay_marron"
+                android:textSize="17sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/textoDiagnosticoPreview"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/espacio_s"
+            android:textColor="@color/paipay_gris_bajo"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/textoAccionPreview"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/espacio_xs"
+            android:textColor="@color/paipay_marron"
+            android:textSize="14sp"
+            android:textStyle="italic" />
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

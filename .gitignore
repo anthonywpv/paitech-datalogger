@@ -1,0 +1,39 @@
+# ===========================================================================
+#  Paipay DataLogger — archivos que NO deben entrar al repositorio
+# ===========================================================================
+
+# --- CREDENCIALES (lo más importante) --------------------------------------
+# Contiene NEON_AUTH_URL, NEON_DATA_API_URL y la ruta del SDK.
+# Si esto llega a GitHub, tus endpoints de Neon quedan públicos.
+local.properties
+
+# --- Compilación ------------------------------------------------------------
+# **/build/ cubre también /app/build, que es el pesado de verdad.
+**/build/
+.gradle/
+.cxx/
+.externalNativeBuild/
+/captures/
+*.apk
+*.aab
+*.ap_
+*.dex
+*.class
+
+# --- Firma de la app --------------------------------------------------------
+*.jks
+*.keystore
+
+# --- Android Studio / IntelliJ ----------------------------------------------
+*.iml
+.idea/
+!.idea/codeStyles/
+!.idea/inspectionProfiles/
+
+# --- Sistema operativo ------------------------------------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Registros --------------------------------------------------------------
+*.log

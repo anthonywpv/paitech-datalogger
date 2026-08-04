@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="espacio_xs">4dp</dimen>
+    <dimen name="espacio_s">8dp</dimen>
+    <dimen name="espacio_m">16dp</dimen>
+    <dimen name="espacio_l">24dp</dimen>
+    <dimen name="espacio_xl">32dp</dimen>
+    <dimen name="radio_tarjeta">18dp</dimen>
+    <dimen name="alto_boton">60dp</dimen>
+    <dimen name="texto_campo">18sp</dimen>
+    <dimen name="texto_titulo">22sp</dimen>
+    <dimen name="icono_grande">48dp</dimen>
+</resources>
