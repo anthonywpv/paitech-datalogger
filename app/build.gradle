@@ -54,6 +54,13 @@ android {
         viewBinding true
         buildConfig true
     }
+
+    sourceSets {
+        // MigrationTestHelper lee los esquemas exportados desde los assets del
+        // APK de pruebas: es lo que le permite validar que la migración deja la
+        // base exactamente como Room la espera.
+        androidTest.assets.srcDirs += files("$projectDir/schemas".toString())
+    }
 }
 
 dependencies {
@@ -86,4 +93,6 @@ dependencies {
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.2.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
+    // Prueba de la migración de la base local sobre un dispositivo real.
+    androidTestImplementation 'androidx.room:room-testing:2.6.1'
 }

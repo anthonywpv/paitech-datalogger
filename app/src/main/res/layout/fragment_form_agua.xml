@@ -34,7 +34,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="@dimen/espacio_m"
-                    android:text="Estos datos alimentan el semáforo de alertas. Mide de preferencia temprano en la mañana."
+                    android:text="@string/agua_ayuda"
                     android:textColor="@color/paipay_marron"
                     android:textSize="14sp" />
             </LinearLayout>
