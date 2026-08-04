@@ -68,10 +68,10 @@ public class HistorialViewModel extends AndroidViewModel {
         for (RegistroBiometria r : biometrias) {
             if (!pasaFiltro(r.sincronizado, actual)) continue;
             items.add(new ItemHistorial(
-                    ItemHistorial.Tipo.BIOMETRIA,
+                    ItemHistorial.Tipo.BIOMETRIA, r.uuid,
                     "Biometría · " + r.piscina,
-                    String.format(Locale.US, "%.1f g   ·   %.1f cm   ·   %d pez(ces)",
-                            r.pesoGramos, r.tallaCm, r.cantidadMuestreada),
+                    String.format(Locale.US, "%.1f g   ·   %.1f cm   ·   K %.2f",
+                            r.pesoGramos, r.tallaCm, r.factorCondicion()),
                     r.fechaMuestreo, r.creadoEn, r.sincronizado));
         }
 
@@ -79,7 +79,7 @@ public class HistorialViewModel extends AndroidViewModel {
             if (!pasaFiltro(r.sincronizado, actual)) continue;
             String ph = r.ph == null ? "" : String.format(Locale.US, "   ·   pH %.1f", r.ph);
             items.add(new ItemHistorial(
-                    ItemHistorial.Tipo.AGUA,
+                    ItemHistorial.Tipo.AGUA, r.uuid,
                     "Agua · " + r.piscina,
                     String.format(Locale.US, "%.1f °C   ·   %.1f mg/L%s",
                             r.temperaturaC, r.oxigenoMgL, ph),
@@ -90,15 +90,47 @@ public class HistorialViewModel extends AndroidViewModel {
             if (!pasaFiltro(e.sincronizado, actual)) continue;
             String unidad = TextUtils.isEmpty(e.unidad) ? "" : " " + e.unidad;
             items.add(new ItemHistorial(
-                    ItemHistorial.Tipo.LABORATORIO,
+                    ItemHistorial.Tipo.LABORATORIO, e.uuid,
                     "Laboratorio · " + e.piscina,
                     String.format(Locale.US, "%s: %.2f%s   ·   %s",
                             e.parametro, e.valor, unidad, e.tipoMuestra),
                     e.fechaMuestreo, e.creadoEn, e.sincronizado));
         }
 
-        Collections.sort(items, (a, b) -> Long.compare(b.creadoEn, a.creadoEn));
-        combinado.setValue(items);
+        combinado.setValue(agruparPorMuestreo(items));
+    }
+
+    /**
+     * Ordena de lo más reciente a lo más antiguo y mete un encabezado cada vez
+     * que cambia el muestreo.
+     *
+     * El orden primario es la FECHA DE MUESTREO, no la de captura: los muestreos
+     * tienen que aparecer en el orden en que ocurrieron en la piscina. Dentro de
+     * cada muestreo sí manda creadoEn, para que el último pez medido quede
+     * arriba y el productor vea de inmediato lo que acaba de registrar.
+     */
+    // Visible para el test: es Java puro y se puede cubrir sin emulador.
+    static List<ItemHistorial> agruparPorMuestreo(List<ItemHistorial> items) {
+        Collections.sort(items, (a, b) -> {
+            int porFecha = b.fechaMuestreo.compareTo(a.fechaMuestreo);
+            return porFecha != 0 ? porFecha : Long.compare(b.creadoEn, a.creadoEn);
+        });
+
+        List<ItemHistorial> conEncabezados = new ArrayList<>(items.size() + 8);
+        int i = 0;
+        while (i < items.size()) {
+            String muestreo = items.get(i).codigoMuestreo();
+
+            int fin = i;
+            while (fin < items.size() && items.get(fin).codigoMuestreo().equals(muestreo)) {
+                fin++;
+            }
+
+            conEncabezados.add(ItemHistorial.encabezado(items.get(i).fechaMuestreo, fin - i));
+            conEncabezados.addAll(items.subList(i, fin));
+            i = fin;
+        }
+        return conEncabezados;
     }
 
     private boolean pasaFiltro(boolean sincronizado, Filtro filtro) {

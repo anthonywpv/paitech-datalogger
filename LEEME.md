@@ -40,6 +40,7 @@ El dato **nunca se borra del teléfono**: sincronizar es copiar, no mover.
 | Tarea | Implementación |
 |---|---|
 | **Diseño de Interfaz Intuitiva (UI/UX)** — formularios de fecha, piscina, peso, talla y agua | `ui/registro/` + `res/layout/fragment_form_*.xml` |
+| **Biometría individual** — un registro por pez, agrupados en muestreos por día | `ui/registro/BiometriaFragment.java`, `util/FechaUtil.codigoMuestreo()` |
 | **Sistema de Sincronización** — de base local a remota al detectar internet | `sync/SincronizacionRepositorio.java`, `sync/SincronizacionWorker.java`, `ui/sync/SincronizacionFragment.java` |
 | **Consolidación de Fuentes** — datos in situ + ensayos de laboratorio | `ui/registro/LaboratorioFragment.java` + vista `v_consolidado_fuentes` en `sql/04_vistas_analisis.sql` |
 | **Semáforo de Alertas** (backend y frontend en Java) | `domain/EvaluadorSemaforo.java` (lógica) + `ui/semaforo/` (interfaz) |
@@ -64,6 +65,9 @@ El dato **nunca se borra del teléfono**: sincronizar es copiar, no mover.
    - `sql/02_permisos_y_rls.sql`
    - `sql/03_datos_iniciales.sql`
    - `sql/04_vistas_analisis.sql`
+
+   *(`sql/05_migracion_medicion_individual.sql` NO hace falta en una base nueva: solo se
+   ejecuta sobre bases creadas con el esquema anterior, el que tenía `cantidad_muestreada`.)*
 4. Volver a **Data API** y pulsar **Refresh schema cache**.
    *(Si se salta este paso, la app recibirá errores 404 aunque las tablas existan.)*
 5. Anotar dos URL:
@@ -204,24 +208,38 @@ Decisiones tomadas pensando en productores con baja alfabetización digital:
 - **Factor de condición en vivo** en el formulario de peces, con interpretación en palabras.
 - **Cada registro muestra "Pendiente" o "Sincronizado"** — nadie tiene que confiar a ciegas en que sus datos llegaron.
 - **Los mensajes de error dicen qué hacer**, no qué falló.
+- **Se mide un pez a la vez.** Al guardar, el formulario conserva fecha y piscina y queda listo para el siguiente; la confirmación es el contador del muestreo subiendo, no un diálogo que corte el ritmo.
+- **Cualquier registro se puede corregir** desde el historial, incluso si ya se subió: vuelve a quedar pendiente y la siguiente sincronización actualiza la fila en Neon en vez de duplicarla.
+- **El semáforo es la pantalla de inicio.** Lo primero al abrir la app es saber si alguna piscina está en rojo.
 
 ---
 
 ## 8. Base de datos
 
-Local (teléfono, Room/SQLite):
+Local (teléfono, Room/SQLite, **versión 2**):
 `registro_biometria` · `registro_agua` · `ensayo_laboratorio` · `piscina`
 
 Remota (Neon/PostgreSQL): las mismas tablas más `perfil_productor`, con RLS activo.
+
+En biometría, **una fila es un pez**. Los peces medidos el mismo día forman un muestreo
+identificado por `codigo_muestreo` (`M-04082026`). Ese código lo calcula Postgres como
+columna generada a partir de `fecha_muestreo`, y la app lo deriva igual, así que no pueden
+discrepar.
 
 Vistas de análisis listas para el trabajo de Ciencia de Datos:
 
 | Vista | Para qué sirve |
 |---|---|
 | `v_semaforo_actual` | Estado vigente por piscina, recalculado en el servidor |
-| `v_crecimiento_mensual` | Evolución de peso, talla y K de Fulton |
+| `v_crecimiento_mensual` | Evolución de peso, talla y K de Fulton, **con desviación estándar** |
+| `v_muestreo_biometria` | Un renglón por muestreo: peces medidos, mínimo, máximo y dispersión |
 | `v_consolidado_fuentes` | **Cruce campo + agua + laboratorio en una sola fila** |
 | `v_desfase_sincronizacion` | Cuántas horas tarda un dato en llegar del campo al servidor |
+
+La desviación estándar solo es calculable desde que cada pez es una fila: es la razón de
+fondo del cambio. Dos piscinas con el mismo peso medio pero distinta dispersión están en
+situaciones muy diferentes — mucha dispersión suele indicar competencia por el alimento o
+siembra desigual.
 
 ---
 

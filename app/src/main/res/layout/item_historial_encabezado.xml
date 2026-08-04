@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Separador de muestreo dentro del historial: "Muestreo M-04082026 · 7 registros" -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingStart="@dimen/espacio_s"
+    android:paddingTop="@dimen/espacio_m"
+    android:paddingEnd="@dimen/espacio_s"
+    android:paddingBottom="@dimen/espacio_xs">
+
+    <TextView
+        android:id="@+id/textoMuestreo"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:textColor="@color/paipay_marron"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/textoConteoMuestreo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/chip_neutro"
+        android:paddingStart="@dimen/espacio_s"
+        android:paddingTop="@dimen/espacio_xs"
+        android:paddingEnd="@dimen/espacio_s"
+        android:paddingBottom="@dimen/espacio_xs"
+        android:textColor="@color/paipay_gris_bajo"
+        android:textSize="13sp" />
+</LinearLayout>

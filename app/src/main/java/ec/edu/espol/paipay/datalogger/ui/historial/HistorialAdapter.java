@@ -13,12 +13,28 @@ import java.util.List;
 
 import ec.edu.espol.paipay.datalogger.R;
 import ec.edu.espol.paipay.datalogger.databinding.ItemHistorialBinding;
+import ec.edu.espol.paipay.datalogger.databinding.ItemHistorialEncabezadoBinding;
 import ec.edu.espol.paipay.datalogger.util.FechaUtil;
 
-/** Lista del historial con etiqueta visible de "Pendiente" o "Sincronizado". */
-public class HistorialAdapter extends RecyclerView.Adapter<HistorialAdapter.Fila> {
+/**
+ * Lista del historial: encabezados de muestreo, registros con su etiqueta de
+ * "Pendiente" o "Sincronizado", y un toque para corregir.
+ */
+public class HistorialAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+
+    private static final int TIPO_ENCABEZADO = 0;
+    private static final int TIPO_REGISTRO = 1;
+
+    public interface AlTocarRegistro {
+        void tocado(ItemHistorial item);
+    }
 
     private final List<ItemHistorial> datos = new ArrayList<>();
+    private final AlTocarRegistro alTocar;
+
+    public HistorialAdapter(AlTocarRegistro alTocar) {
+        this.alTocar = alTocar;
+    }
 
     public void actualizar(List<ItemHistorial> nuevos) {
         datos.clear();
@@ -26,21 +42,55 @@ public class HistorialAdapter extends RecyclerView.Adapter<HistorialAdapter.Fila
         notifyDataSetChanged();
     }
 
+    @Override
+    public int getItemViewType(int posicion) {
+        return datos.get(posicion).esEncabezado() ? TIPO_ENCABEZADO : TIPO_REGISTRO;
+    }
+
     @NonNull
     @Override
-    public Fila onCreateViewHolder(@NonNull ViewGroup padre, int tipo) {
-        return new Fila(ItemHistorialBinding.inflate(
-                LayoutInflater.from(padre.getContext()), padre, false));
+    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup padre, int tipo) {
+        LayoutInflater inflador = LayoutInflater.from(padre.getContext());
+        if (tipo == TIPO_ENCABEZADO) {
+            return new Encabezado(
+                    ItemHistorialEncabezadoBinding.inflate(inflador, padre, false));
+        }
+        return new Fila(ItemHistorialBinding.inflate(inflador, padre, false));
     }
 
     @Override
-    public void onBindViewHolder(@NonNull Fila fila, int posicion) {
-        fila.pintar(datos.get(posicion));
+    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder soporte, int posicion) {
+        ItemHistorial item = datos.get(posicion);
+        if (soporte instanceof Encabezado) {
+            ((Encabezado) soporte).pintar(item);
+        } else {
+            ((Fila) soporte).pintar(item, alTocar);
+        }
     }
 
     @Override
     public int getItemCount() {
         return datos.size();
+    }
+
+    // ------------------------------------------------------------------
+
+    static class Encabezado extends RecyclerView.ViewHolder {
+
+        private final ItemHistorialEncabezadoBinding v;
+
+        Encabezado(@NonNull ItemHistorialEncabezadoBinding binding) {
+            super(binding.getRoot());
+            this.v = binding;
+        }
+
+        void pintar(ItemHistorial item) {
+            Context contexto = v.getRoot().getContext();
+            // En el encabezado, "titulo" es el código y "detalle" el conteo.
+            v.textoMuestreo.setText(contexto.getString(R.string.historial_muestreo, item.titulo));
+            v.textoConteoMuestreo.setText(contexto.getString(
+                    R.string.historial_muestreo_conteo, Integer.parseInt(item.detalle)));
+        }
     }
 
     static class Fila extends RecyclerView.ViewHolder {
@@ -52,7 +102,7 @@ public class HistorialAdapter extends RecyclerView.Adapter<HistorialAdapter.Fila
             this.v = binding;
         }
 
-        void pintar(ItemHistorial item) {
+        void pintar(ItemHistorial item, AlTocarRegistro alTocar) {
             Context contexto = v.getRoot().getContext();
 
             v.textoTitulo.setText(item.titulo);
@@ -78,6 +128,10 @@ public class HistorialAdapter extends RecyclerView.Adapter<HistorialAdapter.Fila
                 v.textoEstado.setTextColor(
                         ContextCompat.getColor(contexto, R.color.estado_pendiente));
             }
+
+            v.getRoot().setOnClickListener(v -> {
+                if (alTocar != null) alTocar.tocado(item);
+            });
         }
     }
 }
