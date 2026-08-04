@@ -76,40 +76,8 @@
                 android:textSize="@dimen/texto_campo" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/campoTemperatura"
-            style="@style/Paipay.Campo"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/espacio_m"
-            android:hint="@string/campo_temperatura"
-            app:startIconDrawable="@drawable/ic_termometro">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/campoTemperaturaTexto"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="numberDecimal"
-                android:textSize="@dimen/texto_campo" />
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/campoOxigeno"
-            style="@style/Paipay.Campo"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/espacio_m"
-            android:hint="@string/campo_oxigeno"
-            app:startIconDrawable="@drawable/ic_oxigeno">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/campoOxigenoTexto"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="numberDecimal"
-                android:textSize="@dimen/texto_campo" />
-        </com.google.android.material.textfield.TextInputLayout>
-
+        <!-- El pH va primero porque no es un parámetro más: decide qué fracción
+             del amonio está en su forma tóxica. -->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/campoPh"
             style="@style/Paipay.Campo"
@@ -124,6 +92,76 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="numberDecimal"
+                android:textSize="@dimen/texto_campo" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Ciclo del nitrógeno, en el orden en que ocurre: amonio → nitrito → nitrato -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/campoAmonio"
+            style="@style/Paipay.Campo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/espacio_m"
+            android:hint="@string/campo_amonio"
+            app:startIconDrawable="@drawable/ic_alerta">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/campoAmonioTexto"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="numberDecimal"
+                android:textSize="@dimen/texto_campo" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/campoNitrito"
+            style="@style/Paipay.Campo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/espacio_m"
+            android:hint="@string/campo_nitrito"
+            app:startIconDrawable="@drawable/ic_oxigeno">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/campoNitritoTexto"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="numberDecimal"
+                android:textSize="@dimen/texto_campo" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/campoNitrato"
+            style="@style/Paipay.Campo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/espacio_m"
+            android:hint="@string/campo_nitrato"
+            app:startIconDrawable="@drawable/ic_laboratorio">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/campoNitratoTexto"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="numberDecimal"
+                android:textSize="@dimen/texto_campo" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/campoPoblacion"
+            style="@style/Paipay.Campo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/espacio_m"
+            android:hint="@string/campo_poblacion"
+            app:helperText="@string/campo_poblacion_ayuda"
+            app:startIconDrawable="@drawable/ic_pez">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/campoPoblacionTexto"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="number"
                 android:textSize="@dimen/texto_campo" />
         </com.google.android.material.textfield.TextInputLayout>
 

@@ -69,7 +69,54 @@ BEGIN
 END $$;
 
 -- ---------------------------------------------------------------------------
--- 4. COMPROBACIÓN
+-- 4. CALIDAD DE AGUA — del par temperatura/oxígeno al ciclo del nitrógeno
+--
+--    Los parámetros que se toman en campo pasan a ser pH, amonio, nitrito,
+--    nitrato y población estimada.
+--
+--    Las lecturas viejas NO se pueden convertir: no hay forma de deducir el
+--    amonio a partir de la temperatura. Se conservan fecha, piscina y
+--    observación, se preserva el pH cuando estaba anotado, y los valores de
+--    temperatura y oxígeno se vuelcan a la observación para no perderlos.
+-- ---------------------------------------------------------------------------
+ALTER TABLE public.registro_agua ADD COLUMN IF NOT EXISTS amonio_mg_l  NUMERIC(8,3);
+ALTER TABLE public.registro_agua ADD COLUMN IF NOT EXISTS nitrito_mg_l NUMERIC(8,3);
+ALTER TABLE public.registro_agua ADD COLUMN IF NOT EXISTS nitrato_mg_l NUMERIC(8,2);
+ALTER TABLE public.registro_agua ADD COLUMN IF NOT EXISTS poblacion_estimada INTEGER;
+
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.columns
+               WHERE table_schema = 'public'
+                 AND table_name   = 'registro_agua'
+                 AND column_name  = 'temperatura_c') THEN
+
+        -- Volcar lo viejo a la observación antes de borrar las columnas.
+        UPDATE public.registro_agua
+           SET observacion = COALESCE(observacion || ' | ', '')
+                             || 'Medición anterior al cambio de parámetros: se registró '
+                             || 'temperatura ' || temperatura_c || ' C y oxígeno '
+                             || oxigeno_mg_l || ' mg/L. Amonio, nitrito y nitrato sin medir.';
+
+        ALTER TABLE public.registro_agua DROP COLUMN temperatura_c;
+        ALTER TABLE public.registro_agua DROP COLUMN oxigeno_mg_l;
+    END IF;
+END $$;
+
+-- Los parámetros nuevos quedan en cero en las filas viejas (sin medir), y el
+-- pH pasa a ser obligatorio: donde faltaba se asume neutro.
+UPDATE public.registro_agua SET amonio_mg_l  = 0 WHERE amonio_mg_l  IS NULL;
+UPDATE public.registro_agua SET nitrito_mg_l = 0 WHERE nitrito_mg_l IS NULL;
+UPDATE public.registro_agua SET nitrato_mg_l = 0 WHERE nitrato_mg_l IS NULL;
+UPDATE public.registro_agua SET ph = 7.0 WHERE ph IS NULL;
+
+ALTER TABLE public.registro_agua ALTER COLUMN ph           SET NOT NULL;
+ALTER TABLE public.registro_agua ALTER COLUMN amonio_mg_l  SET NOT NULL;
+ALTER TABLE public.registro_agua ALTER COLUMN nitrito_mg_l SET NOT NULL;
+ALTER TABLE public.registro_agua ALTER COLUMN nitrato_mg_l SET NOT NULL;
+
+-- ---------------------------------------------------------------------------
+-- 5. COMPROBACIÓN
 --    Debe devolver una fila por muestreo con el número de peces medidos.
 -- ---------------------------------------------------------------------------
 -- SELECT codigo_muestreo, piscina, COUNT(*) AS peces,

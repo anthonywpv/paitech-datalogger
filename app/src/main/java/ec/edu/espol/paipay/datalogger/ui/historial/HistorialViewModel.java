@@ -77,12 +77,14 @@ public class HistorialViewModel extends AndroidViewModel {
 
         for (RegistroAgua r : aguas) {
             if (!pasaFiltro(r.sincronizado, actual)) continue;
-            String ph = r.ph == null ? "" : String.format(Locale.US, "   ·   pH %.1f", r.ph);
+            String poblacion = r.poblacionEstimada == null ? ""
+                    : String.format(Locale.US, "   ·   %d peces", r.poblacionEstimada);
             items.add(new ItemHistorial(
                     ItemHistorial.Tipo.AGUA, r.uuid,
                     "Agua · " + r.piscina,
-                    String.format(Locale.US, "%.1f °C   ·   %.1f mg/L%s",
-                            r.temperaturaC, r.oxigenoMgL, ph),
+                    String.format(Locale.US,
+                            "pH %.1f   ·   NH4 %.2f   ·   NO2 %.2f   ·   NO3 %.1f mg/L%s",
+                            r.ph, r.amonioMgL, r.nitritoMgL, r.nitratoMgL, poblacion),
                     r.fechaMuestreo, r.creadoEn, r.sincronizado));
         }
 

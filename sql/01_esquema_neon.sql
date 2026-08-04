@@ -89,9 +89,17 @@ CREATE TABLE IF NOT EXISTS public.registro_agua (
     user_id         TEXT         NOT NULL DEFAULT (auth.user_id()),
     fecha_muestreo  DATE         NOT NULL,
     piscina         TEXT         NOT NULL,
-    temperatura_c   NUMERIC(6,2) NOT NULL CHECK (temperatura_c BETWEEN 0 AND 45),
-    oxigeno_mg_l    NUMERIC(6,2) NOT NULL CHECK (oxigeno_mg_l BETWEEN 0 AND 20),
-    ph              NUMERIC(4,2) CHECK (ph BETWEEN 0 AND 14),
+    -- El pH no es un parámetro más: decide qué fracción del amonio está en su
+    -- forma tóxica (NH3). Por eso es obligatorio.
+    ph              NUMERIC(4,2) NOT NULL CHECK (ph BETWEEN 0 AND 14),
+    -- Ciclo del nitrógeno: los peces excretan AMONIO, las bacterias lo oxidan
+    -- a NITRITO y este a NITRATO. Los dos primeros son tóxicos.
+    amonio_mg_l     NUMERIC(8,3) NOT NULL CHECK (amonio_mg_l >= 0),
+    nitrito_mg_l    NUMERIC(8,3) NOT NULL CHECK (nitrito_mg_l >= 0),
+    nitrato_mg_l    NUMERIC(8,2) NOT NULL CHECK (nitrato_mg_l >= 0),
+    -- Peces estimados. Opcional: no se cuenta en cada muestreo, pero cuando
+    -- está permite detectar mortalidad comparando con el muestreo anterior.
+    poblacion_estimada INTEGER   CHECK (poblacion_estimada >= 0),
     -- Estado del semáforo calculado en el dispositivo
     estado_alerta   TEXT CHECK (estado_alerta IN ('SIN_DATO','VERDE','AMARILLO','ROJO')),
     observacion     TEXT,

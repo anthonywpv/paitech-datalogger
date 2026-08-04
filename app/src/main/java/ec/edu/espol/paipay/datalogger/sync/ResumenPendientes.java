@@ -37,8 +37,8 @@ public class ResumenPendientes {
         }
         if (aguas > 0) {
             sb.append("  •  ").append(aguas)
-              .append(aguas == 1 ? " medición de calidad de agua (temperatura, oxígeno, pH)"
-                                 : " mediciones de calidad de agua (temperatura, oxígeno, pH)")
+              .append(aguas == 1 ? " medición de calidad de agua (pH, amonio, nitrito, nitrato)"
+                                 : " mediciones de calidad de agua (pH, amonio, nitrito, nitrato)")
               .append('\n');
         }
         if (ensayos > 0) {

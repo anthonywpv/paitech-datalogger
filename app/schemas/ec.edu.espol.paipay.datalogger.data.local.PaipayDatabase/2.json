@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 2,
-    "identityHash": "94599a8041b4ed7c382620b8976e3e76",
+    "identityHash": "accab7a87b9eec04bedf8bca0f8c87fb",
     "entities": [
       {
         "tableName": "registro_biometria",
@@ -115,7 +115,7 @@
       },
       {
         "tableName": "registro_agua",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `uuid` TEXT NOT NULL, `fecha_muestreo` TEXT NOT NULL, `piscina` TEXT NOT NULL, `temperatura_c` REAL NOT NULL, `oxigeno_mg_l` REAL NOT NULL, `ph` REAL, `observacion` TEXT, `registrado_por` TEXT, `creado_en` INTEGER NOT NULL, `sincronizado` INTEGER NOT NULL, `sincronizado_en` INTEGER)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `uuid` TEXT NOT NULL, `fecha_muestreo` TEXT NOT NULL, `piscina` TEXT NOT NULL, `ph` REAL NOT NULL, `nitrato_mg_l` REAL NOT NULL, `nitrito_mg_l` REAL NOT NULL, `amonio_mg_l` REAL NOT NULL, `poblacion_estimada` INTEGER, `observacion` TEXT, `registrado_por` TEXT, `creado_en` INTEGER NOT NULL, `sincronizado` INTEGER NOT NULL, `sincronizado_en` INTEGER)",
         "fields": [
           {
             "fieldPath": "id",
@@ -142,21 +142,33 @@
             "notNull": true
           },
           {
-            "fieldPath": "temperaturaC",
-            "columnName": "temperatura_c",
-            "affinity": "REAL",
-            "notNull": true
-          },
-          {
-            "fieldPath": "oxigenoMgL",
-            "columnName": "oxigeno_mg_l",
-            "affinity": "REAL",
-            "notNull": true
-          },
-          {
             "fieldPath": "ph",
             "columnName": "ph",
             "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nitratoMgL",
+            "columnName": "nitrato_mg_l",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nitritoMgL",
+            "columnName": "nitrito_mg_l",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "amonioMgL",
+            "columnName": "amonio_mg_l",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "poblacionEstimada",
+            "columnName": "poblacion_estimada",
+            "affinity": "INTEGER",
             "notNull": false
           },
           {
@@ -392,7 +404,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '94599a8041b4ed7c382620b8976e3e76')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'accab7a87b9eec04bedf8bca0f8c87fb')"
     ]
   }
 }

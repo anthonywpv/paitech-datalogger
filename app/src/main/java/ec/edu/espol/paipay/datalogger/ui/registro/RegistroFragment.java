@@ -18,9 +18,10 @@ import ec.edu.espol.paipay.datalogger.databinding.FragmentRegistroBinding;
 /**
  * Sección "Registrar": agrupa las tres fuentes de datos del proyecto.
  *
- *   Pestaña 1 — Peces:       biometría in situ (peso y talla).
- *   Pestaña 2 — Agua:        calidad de agua in situ (alimenta el semáforo).
- *   Pestaña 3 — Laboratorio: resultados analíticos externos.
+ *   Pestaña 1 — Peces:         biometría in situ, un registro por pez.
+ *   Pestaña 2 — Agua:          ciclo del nitrógeno y pH (alimenta el semáforo).
+ *   Pestaña 3 — Laboratorio:   resultados analíticos externos.
+ *   Pestaña 4 — Lombricultura: declarada, registro aún por definir.
  */
 public class RegistroFragment extends Fragment {
 
@@ -51,9 +52,13 @@ public class RegistroFragment extends Fragment {
                     pestana.setText(R.string.tab_agua);
                     pestana.setIcon(R.drawable.ic_gota);
                     break;
-                default:
+                case 2:
                     pestana.setText(R.string.tab_laboratorio);
                     pestana.setIcon(R.drawable.ic_laboratorio);
+                    break;
+                default:
+                    pestana.setText(R.string.tab_lombricultura);
+                    pestana.setIcon(R.drawable.ic_info);
                     break;
             }
         }).attach();
@@ -77,13 +82,14 @@ public class RegistroFragment extends Fragment {
             switch (posicion) {
                 case 0:  return new BiometriaFragment();
                 case 1:  return new AguaFragment();
-                default: return new LaboratorioFragment();
+                case 2:  return new LaboratorioFragment();
+                default: return new LombriculturaFragment();
             }
         }
 
         @Override
         public int getItemCount() {
-            return 3;
+            return 4;
         }
     }
 }

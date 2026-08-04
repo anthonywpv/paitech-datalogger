@@ -156,15 +156,38 @@ verla, aunque reinicie el teléfono.
 
 Especie objetivo: **Vieja Azul** (*Andinoacara rivulatus*).
 
+El semáforo evalúa el **ciclo del nitrógeno** más el pH. En una piscina el nitrógeno
+sigue siempre el mismo camino:
+
+```
+   los peces excretan       las bacterias           y este
+       AMONIO        ──►    lo oxidan a    ──►    a NITRATO
+      (tóxico)              NITRITO               (poco tóxico)
+                          (muy tóxico)
+```
+
 | Parámetro | 🟢 Óptimo | 🟡 Precaución | 🔴 Crítico |
 |---|---|---|---|
-| Temperatura (°C) | 24.0 – 30.0 | 20.0–23.9 y 30.1–32.0 | < 20.0 o > 32.0 |
-| Oxígeno disuelto (mg/L) | ≥ 5.0 | 3.0 – 4.9 | < 3.0 |
 | pH | 6.5 – 8.5 | 6.0–6.4 y 8.6–9.0 | < 6.0 o > 9.0 |
+| Amonio (mg/L) | < 0.5 | 0.5 – 1.0 | > 1.0 |
+| Nitrito (mg/L) | < 0.5 | 0.5 – 1.0 | > 1.0 |
+| Nitrato (mg/L) | < 50 | 50 – 100 | > 100 |
+| Amoníaco libre NH₃ (mg/L) | ≤ 0.02 | 0.02 – 0.05 | > 0.05 |
 
-Además hay una **regla combinada**: el agua caliente retiene menos oxígeno mientras el
-pez consume más. Una piscina a 31 °C con 4.5 mg/L se marca en rojo aunque ningún
-parámetro por separado lo esté.
+Hay tres reglas que ningún parámetro leído por separado puede dar:
+
+- **pH × amonio.** Lo que mata no es el amonio total que marca el kit, sino la fracción
+  en forma de amoníaco libre (NH₃), que se dispara con el pH: 0.6 % a pH 7, 5 % a pH 8,
+  36 % a pH 9. La misma lectura es unas sesenta veces más peligrosa a pH 9 que a pH 7.
+- **Estado del ciclo.** Amonio alto con nitrito bajo es una piscina cuyo filtro biológico
+  aún no arranca; los dos altos a la vez significa que no da abasto con la carga.
+- **Mortalidad.** Si la población estimada cae más de un 10 % entre muestreos se avisa, y
+  más de un 25 % es rojo — aunque el agua salga verde el día de la visita, porque el
+  productor pudo llegar después del episodio.
+
+*Nota: la temperatura y el oxígeno disuelto ya no se registran. La fórmula del amoníaco
+libre asume 25 °C, temperatura representativa del recinto; el error que introduce es
+pequeño al lado del efecto del pH, que es el que domina.*
 
 El estado global de una piscina es el **peor** de sus parámetros, y las piscinas en rojo
 se muestran primero.
@@ -181,7 +204,7 @@ Acuicultura (FIMCM) puede ajustarlos ahí sin tocar nada más.
    > *Antes de sincronizar, asegúrate de tener una conexión de Internet estable.
    > Se van a subir los siguientes datos a la Base de Datos principal:*
    > - 12 registros de biometría de peces (peso y talla)
-   > - 8 mediciones de calidad de agua (temperatura, oxígeno, pH)
+   > - 8 mediciones de calidad de agua (pH, amonio, nitrito, nitrato)
    > - 3 ensayos de laboratorio
 3. Solo tras confirmar, se suben por lotes de 50.
 4. Cada lote se marca como sincronizado **únicamente** si el servidor respondió 2xx.

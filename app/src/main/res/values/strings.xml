@@ -45,9 +45,18 @@
     <string name="historial_refresco_error">No se pudo consultar la base principal. Se muestra lo guardado en este teléfono.</string>
     <string name="historial_muestreo">Muestreo %1$s</string>
     <string name="historial_muestreo_conteo">%1$d registro(s)</string>
-    <string name="campo_temperatura">Temperatura (°C)</string>
-    <string name="campo_oxigeno">Oxígeno disuelto (mg/L)</string>
-    <string name="campo_ph">pH</string>
+    <string name="campo_ph">pH (0 a 14)</string>
+    <string name="campo_nitrato">Nitrato (mg/L)</string>
+    <string name="campo_nitrito">Nitrito (mg/L)</string>
+    <string name="campo_amonio">Amonio (mg/L)</string>
+    <string name="campo_poblacion">Población (peces estimados)</string>
+    <string name="campo_poblacion_ayuda">Opcional. Si lo anotas en cada muestreo, la app avisa cuando la población baja.</string>
+
+    <!-- Lombricultura -->
+    <string name="tab_lombricultura">Lombricultura</string>
+    <string name="lombricultura_titulo">Sección en construcción</string>
+    <string name="lombricultura_mensaje">El registro de los lechos de lombricultura todavía está por definir con el equipo de Acuicultura de la ESPOL.\n\nCuando se acuerde qué datos se toman (humedad, temperatura del lecho, alimento aportado, lombriz cosechada), esta pestaña los recogerá igual que las demás: sin necesidad de internet y con sincronización diferida.</string>
+    <string name="lombricultura_piscinas">Los lechos LOM-01 y LOM-02 ya están en el catálogo de piscinas, así que no habrá que volver a crearlos.</string>
     <string name="campo_observacion">Observación (opcional)</string>
     <string name="campo_tipo_muestra">Tipo de muestra</string>
     <string name="campo_parametro">Parámetro analizado</string>
@@ -65,7 +74,7 @@
 
     <!-- Semáforo -->
     <string name="semaforo_titulo">Semáforo de alertas</string>
-    <string name="semaforo_descripcion">Estado de cada piscina según la última medición de temperatura y oxígeno disuelto.</string>
+    <string name="semaforo_descripcion">Estado de cada piscina según la última medición de pH, amonio, nitrito y nitrato.</string>
     <string name="semaforo_sin_datos">Aún no hay mediciones de agua registradas.</string>
     <string name="semaforo_verde_texto">ÓPTIMO</string>
     <string name="semaforo_amarillo_texto">PRECAUCIÓN</string>

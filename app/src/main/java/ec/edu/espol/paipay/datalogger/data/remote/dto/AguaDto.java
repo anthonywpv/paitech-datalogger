@@ -10,13 +10,15 @@ import ec.edu.espol.paipay.datalogger.domain.EvaluadorSemaforo;
 /** Cuerpo JSON enviado a la tabla public.registro_agua de Neon. */
 public class AguaDto {
 
-    @SerializedName("uuid")           public String uuid;
-    @SerializedName("fecha_muestreo") public String fechaMuestreo;
-    @SerializedName("piscina")        public String piscina;
-    @SerializedName("temperatura_c")  public double temperaturaC;
-    @SerializedName("oxigeno_mg_l")   public double oxigenoMgL;
-    @SerializedName("ph")             public Double ph;
-    @SerializedName("estado_alerta")  public String estadoAlerta;
+    @SerializedName("uuid")              public String uuid;
+    @SerializedName("fecha_muestreo")    public String fechaMuestreo;
+    @SerializedName("piscina")           public String piscina;
+    @SerializedName("ph")                public double ph;
+    @SerializedName("nitrato_mg_l")      public double nitratoMgL;
+    @SerializedName("nitrito_mg_l")      public double nitritoMgL;
+    @SerializedName("amonio_mg_l")       public double amonioMgL;
+    @SerializedName("poblacion_estimada")public Integer poblacionEstimada;
+    @SerializedName("estado_alerta")     public String estadoAlerta;
     @SerializedName("observacion")    public String observacion;
     @SerializedName("registrado_por") public String registradoPor;
     @SerializedName("creado_en")      public String creadoEn;
@@ -27,9 +29,11 @@ public class AguaDto {
         d.uuid = r.uuid;
         d.fechaMuestreo = r.fechaMuestreo;
         d.piscina = r.piscina;
-        d.temperaturaC = r.temperaturaC;
-        d.oxigenoMgL = r.oxigenoMgL;
         d.ph = r.ph;
+        d.nitratoMgL = r.nitratoMgL;
+        d.nitritoMgL = r.nitritoMgL;
+        d.amonioMgL = r.amonioMgL;
+        d.poblacionEstimada = r.poblacionEstimada;
         // El estado del semáforo se calcula en el dispositivo y viaja junto al
         // dato, para que el análisis en la nube no tenga que recalcularlo.
         d.estadoAlerta = EvaluadorSemaforo.evaluar(r).getEstadoGlobal().name();
@@ -46,9 +50,11 @@ public class AguaDto {
         r.uuid = uuid == null ? "" : uuid;
         r.fechaMuestreo = fechaMuestreo == null ? "" : fechaMuestreo;
         r.piscina = piscina == null ? "" : piscina;
-        r.temperaturaC = temperaturaC;
-        r.oxigenoMgL = oxigenoMgL;
         r.ph = ph;
+        r.nitratoMgL = nitratoMgL;
+        r.nitritoMgL = nitritoMgL;
+        r.amonioMgL = amonioMgL;
+        r.poblacionEstimada = poblacionEstimada;
         r.observacion = observacion;
         r.registradoPor = registradoPor;
         r.creadoEn = FechaUtil.millisDesdeIsoUtc(creadoEn, System.currentTimeMillis());

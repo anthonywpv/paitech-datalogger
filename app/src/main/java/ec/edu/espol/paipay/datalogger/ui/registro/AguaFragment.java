@@ -25,9 +25,12 @@ import ec.edu.espol.paipay.datalogger.util.FechaUtil;
 /**
  * Formulario de calidad de agua.
  *
- * Detalle de UX relevante: mientras el productor escribe la temperatura y el
- * oxígeno, la tarjeta de vista previa ya le muestra el color del semáforo.
- * Así el dato deja de ser un número abstracto y se convierte en una decisión.
+ * Detalle de UX relevante: en cuanto hay pH, amonio y nitrito, la tarjeta de
+ * vista previa ya muestra el color del semáforo. Así el dato deja de ser un
+ * número abstracto y se convierte en una decisión.
+ *
+ * Se exige el pH antes de adelantar un color porque sin él no se puede juzgar
+ * el amonio: es el pH quien decide qué fracción está en su forma tóxica.
  */
 public class AguaFragment extends FormularioBase {
 
@@ -61,9 +64,10 @@ public class AguaFragment extends FormularioBase {
             @Override public void onTextChanged(CharSequence s, int a, int b, int c) { }
             @Override public void afterTextChanged(Editable s) { actualizarVistaPrevia(); }
         };
-        vista.campoTemperaturaTexto.addTextChangedListener(evaluar);
-        vista.campoOxigenoTexto.addTextChangedListener(evaluar);
         vista.campoPhTexto.addTextChangedListener(evaluar);
+        vista.campoAmonioTexto.addTextChangedListener(evaluar);
+        vista.campoNitritoTexto.addTextChangedListener(evaluar);
+        vista.campoNitratoTexto.addTextChangedListener(evaluar);
 
         vista.botonGuardar.setOnClickListener(v -> guardar());
         vista.botonLimpiar.setOnClickListener(v -> limpiar());
@@ -84,9 +88,12 @@ public class AguaFragment extends FormularioBase {
             fechaIso = registro.fechaMuestreo;
             vista.campoFechaTexto.setText(FechaUtil.legibleDesdeIso(fechaIso));
             vista.campoPiscinaTexto.setText(registro.piscina, false);
-            vista.campoTemperaturaTexto.setText(String.valueOf(registro.temperaturaC));
-            vista.campoOxigenoTexto.setText(String.valueOf(registro.oxigenoMgL));
-            vista.campoPhTexto.setText(registro.ph == null ? "" : String.valueOf(registro.ph));
+            vista.campoPhTexto.setText(String.valueOf(registro.ph));
+            vista.campoAmonioTexto.setText(String.valueOf(registro.amonioMgL));
+            vista.campoNitritoTexto.setText(String.valueOf(registro.nitritoMgL));
+            vista.campoNitratoTexto.setText(String.valueOf(registro.nitratoMgL));
+            vista.campoPoblacionTexto.setText(registro.poblacionEstimada == null
+                    ? "" : String.valueOf(registro.poblacionEstimada));
             vista.campoObservacionTexto.setText(registro.observacion);
         });
     }
@@ -94,10 +101,12 @@ public class AguaFragment extends FormularioBase {
     // ---------------- VISTA PREVIA DEL SEMÁFORO ----------------
 
     private void actualizarVistaPrevia() {
-        Double t = numeroSuave(texto(vista.campoTemperaturaTexto));
-        Double od = numeroSuave(texto(vista.campoOxigenoTexto));
+        Double ph = numeroSuave(texto(vista.campoPhTexto));
+        Double amonio = numeroSuave(texto(vista.campoAmonioTexto));
+        Double nitrito = numeroSuave(texto(vista.campoNitritoTexto));
 
-        if (t == null || od == null) {
+        // Sin pH no se puede juzgar el amonio, así que no se adelanta un color.
+        if (ph == null || amonio == null || nitrito == null) {
             vista.vistaPreviaSemaforo.getRoot().setVisibility(View.GONE);
             return;
         }
@@ -105,9 +114,11 @@ public class AguaFragment extends FormularioBase {
         RegistroAgua provisional = new RegistroAgua();
         provisional.piscina = codigoDePiscina(texto(vista.campoPiscinaTexto));
         provisional.fechaMuestreo = fechaIso;
-        provisional.temperaturaC = t;
-        provisional.oxigenoMgL = od;
-        provisional.ph = numeroSuave(texto(vista.campoPhTexto));
+        provisional.ph = ph;
+        provisional.amonioMgL = amonio;
+        provisional.nitritoMgL = nitrito;
+        Double nitrato = numeroSuave(texto(vista.campoNitratoTexto));
+        provisional.nitratoMgL = nitrato == null ? 0d : nitrato;
 
         ResultadoSemaforo resultado = EvaluadorSemaforo.evaluar(provisional);
         EstadoAlerta estado = resultado.getEstadoGlobal();
@@ -142,33 +153,47 @@ public class AguaFragment extends FormularioBase {
         String piscina = codigoDePiscina(texto(vista.campoPiscinaTexto));
         boolean valido = exigir(vista.campoPiscina, piscina);
 
-        double t = numero(vista.campoTemperatura, texto(vista.campoTemperaturaTexto), true);
-        double od = numero(vista.campoOxigeno, texto(vista.campoOxigenoTexto), true);
-        double ph = numero(vista.campoPh, texto(vista.campoPhTexto), false);
+        double ph = numero(vista.campoPh, texto(vista.campoPhTexto), true);
+        double amonio = numero(vista.campoAmonio, texto(vista.campoAmonioTexto), true);
+        double nitrito = numero(vista.campoNitrito, texto(vista.campoNitritoTexto), true);
+        double nitrato = numero(vista.campoNitrato, texto(vista.campoNitratoTexto), true);
+        double poblacion = numero(vista.campoPoblacion, texto(vista.campoPoblacionTexto), false);
 
-        if (Double.isNaN(t) || Double.isNaN(od) || Double.isNaN(ph)) valido = false;
+        if (Double.isNaN(ph) || Double.isNaN(amonio) || Double.isNaN(nitrito)
+                || Double.isNaN(nitrato) || Double.isNaN(poblacion)) valido = false;
         if (!valido) return;
 
         // Rangos físicamente posibles: atajan errores de tecleo en campo.
-        if (t < 0 || t > 45) {
-            vista.campoTemperatura.setError("Valor fuera de rango (0 a 45 °C)");
-            return;
-        }
-        if (od < 0 || od > 20) {
-            vista.campoOxigeno.setError("Valor fuera de rango (0 a 20 mg/L)");
-            return;
-        }
-        if (!esVacioOpcional(ph) && (ph < 0 || ph > 14)) {
+        if (ph < 0 || ph > 14) {
             vista.campoPh.setError("El pH va de 0 a 14");
             return;
         }
+        if (amonio < 0) {
+            vista.campoAmonio.setError("No puede ser negativo");
+            return;
+        }
+        if (nitrito < 0) {
+            vista.campoNitrito.setError("No puede ser negativo");
+            return;
+        }
+        if (nitrato < 0) {
+            vista.campoNitrato.setError("No puede ser negativo");
+            return;
+        }
+        if (!esVacioOpcional(poblacion) && poblacion < 0) {
+            vista.campoPoblacion.setError("No puede ser negativo");
+            return;
+        }
+        Integer poblacionEstimada = esVacioOpcional(poblacion) ? null : (int) poblacion;
 
         if (registroEnEdicion != null) {
             registroEnEdicion.fechaMuestreo = fechaIso;
             registroEnEdicion.piscina = piscina;
-            registroEnEdicion.temperaturaC = t;
-            registroEnEdicion.oxigenoMgL = od;
-            registroEnEdicion.ph = esVacioOpcional(ph) ? null : ph;
+            registroEnEdicion.ph = ph;
+            registroEnEdicion.amonioMgL = amonio;
+            registroEnEdicion.nitritoMgL = nitrito;
+            registroEnEdicion.nitratoMgL = nitrato;
+            registroEnEdicion.poblacionEstimada = poblacionEstimada;
             registroEnEdicion.observacion = texto(vista.campoObservacionTexto);
 
             repositorio.actualizarAgua(registroEnEdicion, id -> cerrarEdicion());
@@ -178,17 +203,20 @@ public class AguaFragment extends FormularioBase {
         RegistroAgua r = new RegistroAgua();
         r.fechaMuestreo = fechaIso;
         r.piscina = piscina;
-        r.temperaturaC = t;
-        r.oxigenoMgL = od;
-        r.ph = esVacioOpcional(ph) ? null : ph;
+        r.ph = ph;
+        r.amonioMgL = amonio;
+        r.nitritoMgL = nitrito;
+        r.nitratoMgL = nitrato;
+        r.poblacionEstimada = poblacionEstimada;
         r.observacion = texto(vista.campoObservacionTexto);
 
         ResultadoSemaforo resultado = EvaluadorSemaforo.evaluar(r);
 
         repositorio.guardarAgua(r, id -> {
             String detalle = String.format(Locale.US,
-                    "Piscina %s · %.1f °C · %.1f mg/L\nEstado del semáforo: %s",
-                    r.piscina, r.temperaturaC, r.oxigenoMgL,
+                    "Piscina %s · pH %.1f · amonio %.2f mg/L · nitrito %.2f mg/L"
+                            + "\nEstado del semáforo: %s",
+                    r.piscina, r.ph, r.amonioMgL, r.nitritoMgL,
                     getString(EstiloSemaforo.etiqueta(resultado.getEstadoGlobal())));
             avisarGuardado(detalle);
             limpiar();
@@ -196,13 +224,17 @@ public class AguaFragment extends FormularioBase {
     }
 
     private void limpiar() {
-        vista.campoTemperaturaTexto.setText("");
-        vista.campoOxigenoTexto.setText("");
         vista.campoPhTexto.setText("");
+        vista.campoAmonioTexto.setText("");
+        vista.campoNitritoTexto.setText("");
+        vista.campoNitratoTexto.setText("");
+        vista.campoPoblacionTexto.setText("");
         vista.campoObservacionTexto.setText("");
-        vista.campoTemperatura.setError(null);
-        vista.campoOxigeno.setError(null);
         vista.campoPh.setError(null);
+        vista.campoAmonio.setError(null);
+        vista.campoNitrito.setError(null);
+        vista.campoNitrato.setError(null);
+        vista.campoPoblacion.setError(null);
         vista.vistaPreviaSemaforo.getRoot().setVisibility(View.GONE);
     }
 

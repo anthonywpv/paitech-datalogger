@@ -38,8 +38,17 @@ public abstract class PaipayDatabase extends RoomDatabase {
     private static volatile PaipayDatabase INSTANCIA;
 
     /**
-     * v1 → v2: la biometría pasa de "un promedio y un número de peces" a
-     * "una fila por pez".
+     * v1 → v2: dos cambios de modelo que viajan juntos.
+     *
+     * (a) La biometría pasa de "un promedio y un número de peces" a
+     *     "una fila por pez".
+     * (b) La calidad de agua deja de medir temperatura y oxígeno disuelto y
+     *     pasa a medir el ciclo del nitrógeno: pH, amonio, nitrito, nitrato y
+     *     población estimada. Las lecturas viejas NO se pueden convertir —no
+     *     hay forma de deducir el amonio a partir de la temperatura—, así que
+     *     se conservan la fecha, la piscina y la observación, se preserva el
+     *     pH cuando estaba anotado, y los parámetros nuevos quedan en cero
+     *     marcados en la observación como sin medir.
      *
      * SQLite no permite quitar una columna en las versiones que trae Android 7,
      * así que hay que recrear la tabla y copiar. NO se usa
@@ -85,6 +94,45 @@ public abstract class PaipayDatabase extends RoomDatabase {
             db.execSQL("CREATE INDEX IF NOT EXISTS "
                     + "`index_registro_biometria_fecha_muestreo_piscina` "
                     + "ON `registro_biometria` (`fecha_muestreo`, `piscina`)");
+
+            // ---------- (b) calidad de agua: al ciclo del nitrógeno ----------
+
+            db.execSQL("CREATE TABLE IF NOT EXISTS `registro_agua_nueva` ("
+                    + "`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "
+                    + "`uuid` TEXT NOT NULL, `fecha_muestreo` TEXT NOT NULL, "
+                    + "`piscina` TEXT NOT NULL, `ph` REAL NOT NULL, "
+                    + "`nitrato_mg_l` REAL NOT NULL, `nitrito_mg_l` REAL NOT NULL, "
+                    + "`amonio_mg_l` REAL NOT NULL, `poblacion_estimada` INTEGER, "
+                    + "`observacion` TEXT, `registrado_por` TEXT, "
+                    + "`creado_en` INTEGER NOT NULL, `sincronizado` INTEGER NOT NULL, "
+                    + "`sincronizado_en` INTEGER)");
+
+            // El pH era opcional y ahora es obligatorio: donde faltaba se pone
+            // 7.0 (neutro) y se deja dicho en la observación, para que nadie lo
+            // lea como una medición real.
+            db.execSQL("INSERT INTO `registro_agua_nueva` "
+                    + "(id, uuid, fecha_muestreo, piscina, ph, nitrato_mg_l, nitrito_mg_l, "
+                    + " amonio_mg_l, poblacion_estimada, observacion, registrado_por, "
+                    + " creado_en, sincronizado, sincronizado_en) "
+                    + "SELECT id, uuid, fecha_muestreo, piscina, "
+                    + "  COALESCE(ph, 7.0), 0, 0, 0, NULL, "
+                    + "  COALESCE(observacion || ' | ', '') "
+                    + "  || 'Medición anterior al cambio de parámetros: se registró "
+                    + "temperatura ' || CAST(temperatura_c AS TEXT) || ' C y oxígeno ' "
+                    + "  || CAST(oxigeno_mg_l AS TEXT) || ' mg/L. Amonio, nitrito y nitrato "
+                    + "sin medir.', "
+                    + "  registrado_por, creado_en, sincronizado, sincronizado_en "
+                    + "FROM `registro_agua`");
+
+            db.execSQL("DROP TABLE `registro_agua`");
+            db.execSQL("ALTER TABLE `registro_agua_nueva` RENAME TO `registro_agua`");
+
+            db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_registro_agua_uuid` "
+                    + "ON `registro_agua` (`uuid`)");
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_registro_agua_sincronizado` "
+                    + "ON `registro_agua` (`sincronizado`)");
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_registro_agua_piscina` "
+                    + "ON `registro_agua` (`piscina`)");
         }
     };
 
