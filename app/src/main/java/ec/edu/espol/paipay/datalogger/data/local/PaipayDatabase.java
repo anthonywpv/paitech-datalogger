@@ -30,7 +30,7 @@ import ec.edu.espol.paipay.datalogger.util.AppExecutors;
  */
 @Database(
         entities = {RegistroBiometria.class, RegistroAgua.class, EnsayoLaboratorio.class, Piscina.class},
-        version = 2,
+        version = 3,
         exportSchema = true
 )
 public abstract class PaipayDatabase extends RoomDatabase {
@@ -150,13 +150,35 @@ public abstract class PaipayDatabase extends RoomDatabase {
                                     PaipayDatabase.class,
                                     "paipay_datalogger.db")
                             .addCallback(SEMILLA)
-                            .addMigrations(MIGRACION_1_2)
+                            .addMigrations(MIGRACION_1_2, MIGRACION_2_3)
                             .build();
                 }
             }
         }
         return INSTANCIA;
     }
+
+    /**
+     * v2 → v3: el catálogo de piscinas se reduce a las dos unidades reales.
+     *
+     * No cambia ninguna columna, solo datos. Hace falta una migración igualmente
+     * porque la SEMILLA solo corre al CREAR la base: en un teléfono ya instalado
+     * nunca se vuelve a ejecutar, y el productor seguiría viendo "Piscina 1 -
+     * Engorde" y las cuatro piscinas de ejemplo que no existen.
+     */
+    static final Migration MIGRACION_2_3 = new Migration(2, 3) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase db) {
+            db.execSQL("DELETE FROM `piscina` WHERE `codigo` NOT IN ('P-01','LOM-01')");
+
+            db.execSQL("INSERT OR REPLACE INTO `piscina` "
+                    + "(`codigo`, `nombre`, `area_m2`, `activa`) "
+                    + "VALUES ('P-01', 'Piscina 1 Paipayales', 120.0, 1)");
+            db.execSQL("INSERT OR REPLACE INTO `piscina` "
+                    + "(`codigo`, `nombre`, `area_m2`, `activa`) "
+                    + "VALUES ('LOM-01', 'Lecho de Lombricultura 1', 12.0, 1)");
+        }
+    };
 
     /** Carga el catálogo inicial de piscinas del recinto Paipayales. */
     private static final Callback SEMILLA = new Callback() {
