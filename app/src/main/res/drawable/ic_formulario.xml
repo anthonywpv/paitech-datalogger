@@ -1,0 +1,27 @@
+<!--
+  Portapapeles con renglones: la sección "Registrar" no es solo peces, también
+  agua, laboratorio y lombricultura, así que el pez ahí engañaba.
+
+  Los renglones son AGUJEROS (fillType evenOdd) para que sigan viéndose cuando
+  el icono se tiñe de un solo color en la barra inferior.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp" android:height="24dp"
+    android:viewportWidth="24" android:viewportHeight="24"
+    android:tint="?attr/colorControlNormal">
+
+    <!-- Hoja con los renglones recortados -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillType="evenOdd"
+        android:pathData="M6.5,4 h11 a2,2 0 0 1 2,2 v13.5 a2,2 0 0 1 -2,2
+                          h-11 a2,2 0 0 1 -2,-2 v-13.5 a2,2 0 0 1 2,-2 z
+                          M8,9.5 h8 v1.5 h-8 z
+                          M8,13 h8 v1.5 h-8 z
+                          M8,16.5 h5 v1.5 h-5 z" />
+
+    <!-- Pinza superior -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M9.5,2 h5 a1,1 0 0 1 1,1 v2.5 h-7 v-2.5 a1,1 0 0 1 1,-1 z" />
+</vector>

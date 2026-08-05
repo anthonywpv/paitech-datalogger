@@ -8,7 +8,7 @@
         android:title="@string/nav_semaforo" />
     <item
         android:id="@+id/nav_registro"
-        android:icon="@drawable/ic_pez"
+        android:icon="@drawable/ic_formulario"
         android:title="@string/nav_registro" />
     <item
         android:id="@+id/nav_historial"

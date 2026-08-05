@@ -148,7 +148,7 @@ public class SincronizacionFragment extends Fragment {
                 .setIcon(R.drawable.ic_candado)
                 .setMessage(R.string.sync_credenciales_mensaje)
                 .setNegativeButton(R.string.cancelar, null)
-                .setPositiveButton(R.string.sync_credenciales_entrar,
+                .setPositiveButton(R.string.aceptar,
                         (d, w) -> pedirCredenciales.launch(
                                 LoginActivity.intent(requireContext())))
                 .show();
@@ -251,7 +251,7 @@ public class SincronizacionFragment extends Fragment {
                         .setIcon(R.drawable.ic_candado)
                         .setMessage(R.string.sync_sesion_expirada)
                         .setNegativeButton(R.string.cancelar, null)
-                        .setPositiveButton(R.string.sync_credenciales_entrar,
+                        .setPositiveButton(R.string.aceptar,
                                 (d, w) -> pedirCredenciales.launch(
                                         LoginActivity.intent(requireContext())))
                         .show();

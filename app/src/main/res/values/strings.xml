@@ -7,7 +7,7 @@
 
     <!-- Login -->
     <string name="login_titulo">Bienvenido</string>
-    <string name="login_mensaje">Ingresa una sola vez. La app recordará tu sesión aunque no tengas internet.</string>
+    <string name="login_mensaje">Ingresa tus credenciales</string>
     <string name="login_usuario">Usuario</string>
     <string name="login_clave">Contraseña</string>
     <string name="login_entrar">Entrar</string>
@@ -22,8 +22,7 @@
 
     <!-- Credenciales al sincronizar -->
     <string name="sync_credenciales_titulo">Identifícate para subir</string>
-    <string name="sync_credenciales_mensaje">Registrar datos no necesita cuenta, pero para subirlos a la Base de Datos principal hay que saber quién los envía.\n\nSolo se te pedirá una vez: la app recordará tu sesión.</string>
-    <string name="sync_credenciales_entrar">Escribir credenciales</string>
+    <string name="sync_credenciales_mensaje">Para sincronizar los datos a la base necesitas colocar primero tus credenciales.</string>
     <string name="historial_refresco_sin_sesion">Necesitas identificarte para traer tus registros del servidor. Se muestra lo guardado en este teléfono.</string>
 
     <!-- Navegación -->
