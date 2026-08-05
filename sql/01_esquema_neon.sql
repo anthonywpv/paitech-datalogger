@@ -54,8 +54,17 @@ CREATE TABLE IF NOT EXISTS public.registro_biometria (
     -- GENERATED ALWAYS: lo calcula Postgres, la app no lo envía. Es la forma de
     -- garantizar que el muestreo que ve el productor y el que ve el análisis
     -- sean el mismo, sin depender de que el teléfono lo calcule bien.
-    codigo_muestreo      TEXT GENERATED ALWAYS AS
-                         ('M-' || to_char(fecha_muestreo, 'DDMMYYYY')) STORED,
+    --
+    -- Se arma con EXTRACT y no con to_char porque una columna generada exige una
+    -- expresión IMMUTABLE, y to_char() sobre fechas solo es STABLE: su resultado
+    -- puede cambiar con la configuración regional de la sesión (DateStyle,
+    -- lc_time). EXTRACT sobre un DATE sí es inmutable.
+    codigo_muestreo      TEXT GENERATED ALWAYS AS (
+                             'M-'
+                             || LPAD(EXTRACT(DAY   FROM fecha_muestreo)::INT::TEXT, 2, '0')
+                             || LPAD(EXTRACT(MONTH FROM fecha_muestreo)::INT::TEXT, 2, '0')
+                             || EXTRACT(YEAR  FROM fecha_muestreo)::INT::TEXT
+                         ) STORED,
     piscina              TEXT          NOT NULL,
     -- UNA FILA = UN PEZ. Antes había un cantidad_muestreada que obligaba a
     -- promediar en campo; sin medidas individuales no hay dispersión, y sin

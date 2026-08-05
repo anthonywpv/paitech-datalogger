@@ -38,10 +38,19 @@ COMMENT ON COLUMN public.registro_biometria.sincronizado_en
 --    Agrupa los peces medidos el mismo día: "M-04082026" (DDMMYYYY).
 --    Es GENERATED ALWAYS, así que lo calcula Postgres y la app NO debe enviarlo
 --    (si lo enviara, la Data API rechazaría el INSERT).
+--
+--    Con EXTRACT y no con to_char: una columna generada exige una expresión
+--    IMMUTABLE, y to_char() sobre fechas solo es STABLE porque depende de la
+--    configuración regional de la sesión.
 -- ---------------------------------------------------------------------------
 ALTER TABLE public.registro_biometria
     ADD COLUMN IF NOT EXISTS codigo_muestreo TEXT
-    GENERATED ALWAYS AS ('M-' || to_char(fecha_muestreo, 'DDMMYYYY')) STORED;
+    GENERATED ALWAYS AS (
+        'M-'
+        || LPAD(EXTRACT(DAY   FROM fecha_muestreo)::INT::TEXT, 2, '0')
+        || LPAD(EXTRACT(MONTH FROM fecha_muestreo)::INT::TEXT, 2, '0')
+        || EXTRACT(YEAR  FROM fecha_muestreo)::INT::TEXT
+    ) STORED;
 
 CREATE INDEX IF NOT EXISTS ix_biometria_muestreo
     ON public.registro_biometria (codigo_muestreo);
