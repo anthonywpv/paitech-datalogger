@@ -73,13 +73,4 @@ public class RegistroBiometria {
     public String codigoMuestreo() {
         return FechaUtil.codigoMuestreo(fechaMuestreo);
     }
-
-    /**
-     * Factor de condición de Fulton: K = 100 * peso(g) / talla(cm)^3.
-     * Indicador clásico de bienestar del pez, útil para el informe técnico.
-     */
-    public double factorCondicion() {
-        if (tallaCm <= 0) return 0d;
-        return 100d * pesoGramos / Math.pow(tallaCm, 3);
-    }
 }

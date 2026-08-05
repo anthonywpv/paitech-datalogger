@@ -152,7 +152,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="@dimen/espacio_m"
-                    android:text="Sincronizar COPIA tus datos a la base principal; nunca los borra del teléfono. Si la señal se corta a mitad, puedes volver a intentarlo sin que se dupliquen."
+                    android:text="@string/sync_ayuda"
                     android:textColor="@color/paipay_marron"
                     android:textSize="14sp" />
             </LinearLayout>

@@ -71,6 +71,7 @@ public class HistorialFragment extends Fragment {
         boolean vacio = items == null || items.isEmpty();
         vista.textoVacio.setVisibility(vacio ? View.VISIBLE : View.GONE);
         vista.lista.setVisibility(vacio ? View.GONE : View.VISIBLE);
+        if (vacio) vista.textoVacio.setText(mensajeVacio());
         adaptador.actualizar(items);
 
         // Los encabezados de muestreo no son registros: no deben contarse.
@@ -82,6 +83,22 @@ public class HistorialFragment extends Fragment {
         }
         vista.textoConteo.setText(String.format(Locale.US,
                 total == 1 ? "%d registro" : "%d registros", total));
+    }
+
+    /**
+     * El hueco vacío tiene que explicar la ausencia SEGÚN EL FILTRO. Con
+     * "Pendientes" activo, "todavía no has registrado datos" sería falso y
+     * alarmante: lo que pasa es justo lo contrario, que no queda nada por subir.
+     */
+    private int mensajeVacio() {
+        HistorialViewModel.Filtro f = modelo.filtroActual();
+        if (f == HistorialViewModel.Filtro.PENDIENTES) {
+            return R.string.historial_vacio_pendientes;
+        }
+        if (f == HistorialViewModel.Filtro.SINCRONIZADOS) {
+            return R.string.historial_vacio_sincronizados;
+        }
+        return R.string.historial_vacio;
     }
 
     /**

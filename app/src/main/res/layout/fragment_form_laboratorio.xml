@@ -60,18 +60,24 @@
                 android:textSize="@dimen/texto_campo" />
         </com.google.android.material.textfield.TextInputLayout>
 
+        <!-- La piscina no se elige: en el recinto hay una sola de Vieja Azul.
+             Campo de solo lectura, sin desplegable. -->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/campoPiscina"
-            style="@style/Paipay.Campo.Menu"
+            style="@style/Paipay.Campo"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/espacio_m"
-            android:hint="@string/campo_piscina">
+            android:hint="@string/campo_piscina"
+            app:startIconDrawable="@drawable/ic_piscina">
 
-            <com.google.android.material.textfield.MaterialAutoCompleteTextView
+            <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/campoPiscinaTexto"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:clickable="false"
+                android:cursorVisible="false"
+                android:focusable="false"
                 android:inputType="none"
                 android:textSize="@dimen/texto_campo" />
         </com.google.android.material.textfield.TextInputLayout>

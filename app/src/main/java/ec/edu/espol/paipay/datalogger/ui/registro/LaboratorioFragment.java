@@ -48,7 +48,7 @@ public class LaboratorioFragment extends FormularioBase {
         super.onViewCreated(raiz, savedInstanceState);
 
         configurarSelectorFecha(vista.campoFechaTexto);
-        cargarPiscinas(vista.campoPiscinaTexto);
+        mostrarPiscinaFija(vista.campoPiscinaTexto);
 
         vista.campoTipoMuestraTexto.setAdapter(new ArrayAdapter<>(requireContext(),
                 android.R.layout.simple_list_item_1,
@@ -78,7 +78,6 @@ public class LaboratorioFragment extends FormularioBase {
 
             fechaIso = ensayo.fechaMuestreo;
             vista.campoFechaTexto.setText(FechaUtil.legibleDesdeIso(fechaIso));
-            vista.campoPiscinaTexto.setText(ensayo.piscina, false);
             vista.campoTipoMuestraTexto.setText(ensayo.tipoMuestra, false);
             vista.campoParametroTexto.setText(ensayo.parametro, false);
             vista.campoValorTexto.setText(String.valueOf(ensayo.valor));
@@ -90,12 +89,11 @@ public class LaboratorioFragment extends FormularioBase {
     }
 
     private void guardar() {
-        String piscina = codigoDePiscina(texto(vista.campoPiscinaTexto));
+        final String piscina = PISCINA_FIJA;
         String tipo = texto(vista.campoTipoMuestraTexto);
         String parametro = texto(vista.campoParametroTexto);
 
-        boolean valido = exigir(vista.campoPiscina, piscina);
-        valido &= exigir(vista.campoTipoMuestra, tipo);
+        boolean valido = exigir(vista.campoTipoMuestra, tipo);
         valido &= exigir(vista.campoParametro, parametro);
 
         double valor = numero(vista.campoValor, texto(vista.campoValorTexto), true);

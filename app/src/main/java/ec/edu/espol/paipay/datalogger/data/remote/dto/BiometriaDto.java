@@ -21,7 +21,6 @@ public class BiometriaDto {
     @SerializedName("piscina")            public String piscina;
     @SerializedName("peso_g")             public double pesoG;
     @SerializedName("talla_cm")           public double tallaCm;
-    @SerializedName("factor_condicion")   public double factorCondicion;
     @SerializedName("observacion")        public String observacion;
     @SerializedName("registrado_por")     public String registradoPor;
     @SerializedName("creado_en")          public String creadoEn;
@@ -39,7 +38,6 @@ public class BiometriaDto {
         d.piscina = r.piscina;
         d.pesoG = r.pesoGramos;
         d.tallaCm = r.tallaCm;
-        d.factorCondicion = Math.round(r.factorCondicion() * 1000d) / 1000d;
         d.observacion = r.observacion;
         d.registradoPor = r.registradoPor;
         d.creadoEn = FechaUtil.isoUtc(r.creadoEn);

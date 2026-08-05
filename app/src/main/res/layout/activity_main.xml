@@ -15,7 +15,7 @@
         app:menu="@menu/menu_superior"
         app:logo="@drawable/logo_paipay_letra"
         app:titleMarginStart="@dimen/espacio_s"
-        app:title="@string/app_name"
+        app:title="@string/app_titulo_barra"
         app:titleTextColor="@color/blanco"
         app:subtitleTextColor="#D8E3BE" />
 

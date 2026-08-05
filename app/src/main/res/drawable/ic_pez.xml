@@ -1,6 +1,40 @@
+<!--
+  Pez de perfil mirando a la derecha.
+
+  El anterior era una silueta redondeada con un pico, que a tamaño de icono se
+  leía como un bocadillo de chat y no como un pez. Este se apoya en los tres
+  rasgos que hacen reconocible un pez de un vistazo: cuerpo fusiforme, cola
+  bifurcada y ojo cerca del hocico.
+
+  El ojo es un AGUJERO (fillType evenOdd) y no una forma pintada, para que
+  siga viéndose cuando el icono se tiñe de un solo color.
+-->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp" android:height="24dp"
     android:viewportWidth="24" android:viewportHeight="24"
     android:tint="?attr/colorControlNormal">
-    <path android:fillColor="#FFFFFF" android:pathData="M12,5c-4.4,0 -8,3.1 -8,7 0,1.4 0.5,2.7 1.3,3.8L3,19l3.6,-1.2C8.1,18.6 10,19 12,19c4.4,0 8,-3.1 8,-7S16.4,5 12,5zM15.5,11.5c0.6,0 1,0.4 1,1s-0.4,1 -1,1 -1,-0.4 -1,-1 0.4,-1 1,-1zM22,8.5v7l-3,-3.5 3,-3.5z" />
+
+    <!-- Cuerpo, con el ojo recortado -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillType="evenOdd"
+        android:pathData="M5.4,12
+                          C7.4,7.4 13,5.2 20.2,11.6
+                          C20.5,11.8 20.5,12.2 20.2,12.4
+                          C13,18.8 7.4,16.6 5.4,12 Z
+                          M16.1,11.5
+                          a1,1 0 1,0 2,0
+                          a1,1 0 1,0 -2,0 Z" />
+
+    <!-- Cola bifurcada -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M5.4,12 L1.9,7.4 C3.1,9.9 3.1,14.1 1.9,16.6 Z" />
+
+    <!-- Aleta dorsal. La base va en y≈8, por debajo del borde superior del
+         cuerpo (y≈7.65 a esa altura), para que quede unida y no flotando. -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M10.6,8.0 C11.5,5.0 13.6,3.9 15.7,4.2
+                          C15.0,5.9 13.6,7.0 12.6,8.2 Z" />
 </vector>

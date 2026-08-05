@@ -2,17 +2,14 @@
 --  DATOS INICIALES
 -- ===========================================================================
 
--- Piscinas y lechos del recinto Paipayales.
+-- Las DOS unidades que existen en el recinto: una piscina de Vieja Azul y un
+-- lecho de lombricultura. No se listan piscinas hipotéticas: ofrecer una que
+-- no existe solo invita a registrar datos en la equivocada.
 -- Estos mismos códigos vienen precargados en la app (PaipayDatabase.SEMILLA),
 -- para que el productor pueda registrar desde el primer día sin sincronizar.
 INSERT INTO public.piscina (codigo, nombre, area_m2, activa) VALUES
-    ('P-01',   'Piscina 1 - Engorde',                120.00, TRUE),
-    ('P-02',   'Piscina 2 - Engorde',                120.00, TRUE),
-    ('P-03',   'Piscina 3 - Alevinaje',               60.00, TRUE),
-    ('P-04',   'Piscina 4 - Reproductores',           80.00, TRUE),
-    ('UE-01',  'U.E. Galo Plaza - Demostrativa',      40.00, TRUE),
-    ('LOM-01', 'Lecho lombricultura 1',               12.00, TRUE),
-    ('LOM-02', 'Lecho lombricultura 2',               12.00, TRUE)
+    ('P-01',   'Piscina 1 Paipayales',     120.00, TRUE),
+    ('LOM-01', 'Lecho de Lombricultura 1',  12.00, TRUE)
 ON CONFLICT (codigo) DO NOTHING;
 
 -- ---------------------------------------------------------------------------

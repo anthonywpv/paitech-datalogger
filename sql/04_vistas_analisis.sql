@@ -99,8 +99,7 @@ SELECT piscina,
        ROUND(AVG(peso_g), 2)           AS peso_promedio_g,
        ROUND(STDDEV_SAMP(peso_g), 2)   AS peso_desviacion_g,
        ROUND(AVG(talla_cm), 2)         AS talla_promedio_cm,
-       ROUND(STDDEV_SAMP(talla_cm), 2) AS talla_desviacion_cm,
-       ROUND(AVG(factor_condicion), 3) AS k_fulton_promedio
+       ROUND(STDDEV_SAMP(talla_cm), 2) AS talla_desviacion_cm
 FROM public.registro_biometria
 GROUP BY piscina, DATE_TRUNC('month', fecha_muestreo)
 ORDER BY piscina, mes;
@@ -116,7 +115,6 @@ SELECT codigo_muestreo,
        MAX(peso_g)                     AS peso_maximo_g,
        ROUND(STDDEV_SAMP(peso_g), 2)   AS peso_desviacion_g,
        ROUND(AVG(talla_cm), 2)         AS talla_promedio_cm,
-       ROUND(AVG(factor_condicion), 3) AS k_fulton_promedio,
        MIN(registrado_por)             AS registrado_por
 FROM public.registro_biometria
 GROUP BY codigo_muestreo, fecha_muestreo, piscina

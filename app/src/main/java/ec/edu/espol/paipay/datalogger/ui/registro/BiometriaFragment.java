@@ -1,9 +1,6 @@
 package ec.edu.espol.paipay.datalogger.ui.registro;
 
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextUtils;
-import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -55,22 +52,7 @@ public class BiometriaFragment extends FormularioBase {
         super.onViewCreated(raiz, savedInstanceState);
 
         configurarSelectorFecha(vista.campoFechaTexto);
-        cargarPiscinas(vista.campoPiscinaTexto);
-
-        TextWatcher recalcular = new TextWatcher() {
-            @Override public void beforeTextChanged(CharSequence s, int a, int b, int c) { }
-            @Override public void onTextChanged(CharSequence s, int a, int b, int c) { }
-            @Override public void afterTextChanged(Editable s) { mostrarFactorCondicion(); }
-        };
-        vista.campoPesoTexto.addTextChangedListener(recalcular);
-        vista.campoTallaTexto.addTextChangedListener(recalcular);
-
-        // Al elegir piscina cambia el muestreo en curso, así que se recuenta.
-        vista.campoPiscinaTexto.addTextChangedListener(new TextWatcher() {
-            @Override public void beforeTextChanged(CharSequence s, int a, int b, int c) { }
-            @Override public void onTextChanged(CharSequence s, int a, int b, int c) { }
-            @Override public void afterTextChanged(Editable s) { refrescarConteoMuestreo(); }
-        });
+        mostrarPiscinaFija(vista.campoPiscinaTexto);
 
         vista.botonGuardar.setOnClickListener(v -> guardar());
         vista.botonLimpiar.setOnClickListener(v -> limpiar());
@@ -96,7 +78,6 @@ public class BiometriaFragment extends FormularioBase {
 
             fechaIso = registro.fechaMuestreo;
             vista.campoFechaTexto.setText(FechaUtil.legibleDesdeIso(fechaIso));
-            vista.campoPiscinaTexto.setText(registro.piscina, false);
             vista.campoPesoTexto.setText(String.valueOf(registro.pesoGramos));
             vista.campoTallaTexto.setText(String.valueOf(registro.tallaCm));
             vista.campoObservacionTexto.setText(registro.observacion);
@@ -123,63 +104,25 @@ public class BiometriaFragment extends FormularioBase {
     private void refrescarConteoMuestreo() {
         if (vista == null || estaEditando()) return;
 
-        String piscina = codigoDePiscina(texto(vista.campoPiscinaTexto));
-        if (TextUtils.isEmpty(piscina)) {
-            vista.textoMuestreo.setVisibility(View.GONE);
-            return;
-        }
-
         final String codigo = FechaUtil.codigoMuestreo(fechaIso);
-        repositorio.contarEnMuestreo(fechaIso, piscina, cuantos -> {
+        repositorio.contarEnMuestreo(fechaIso, PISCINA_FIJA, cuantos -> {
             if (vista == null) return;
             vista.textoMuestreo.setText(getString(
                     cuantos == 1 ? R.string.biometria_muestreo_conteo
                                  : R.string.biometria_muestreo_conteo_plural,
-                    codigo, piscina, cuantos));
+                    codigo, PISCINA_FIJA, cuantos));
             vista.textoMuestreo.setVisibility(View.VISIBLE);
         });
     }
 
-    /**
-     * Retroalimentación inmediata: el productor ve el factor de condición
-     * mientras escribe, sin esperar al informe técnico.
-     */
-    private void mostrarFactorCondicion() {
-        double peso = numeroSuave(texto(vista.campoPesoTexto));
-        double talla = numeroSuave(texto(vista.campoTallaTexto));
-
-        if (Double.isNaN(peso) || Double.isNaN(talla) || peso <= 0 || talla <= 0) {
-            vista.textoFactorCondicion.setVisibility(View.GONE);
-            return;
-        }
-
-        double k = 100d * peso / Math.pow(talla, 3);
-        String interpretacion;
-        if (k < 1.4)      interpretacion = "pez delgado, revisar alimentación";
-        else if (k <= 2.2) interpretacion = "condición corporal adecuada";
-        else               interpretacion = "pez muy robusto, verificar la medición";
-
-        vista.textoFactorCondicion.setText(String.format(Locale.US,
-                "Factor de condición (K de Fulton): %.2f — %s", k, interpretacion));
-        vista.textoFactorCondicion.setVisibility(View.VISIBLE);
-    }
-
-    private double numeroSuave(String valor) {
-        if (valor.isEmpty()) return Double.NaN;
-        try {
-            return Double.parseDouble(valor.replace(',', '.'));
-        } catch (NumberFormatException e) {
-            return Double.NaN;
-        }
-    }
 
     // ------------------------------------------------------------------
     //  GUARDADO
     // ------------------------------------------------------------------
 
     private void guardar() {
-        String piscina = codigoDePiscina(texto(vista.campoPiscinaTexto));
-        boolean valido = exigir(vista.campoPiscina, piscina);
+        final String piscina = PISCINA_FIJA;
+        boolean valido = true;
 
         double peso = numero(vista.campoPeso, texto(vista.campoPesoTexto), true);
         double talla = numero(vista.campoTalla, texto(vista.campoTallaTexto), true);
@@ -229,17 +172,13 @@ public class BiometriaFragment extends FormularioBase {
         vista.campoObservacionTexto.setText("");
         vista.campoPeso.setError(null);
         vista.campoTalla.setError(null);
-        vista.textoFactorCondicion.setVisibility(View.GONE);
         vista.campoPesoTexto.requestFocus();
         refrescarConteoMuestreo();
     }
 
-    /** Vacía también la piscina: sirve para empezar un muestreo distinto. */
+    /** Borra lo escrito sin salir del muestreo en curso. */
     private void limpiar() {
         prepararSiguientePez();
-        vista.campoPiscinaTexto.setText("", false);
-        vista.campoPiscina.setError(null);
-        vista.textoMuestreo.setVisibility(View.GONE);
     }
 
     @Override

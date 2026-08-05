@@ -68,10 +68,9 @@ CREATE TABLE IF NOT EXISTS public.registro_biometria (
     piscina              TEXT          NOT NULL,
     -- UNA FILA = UN PEZ. Antes había un cantidad_muestreada que obligaba a
     -- promediar en campo; sin medidas individuales no hay dispersión, y sin
-    -- dispersión el factor de condición promedio engaña.
+    -- dispersión el peso promedio engaña.
     peso_g               NUMERIC(10,2) NOT NULL CHECK (peso_g > 0),
     talla_cm             NUMERIC(10,2) NOT NULL CHECK (talla_cm > 0),
-    factor_condicion     NUMERIC(10,3),
     observacion          TEXT,
     registrado_por       TEXT,
     creado_en            TIMESTAMPTZ   NOT NULL,
@@ -82,8 +81,6 @@ CREATE TABLE IF NOT EXISTS public.registro_biometria (
 CREATE INDEX IF NOT EXISTS ix_biometria_piscina_fecha
     ON public.registro_biometria (piscina, fecha_muestreo);
 
-COMMENT ON COLUMN public.registro_biometria.factor_condicion
-    IS 'K de Fulton = 100 * peso(g) / talla(cm)^3, calculado en el dispositivo.';
 COMMENT ON COLUMN public.registro_biometria.creado_en
     IS 'Momento real de la captura en campo.';
 COMMENT ON COLUMN public.registro_biometria.recibido_en

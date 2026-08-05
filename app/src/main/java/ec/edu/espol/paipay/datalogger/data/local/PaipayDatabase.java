@@ -166,15 +166,14 @@ public abstract class PaipayDatabase extends RoomDatabase {
             AppExecutors.io().execute(() -> {
                 if (INSTANCIA == null) return;
                 PiscinaDao dao = INSTANCIA.piscinaDao();
+                // En el recinto hay exactamente dos unidades en producción: una
+                // piscina de Vieja Azul y un lecho de lombricultura. El catálogo
+                // refleja la realidad, no un futuro hipotético: ofrecer piscinas
+                // que no existen solo invita a registrar datos en la equivocada.
                 if (dao.contar() == 0) {
                     dao.insertarTodas(Arrays.asList(
-                            new Piscina("P-01", "Piscina 1 - Engorde", 120d),
-                            new Piscina("P-02", "Piscina 2 - Engorde", 120d),
-                            new Piscina("P-03", "Piscina 3 - Alevinaje", 60d),
-                            new Piscina("P-04", "Piscina 4 - Reproductores", 80d),
-                            new Piscina("UE-01", "U.E. Galo Plaza - Demostrativa", 40d),
-                            new Piscina("LOM-01", "Lecho lombricultura 1", 12d),
-                            new Piscina("LOM-02", "Lecho lombricultura 2", 12d)
+                            new Piscina("P-01", "Piscina 1 Paipayales", 120d),
+                            new Piscina("LOM-01", "Lecho de Lombricultura 1", 12d)
                     ));
                 }
             });

@@ -96,34 +96,36 @@ public abstract class FormularioBase extends Fragment {
      */
     protected void onFechaCambiada() { }
 
-    // ---------------------- PISCINAS ----------------------
+    // ---------------------- PISCINA ----------------------
 
-    protected void cargarPiscinas(MaterialAutoCompleteTextView campo) {
+    /**
+     * En el recinto hay UNA sola piscina de Vieja Azul, así que no se elige:
+     * se muestra fija. Un desplegable de un único elemento no ayuda a decidir,
+     * solo añade un toque de más y una vía para equivocarse.
+     *
+     * El código es lo que viaja a Postgres; el nombre es solo lo que lee el
+     * productor.
+     */
+    protected static final String PISCINA_FIJA = "P-01";
+
+    /**
+     * Pinta el nombre de la piscina fija en un campo de solo lectura. El nombre
+     * sale de la tabla local y no de una constante, para que cambiarlo en la
+     * semilla baste y no queden dos versiones del mismo dato.
+     */
+    protected void mostrarPiscinaFija(TextInputEditText campo) {
+        campo.setText(PISCINA_FIJA);
         repositorio.piscinas().observe(getViewLifecycleOwner(), lista -> {
-            if (lista == null || lista.isEmpty()) return;
-            List<String> nombres = new ArrayList<>(lista.size());
-            for (Piscina p : lista) nombres.add(p.toString());
-            campo.setAdapter(new ArrayAdapter<>(requireContext(),
-                    android.R.layout.simple_list_item_1, nombres));
-            campo.setThreshold(0);
+            if (lista == null) return;
+            for (Piscina p : lista) {
+                if (PISCINA_FIJA.equals(p.codigo)) {
+                    campo.setText(TextUtils.isEmpty(p.nombre) ? p.codigo : p.nombre);
+                    return;
+                }
+            }
         });
     }
 
-    /**
-     * De "P-01 · Piscina 1 - Engorde" extrae "P-01".
-     *
-     * Guardar el código y no el nombre largo evita que la base principal
-     * termine con "P1", "p-1", "Piscina 1" y "piscina uno" como si fueran
-     * piscinas distintas.
-     */
-    protected String codigoDePiscina(String textoSeleccionado) {
-        if (TextUtils.isEmpty(textoSeleccionado)) return "";
-        int separador = textoSeleccionado.indexOf(" \u00b7 ");
-        if (separador > 0) {
-            return textoSeleccionado.substring(0, separador).trim();
-        }
-        return textoSeleccionado.trim();
-    }
 
     // ---------------------- VALIDACIÓN ----------------------
 

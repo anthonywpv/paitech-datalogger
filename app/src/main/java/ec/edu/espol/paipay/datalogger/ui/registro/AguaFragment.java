@@ -57,7 +57,7 @@ public class AguaFragment extends FormularioBase {
         super.onViewCreated(raiz, savedInstanceState);
 
         configurarSelectorFecha(vista.campoFechaTexto);
-        cargarPiscinas(vista.campoPiscinaTexto);
+        mostrarPiscinaFija(vista.campoPiscinaTexto);
 
         TextWatcher evaluar = new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int a, int b, int c) { }
@@ -87,7 +87,6 @@ public class AguaFragment extends FormularioBase {
 
             fechaIso = registro.fechaMuestreo;
             vista.campoFechaTexto.setText(FechaUtil.legibleDesdeIso(fechaIso));
-            vista.campoPiscinaTexto.setText(registro.piscina, false);
             vista.campoPhTexto.setText(String.valueOf(registro.ph));
             vista.campoAmonioTexto.setText(String.valueOf(registro.amonioMgL));
             vista.campoNitritoTexto.setText(String.valueOf(registro.nitritoMgL));
@@ -112,7 +111,7 @@ public class AguaFragment extends FormularioBase {
         }
 
         RegistroAgua provisional = new RegistroAgua();
-        provisional.piscina = codigoDePiscina(texto(vista.campoPiscinaTexto));
+        provisional.piscina = PISCINA_FIJA;
         provisional.fechaMuestreo = fechaIso;
         provisional.ph = ph;
         provisional.amonioMgL = amonio;
@@ -150,8 +149,8 @@ public class AguaFragment extends FormularioBase {
     // ---------------- GUARDADO ----------------
 
     private void guardar() {
-        String piscina = codigoDePiscina(texto(vista.campoPiscinaTexto));
-        boolean valido = exigir(vista.campoPiscina, piscina);
+        final String piscina = PISCINA_FIJA;
+        boolean valido = true;
 
         double ph = numero(vista.campoPh, texto(vista.campoPhTexto), true);
         double amonio = numero(vista.campoAmonio, texto(vista.campoAmonioTexto), true);

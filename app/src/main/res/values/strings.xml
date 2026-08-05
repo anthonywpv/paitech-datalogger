@@ -2,6 +2,8 @@
 <resources>
     <string name="app_name">Paipay DataLogger</string>
     <string name="app_subtitulo">Recinto Paipayales · Santa Lucía</string>
+    <!-- Barra superior: el logotipo ya dice "Paipay", repetirlo sobra. -->
+    <string name="app_titulo_barra">DataLogger | CDIA</string>
 
     <!-- Login -->
     <string name="login_titulo">Bienvenido</string>
@@ -65,7 +67,7 @@
     <string name="tab_lombricultura">Lombricultura</string>
     <string name="lombricultura_titulo">Sección en construcción</string>
     <string name="lombricultura_mensaje">El registro de los lechos de lombricultura todavía está por definir con el equipo de Acuicultura de la ESPOL.\n\nCuando se acuerde qué datos se toman (humedad, temperatura del lecho, alimento aportado, lombriz cosechada), esta pestaña los recogerá igual que las demás: sin necesidad de internet y con sincronización diferida.</string>
-    <string name="lombricultura_piscinas">Los lechos LOM-01 y LOM-02 ya están en el catálogo de piscinas, así que no habrá que volver a crearlos.</string>
+    <string name="lombricultura_piscinas">El lecho LOM-01 ya está en el catálogo, así que no habrá que crearlo cuando se defina qué se registra.</string>
     <string name="campo_observacion">Observación (opcional)</string>
     <string name="campo_tipo_muestra">Tipo de muestra</string>
     <string name="campo_parametro">Parámetro analizado</string>
@@ -93,6 +95,8 @@
     <!-- Historial -->
     <string name="historial_titulo">Historial de registros</string>
     <string name="historial_vacio">Todavía no has registrado datos.</string>
+    <string name="historial_vacio_pendientes">No tienes datos pendientes a sincronizar.</string>
+    <string name="historial_vacio_sincronizados">Todavía no has sincronizado ningún dato.</string>
     <string name="filtro_todos">Todos</string>
     <string name="filtro_pendientes">Pendientes</string>
     <string name="filtro_sincronizados">Sincronizados</string>
@@ -101,6 +105,7 @@
     <string name="sync_titulo">Sincronización</string>
     <string name="sync_boton">Sincronizar</string>
     <string name="sync_dialogo_titulo">Antes de sincronizar</string>
+    <string name="sync_ayuda">Sincronizar envía los datos registrados de tu celular a la base principal. Asegúrate de tener una conexión de red estable antes de sincronizar.</string>
     <string name="sync_dialogo_encabezado">Antes de sincronizar, asegúrate de tener una conexión de Internet estable. Se van a subir los siguientes datos a la Base de Datos principal:</string>
     <string name="sync_dialogo_confirmar">Sí, subir datos</string>
     <string name="sync_dialogo_cancelar">Ahora no</string>

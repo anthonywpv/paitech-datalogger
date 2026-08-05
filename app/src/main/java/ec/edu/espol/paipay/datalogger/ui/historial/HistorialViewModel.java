@@ -61,6 +61,11 @@ public class HistorialViewModel extends AndroidViewModel {
         filtro.setValue(nuevo);
     }
 
+    /** El filtro vigente, para que la pantalla explique bien un hueco vacío. */
+    public Filtro filtroActual() {
+        return filtro.getValue() == null ? Filtro.TODOS : filtro.getValue();
+    }
+
     private void recomponer() {
         Filtro actual = filtro.getValue() == null ? Filtro.TODOS : filtro.getValue();
         List<ItemHistorial> items = new ArrayList<>();
@@ -70,8 +75,8 @@ public class HistorialViewModel extends AndroidViewModel {
             items.add(new ItemHistorial(
                     ItemHistorial.Tipo.BIOMETRIA, r.uuid,
                     "Biometría · " + r.piscina,
-                    String.format(Locale.US, "%.1f g   ·   %.1f cm   ·   K %.2f",
-                            r.pesoGramos, r.tallaCm, r.factorCondicion()),
+                    String.format(Locale.US, "%.1f g   ·   %.1f cm",
+                            r.pesoGramos, r.tallaCm),
                     r.fechaMuestreo, r.creadoEn, r.sincronizado));
         }
 
