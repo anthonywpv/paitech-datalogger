@@ -1,6 +1,11 @@
 -- ===========================================================================
 --  MIGRACIÓN — de "promedio + número de peces" a UNA FILA = UN PEZ
 --
+--  ⚠️  SI ACABAS DE REINICIAR CON 00_reiniciar_desde_cero.sql, NO EJECUTES
+--      ESTE ARCHIVO. Sobre una base recién creada por 01 no tiene nada que
+--      migrar y sus ALTER TABLE fallarán. Este script existe únicamente para
+--      actualizar una base con datos que no se quieren perder.
+--
 --  Ejecutar UNA SOLA VEZ en el SQL Editor de Neon, sobre una base que ya se
 --  creó con la versión anterior de 01_esquema_neon.sql.
 --

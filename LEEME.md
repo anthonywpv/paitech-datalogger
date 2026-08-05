@@ -66,8 +66,16 @@ El dato **nunca se borra del teléfono**: sincronizar es copiar, no mover.
    - `sql/03_datos_iniciales.sql`
    - `sql/04_vistas_analisis.sql`
 
-   *(`sql/05_migracion_medicion_individual.sql` NO hace falta en una base nueva: solo se
-   ejecuta sobre bases creadas con el esquema anterior, el que tenía `cantidad_muestreada`.)*
+   Los otros dos scripts son casos especiales y **no** forman parte del montaje normal:
+
+   | Script | Cuándo |
+   |---|---|
+   | `00_reiniciar_desde_cero.sql` | El esquema quedó a medias y prefieres empezar limpio. **Borra todos los datos.** Ejecutarlo antes del `01`. |
+   | `05_migracion_medicion_individual.sql` | Actualizar una base con datos que NO quieres perder, creada con el esquema anterior. Nunca después de un reinicio. |
+
+   > `01` usa `CREATE TABLE IF NOT EXISTS`, que **no modifica** una tabla ya existente. Si
+   > el esquema cambió, volver a ejecutar `01` no añade las columnas nuevas y `04` fallará
+   > al crear vistas que las usan. Para eso están `00` (borrar y recrear) y `05` (migrar).
 4. Volver a **Data API** y pulsar **Refresh schema cache**.
    *(Si se salta este paso, la app recibirá errores 404 aunque las tablas existan.)*
 5. Anotar dos URL:
