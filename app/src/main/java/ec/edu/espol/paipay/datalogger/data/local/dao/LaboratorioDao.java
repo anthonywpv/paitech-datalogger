@@ -49,4 +49,15 @@ public interface LaboratorioDao {
 
     @Query("SELECT uuid FROM ensayo_laboratorio")
     List<String> todosLosUuids();
+
+    @Query("SELECT COUNT(*) FROM ensayo_laboratorio WHERE sincronizado = 1")
+    int contarSincronizados();
+
+    /**
+     * Libera espacio borrando SOLO lo que ya está en la base principal.
+     * El filtro sincronizado = 1 no es un detalle: es la garantía de que
+     * esta operación no puede tocar un dato que el productor aún no subió.
+     */
+    @Query("DELETE FROM ensayo_laboratorio WHERE sincronizado = 1")
+    int borrarSincronizados();
 }

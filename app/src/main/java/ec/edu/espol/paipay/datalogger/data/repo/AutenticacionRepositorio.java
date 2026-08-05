@@ -43,6 +43,16 @@ public class AutenticacionRepositorio {
     }
 
     public void iniciarSesion(String usuario, String clave, Callback callback) {
+        iniciarSesion(usuario, clave, false, callback);
+    }
+
+    /**
+     * @param recordar si el productor pidió que no se le vuelva a preguntar
+     *                 durante 30 días. Sin marcar, la sesión solo vive lo que
+     *                 dure la subida en curso.
+     */
+    public void iniciarSesion(String usuario, String clave, boolean recordar,
+                              Callback callback) {
         if (!RedUtil.hayInternet(contexto)) {
             AppExecutors.enHiloPrincipal(() -> callback.onError(Resultado.SIN_INTERNET));
             return;
@@ -77,7 +87,7 @@ public class AutenticacionRepositorio {
                 }
 
                 String nombre = extraerNombre(respuesta.body(), usuario);
-                sesion.guardarSesion(usuario.trim().toLowerCase(), nombre);
+                sesion.guardarSesion(usuario.trim().toLowerCase(), nombre, recordar);
                 AppExecutors.enHiloPrincipal(() -> callback.onExito(nombre));
 
             } catch (Exception e) {

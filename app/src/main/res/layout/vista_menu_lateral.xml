@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Contenido del menú lateral. No se usa NavigationView con un menú XML porque
+  "Cerrar sesión" necesita mostrarse deshabilitado en gris con una explicación
+  debajo, y eso con items de menú es pelearse con el componente.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/paipay_superficie"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical">
+
+    <!-- Cabecera: marca y quién está identificado -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/fondo_encabezado"
+        android:orientation="vertical"
+        android:paddingStart="@dimen/espacio_l"
+        android:paddingTop="@dimen/espacio_xl"
+        android:paddingEnd="@dimen/espacio_l"
+        android:paddingBottom="@dimen/espacio_l">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="44dp"
+            android:adjustViewBounds="true"
+            android:contentDescription="@string/app_name"
+            android:src="@drawable/logo_paipay_letra" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/espacio_s"
+            android:text="@string/app_titulo_barra"
+            android:textColor="@color/blanco"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/textoSesionMenu"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/espacio_xs"
+            android:textColor="#EAF1D4"
+            android:textSize="14sp" />
+    </LinearLayout>
+
+    <!-- Almacenamiento -->
+    <LinearLayout
+        android:id="@+id/opcionAlmacenamiento"
+        style="@style/Paipay.OpcionMenu"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:contentDescription="@string/menu_almacenamiento"
+            android:src="@drawable/ic_nube_subir"
+            app:tint="@color/paipay_verde_oscuro" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/espacio_m"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/menu_almacenamiento"
+                android:textColor="@color/paipay_marron"
+                android:textSize="17sp" />
+
+            <TextView
+                android:id="@+id/textoAlmacenamientoResumen"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/paipay_gris_bajo"
+                android:textSize="13sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Manual de uso -->
+    <LinearLayout
+        android:id="@+id/opcionManual"
+        style="@style/Paipay.OpcionMenu"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:contentDescription="@string/menu_manual"
+            android:src="@drawable/ic_info"
+            app:tint="@color/paipay_verde_oscuro" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/espacio_m"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/menu_manual"
+                android:textColor="@color/paipay_marron"
+                android:textSize="17sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/menu_manual_estado"
+                android:textColor="@color/paipay_gris_bajo"
+                android:textSize="13sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="@dimen/espacio_s"
+        android:layout_marginBottom="@dimen/espacio_s"
+        android:background="@color/paipay_borde" />
+
+    <!-- Cerrar sesión. Solo tiene sentido si hay una sesión recordada que
+         cerrar; si no, se muestra en gris con el porqué. -->
+    <LinearLayout
+        android:id="@+id/opcionCerrarSesion"
+        style="@style/Paipay.OpcionMenu"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/iconoCerrarSesion"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:contentDescription="@string/menu_cerrar_sesion"
+            android:src="@drawable/ic_salir"
+            app:tint="@color/paipay_verde_oscuro" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/espacio_m"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/textoCerrarSesion"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/menu_cerrar_sesion"
+                android:textColor="@color/paipay_marron"
+                android:textSize="17sp" />
+
+            <TextView
+                android:id="@+id/textoCerrarSesionEstado"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/paipay_gris_bajo"
+                android:textSize="13sp" />
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

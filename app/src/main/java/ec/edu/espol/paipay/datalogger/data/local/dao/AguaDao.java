@@ -58,4 +58,15 @@ public interface AguaDao {
 
     @Query("SELECT uuid FROM registro_agua")
     List<String> todosLosUuids();
+
+    @Query("SELECT COUNT(*) FROM registro_agua WHERE sincronizado = 1")
+    int contarSincronizados();
+
+    /**
+     * Libera espacio borrando SOLO lo que ya está en la base principal.
+     * El filtro sincronizado = 1 no es un detalle: es la garantía de que
+     * esta operación no puede tocar un dato que el productor aún no subió.
+     */
+    @Query("DELETE FROM registro_agua WHERE sincronizado = 1")
+    int borrarSincronizados();
 }

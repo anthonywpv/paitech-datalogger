@@ -15,6 +15,8 @@
     <string name="login_error_credenciales">Usuario o contraseña incorrectos</string>
     <string name="login_error_sin_internet">Necesitas internet solo para este primer ingreso</string>
     <string name="login_verificando">Verificando…</string>
+    <string name="login_recordar">No volver a preguntar (30 días)</string>
+    <string name="login_recordar_ayuda">Si no lo marcas, se te pedirán las credenciales cada vez que sincronices.</string>
     <string name="login_error_servidor">No se pudo verificar tus credenciales. Revisa tu conexión e inténtalo de nuevo.</string>
     <string name="sesion_sin_iniciar">Sin sesión · registro sin conexión</string>
 
@@ -85,8 +87,19 @@
 
     <!-- Semáforo -->
     <string name="semaforo_titulo">Semáforo de alertas</string>
-    <string name="semaforo_descripcion">Estado de cada piscina según la última medición de pH, amonio, nitrito y nitrato.</string>
-    <string name="semaforo_sin_datos">Aún no hay mediciones de agua registradas.</string>
+    <string name="semaforo_piscina_titulo">Piscina 1 Paipayales</string>
+    <string name="semaforo_ultima_medicion">Última medición: %1$s</string>
+    <string name="semaforo_sin_medicion">Sin mediciones todavía</string>
+    <string name="semaforo_sin_datos">Sin datos del agua</string>
+    <string name="semaforo_sin_datos_detalle">Registra una medición de agua para saber cómo está la piscina.</string>
+    <string name="semaforo_peces_titulo">Peces</string>
+    <string name="semaforo_peces_sin_datos">Todavía no has medido ningún pez.</string>
+    <string name="semaforo_peces_detalle">%1$d peces medidos, %2$s g de promedio, el %3$s.</string>
+    <string name="semaforo_peces_muestra_corta">Con menos de 10 peces el promedio se mueve mucho. Mide algunos más si puedes.</string>
+    <string name="semaforo_lombricultura_titulo">Lombricultura</string>
+    <string name="semaforo_lombricultura_subtitulo">Lecho de Lombricultura 1</string>
+    <string name="semaforo_lombricultura_estado">En desarrollo</string>
+    <string name="semaforo_lombricultura_detalle">Todavía no se registra nada del lecho, así que no hay alertas que dar. Se activará cuando se defina qué se mide con el equipo de Acuicultura.</string>
     <string name="semaforo_verde_texto">ÓPTIMO</string>
     <string name="semaforo_amarillo_texto">PRECAUCIÓN</string>
     <string name="semaforo_rojo_texto">CRÍTICO</string>
@@ -125,7 +138,25 @@
     <string name="etiqueta_pendiente">Pendiente</string>
     <string name="etiqueta_sincronizado">Sincronizado</string>
 
+    <string name="menu_abrir">Abrir menú</string>
+    <string name="menu_almacenamiento">Almacenamiento</string>
+    <string name="menu_almacenamiento_resumen">%1$d registros · %2$s</string>
+    <string name="menu_manual">Manual de uso</string>
+    <string name="menu_manual_estado">En desarrollo</string>
+    <string name="menu_manual_mensaje">La guía de uso todavía está por escribirse. Cuando esté lista, esta opción abrirá el PDF con el paso a paso de cómo registrar y sincronizar.</string>
     <string name="menu_cerrar_sesion">Cerrar sesión</string>
+    <string name="menu_cerrar_sesion_activa">Sesión de %1$s</string>
+    <string name="menu_cerrar_sesion_no_disponible">No hay sesión guardada que cerrar</string>
+
+    <!-- Almacenamiento -->
+    <string name="almacenamiento_titulo">Almacenamiento</string>
+    <string name="almacenamiento_ocupado">Los registros de este teléfono ocupan %1$s.</string>
+    <string name="almacenamiento_detalle">%1$d sincronizados · %2$d pendientes</string>
+    <string name="almacenamiento_liberar">Borrar los %1$d ya sincronizados</string>
+    <string name="almacenamiento_nada_que_borrar">No hay datos sincronizados que borrar.</string>
+    <string name="almacenamiento_aviso">Los pendientes NUNCA se borran: siguen aquí hasta que los subas. Lo que se borra ya está guardado en la base principal y puedes volver a traerlo deslizando en el historial.</string>
+    <string name="almacenamiento_confirmar">¿Borrar %1$d registros sincronizados de este teléfono? Siguen guardados en la base principal.</string>
+    <string name="almacenamiento_borrados">Se liberaron %1$d registros.</string>
     <string name="cerrar_sesion_pregunta">¿Cerrar sesión? Los datos aún no sincronizados se conservan en el teléfono.</string>
     <string name="aceptar">Aceptar</string>
     <string name="cancelar">Cancelar</string>

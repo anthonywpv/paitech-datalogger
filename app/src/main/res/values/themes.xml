@@ -91,4 +91,18 @@
         <item name="android:textAllCaps">true</item>
         <item name="android:letterSpacing">0.06</item>
     </style>
+
+    <!-- Fila del menú lateral: alto cómodo para el dedo y realimentación al tocar. -->
+    <style name="Paipay.OpcionMenu" parent="">
+        <item name="android:orientation">horizontal</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:minHeight">@dimen/alto_boton</item>
+        <item name="android:paddingStart">@dimen/espacio_l</item>
+        <item name="android:paddingEnd">@dimen/espacio_l</item>
+        <item name="android:paddingTop">@dimen/espacio_s</item>
+        <item name="android:paddingBottom">@dimen/espacio_s</item>
+        <item name="android:background">?attr/selectableItemBackground</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+    </style>
 </resources>

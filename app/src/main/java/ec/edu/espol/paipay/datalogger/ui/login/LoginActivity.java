@@ -72,7 +72,9 @@ public class LoginActivity extends AppCompatActivity {
 
         mostrarCargando(true);
 
-        autenticacion.iniciarSesion(usuario, clave, new AutenticacionRepositorio.Callback() {
+        final boolean recordar = vista.casillaRecordar.isChecked();
+        autenticacion.iniciarSesion(usuario, clave, recordar,
+                new AutenticacionRepositorio.Callback() {
             @Override
             public void onExito(String nombre) {
                 mostrarCargando(false);

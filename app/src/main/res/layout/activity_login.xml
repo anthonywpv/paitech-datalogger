@@ -122,6 +122,25 @@
                         android:autofillHints="password" />
                 </com.google.android.material.textfield.TextInputLayout>
 
+                <!-- Sin marcar, la sesión dura solo esta subida y en la
+                     siguiente se vuelven a pedir las credenciales. -->
+                <com.google.android.material.checkbox.MaterialCheckBox
+                    android:id="@+id/casillaRecordar"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/espacio_m"
+                    android:minHeight="48dp"
+                    android:text="@string/login_recordar"
+                    android:textColor="@color/paipay_marron"
+                    android:textSize="15sp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/login_recordar_ayuda"
+                    android:textColor="@color/paipay_gris_bajo"
+                    android:textSize="13sp" />
+
                 <TextView
                     android:id="@+id/textoMensaje"
                     android:layout_width="match_parent"

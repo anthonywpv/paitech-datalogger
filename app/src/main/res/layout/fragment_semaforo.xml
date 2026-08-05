@@ -1,44 +1,69 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<!--
+  Semáforo de alertas. Dos bloques en un solo desplazamiento: arriba la piscina
+  (agua y peces), abajo la lombricultura.
+
+  No lleva un texto explicando qué se mide: el productor no necesita que le
+  expliquen el método, necesita saber si algo va mal. Las alertas hablan solas,
+  y siempre hay alguna que mostrar, sea buena o mala.
+-->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
+    android:fillViewport="true"
     android:padding="@dimen/espacio_m">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/semaforo_titulo"
-        android:textColor="@color/paipay_marron"
-        android:textSize="@dimen/texto_titulo"
-        android:textStyle="bold" />
-
-    <TextView
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/espacio_xs"
-        android:layout_marginBottom="@dimen/espacio_m"
-        android:text="@string/semaforo_descripcion"
-        android:textColor="@color/paipay_gris_bajo"
-        android:textSize="14sp" />
+        android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/textoVacio"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@drawable/chip_neutro"
-        android:padding="@dimen/espacio_l"
-        android:text="@string/semaforo_sin_datos"
-        android:textColor="@color/paipay_marron"
-        android:textSize="15sp"
-        android:visibility="gone" />
+        <!-- ===================== PISCINA ===================== -->
+        <TextView
+            android:id="@+id/tituloPiscina"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/paipay_marron"
+            android:textSize="@dimen/texto_titulo"
+            android:textStyle="bold" />
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/lista"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:clipToPadding="false"
-        android:paddingBottom="@dimen/espacio_l" />
-</LinearLayout>
+        <TextView
+            android:id="@+id/subtituloPiscina"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/espacio_s"
+            android:textColor="@color/paipay_gris_bajo"
+            android:textSize="13sp" />
+
+        <LinearLayout
+            android:id="@+id/contenedorPiscina"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+
+        <!-- ===================== LOMBRICULTURA ===================== -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/espacio_l"
+            android:text="@string/semaforo_lombricultura_titulo"
+            android:textColor="@color/paipay_marron"
+            android:textSize="@dimen/texto_titulo"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/espacio_s"
+            android:text="@string/semaforo_lombricultura_subtitulo"
+            android:textColor="@color/paipay_gris_bajo"
+            android:textSize="13sp" />
+
+        <LinearLayout
+            android:id="@+id/contenedorLombricultura"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/espacio_l"
+            android:orientation="vertical" />
+    </LinearLayout>
+</ScrollView>

@@ -208,6 +208,9 @@ public class SincronizacionFragment extends Fragment {
             public void terminado(ResultadoSincronizacion resultado) {
                 if (vista == null) return;
                 mostrarProgreso(false, null);
+                // Si no pidió que se recordara su sesión, se olvida aquí: la
+                // próxima subida volverá a pedirle las credenciales.
+                sesion.olvidarSiNoSeRecuerda();
                 informarResultado(resultado);
                 refrescar();
             }
