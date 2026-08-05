@@ -30,6 +30,9 @@ public class AutenticacionRepositorio {
     public enum Resultado {
         EXITO,
         CREDENCIALES_INVALIDAS,
+        /** El servidor rechazó la petición, no la contraseña. Típicamente el
+         *  Origin no está entre los confiables de Neon Auth. */
+        RECHAZADO_POR_SERVIDOR,
         SIN_INTERNET,
         ERROR_SERVIDOR
     }
@@ -60,6 +63,13 @@ public class AutenticacionRepositorio {
 
         AppExecutors.io().execute(() -> {
             try {
+                // Se entra de cero: fuera cualquier cookie que haya sobrevivido.
+                // Better Auth devuelve 403 si el sign-in llega con la cookie de
+                // una sesión anterior, y el mensaje resultante culpa a la
+                // contraseña. Limpiar aquí hace que el ingreso funcione sin
+                // importar cómo quedó el estado previo.
+                NeonCliente.reiniciar(contexto);
+
                 Map<String, String> credenciales = new HashMap<>();
                 credenciales.put("email", usuario.trim().toLowerCase());
                 credenciales.put("password", clave);
@@ -68,7 +78,17 @@ public class AutenticacionRepositorio {
                         .iniciarSesion(credenciales)
                         .execute();
 
-                if (respuesta.code() == 401 || respuesta.code() == 400 || respuesta.code() == 403) {
+                // 403 NO es contraseña incorrecta: Better Auth lo devuelve cuando
+                // rechaza la petición entera, casi siempre porque el Origin no
+                // está declarado como confiable en la consola de Neon. Meterlo
+                // en el mismo saco que el 401 hace perder horas buscando en el
+                // sitio equivocado.
+                if (respuesta.code() == 403) {
+                    AppExecutors.enHiloPrincipal(() ->
+                            callback.onError(Resultado.RECHAZADO_POR_SERVIDOR));
+                    return;
+                }
+                if (respuesta.code() == 401 || respuesta.code() == 400) {
                     AppExecutors.enHiloPrincipal(() ->
                             callback.onError(Resultado.CREDENCIALES_INVALIDAS));
                     return;
@@ -116,5 +136,19 @@ public class AutenticacionRepositorio {
     public void cerrarSesion() {
         NeonCliente.reiniciar(contexto);
         sesion.cerrarSesion();
+    }
+
+    /**
+     * Se llama al terminar una sincronización. Si el productor no pidió que se
+     * recordara su sesión, la olvida por completo.
+     *
+     * TIENE que pasar por cerrarSesion() y no por SesionManager a secas: borrar
+     * solo las preferencias deja viva la COOKIE de Neon Auth, y Better Auth
+     * responde 403 a un sign-in que llega con una cookie de sesión anterior.
+     * El síntoma sería desconcertante: la primera subida funciona y la segunda
+     * dice "usuario o contraseña incorrectos" con las credenciales correctas.
+     */
+    public void olvidarSiNoSeRecuerda() {
+        if (!sesion.recordarSesion()) cerrarSesion();
     }
 }

@@ -17,6 +17,7 @@
     <string name="login_verificando">Verificando…</string>
     <string name="login_recordar">No volver a preguntar (30 días)</string>
     <string name="login_recordar_ayuda">Si no lo marcas, se te pedirán las credenciales cada vez que sincronices.</string>
+    <string name="login_error_rechazado">El servidor rechazó la conexión (403). No es tu contraseña: revisa que el origen de la app esté declarado como confiable en Neon Auth.</string>
     <string name="login_error_servidor">No se pudo verificar tus credenciales. Revisa tu conexión e inténtalo de nuevo.</string>
     <string name="sesion_sin_iniciar">Sin sesión · registro sin conexión</string>
 

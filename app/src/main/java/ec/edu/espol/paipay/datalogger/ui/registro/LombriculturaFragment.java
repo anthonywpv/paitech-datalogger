@@ -26,7 +26,7 @@ import ec.edu.espol.paipay.datalogger.databinding.FragmentFormLombriculturaBindi
  * Al implementarla, seguir el patrón de los otros tres formularios: extender
  * FormularioBase (que ya trae fecha, piscina, validación y modo corrección),
  * crear entidad + DAO + DTO, y añadir el bloque correspondiente en
- * SincronizacionRepositorio. La lista completa está en el LEEME.
+ * SincronizacionRepositorio, y añadir la tabla y las políticas RLS en sql/.
  */
 public class LombriculturaFragment extends Fragment {
 

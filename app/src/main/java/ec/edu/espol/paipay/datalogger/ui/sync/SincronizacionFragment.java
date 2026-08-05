@@ -19,6 +19,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import java.util.Locale;
 
 import ec.edu.espol.paipay.datalogger.R;
+import ec.edu.espol.paipay.datalogger.data.repo.AutenticacionRepositorio;
 import ec.edu.espol.paipay.datalogger.data.repo.SesionManager;
 import ec.edu.espol.paipay.datalogger.databinding.DialogoConfirmarSyncBinding;
 import ec.edu.espol.paipay.datalogger.databinding.FragmentSincronizacionBinding;
@@ -45,6 +46,7 @@ public class SincronizacionFragment extends Fragment {
     private FragmentSincronizacionBinding vista;
     private SincronizacionRepositorio sincronizacion;
     private SesionManager sesion;
+    private AutenticacionRepositorio autenticacion;
 
     /**
      * Vuelta de la pantalla de credenciales. Si el productor se identificó, la
@@ -73,6 +75,7 @@ public class SincronizacionFragment extends Fragment {
 
         sincronizacion = new SincronizacionRepositorio(requireContext());
         sesion = SesionManager.obtener(requireContext());
+        autenticacion = new AutenticacionRepositorio(requireContext());
 
         vista.botonSincronizar.setOnClickListener(v -> iniciarSubida());
         refrescar();
@@ -210,7 +213,7 @@ public class SincronizacionFragment extends Fragment {
                 mostrarProgreso(false, null);
                 // Si no pidió que se recordara su sesión, se olvida aquí: la
                 // próxima subida volverá a pedirle las credenciales.
-                sesion.olvidarSiNoSeRecuerda();
+                autenticacion.olvidarSiNoSeRecuerda();
                 informarResultado(resultado);
                 refrescar();
             }
@@ -245,7 +248,7 @@ public class SincronizacionFragment extends Fragment {
             case SESION_EXPIRADA:
                 // La cookie ya no sirve. Se olvida y se vuelve a pedir en el
                 // sitio, en vez de mandar al productor a buscar el menú.
-                sesion.cerrarSesion();
+                autenticacion.cerrarSesion();
                 new MaterialAlertDialogBuilder(requireContext())
                         .setTitle(R.string.sync_parcial)
                         .setIcon(R.drawable.ic_candado)

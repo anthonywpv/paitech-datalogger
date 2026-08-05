@@ -72,7 +72,8 @@ public class SesionManager {
      * Si el productor marcó "no volver a preguntar", la sesión vale hasta que
      * se cumplan los 30 días; pasado ese plazo se olvida sola y se le vuelven a
      * pedir las credenciales. Si NO lo marcó, la sesión solo vive lo que dura
-     * esa subida: quien la cierra es {@link #olvidarSiNoSeRecuerda()}.
+     * esa subida: quien la cierra es AutenticacionRepositorio.olvidarSiNoSeRecuerda(),
+     * que además borra la cookie.
      */
     public boolean haySesionActiva() {
         if (!prefs.getBoolean(K_SESION_ACTIVA, false)) return false;
@@ -110,14 +111,6 @@ public class SesionManager {
                 .apply();
     }
 
-    /**
-     * Se llama al terminar una sincronización. Si el productor no pidió que se
-     * recordara su sesión, se olvida aquí: la próxima subida volverá a pedirle
-     * las credenciales, que es justo lo que eligió al dejar la casilla vacía.
-     */
-    public void olvidarSiNoSeRecuerda() {
-        if (!recordarSesion()) cerrarSesion();
-    }
 
     /** Cierra sesión SIN borrar la base local: los datos pendientes se conservan. */
     public void cerrarSesion() {

@@ -93,6 +93,9 @@ public class LoginActivity extends AppCompatActivity {
                     case CREDENCIALES_INVALIDAS:
                         mensaje = R.string.login_error_credenciales;
                         break;
+                    case RECHAZADO_POR_SERVIDOR:
+                        mensaje = R.string.login_error_rechazado;
+                        break;
                     default:
                         // Antes reutilizaba el texto de sincronización, que en
                         // esta pantalla no venía a cuento.
