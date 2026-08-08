@@ -31,6 +31,8 @@ Android no conoce credenciales de PostgreSQL, no usa Neon Auth y no escribe dire
 - Movimientos independientes: siembra, mortalidad, cosecha/venta, traslado, escape y ajuste.
 - Edición y anulación lógica offline de jornadas y movimientos propios.
 - UUID para reintentos idempotentes y versión del servidor para detectar conflictos HTTP `409`.
+- Comparación visible de las versiones local/remota ante un `409`, con decisión
+  explícita entre descartar el cambio local o reaplicarlo sobre la versión remota.
 - Historial móvil limitado a la cuenta activa.
 - Semáforo cacheado de la última jornada comunitaria con agua por piscina, sin importar su autor.
 - Advertencia de poco espacio y protección de registros pendientes ante almacenamiento lleno.
@@ -47,6 +49,11 @@ Entidades Room principales:
 - `MovimientoLocal`: cambio explícito de población independiente de una jornada.
 - `PiscinaLocal`: catálogo de piscinas de peces y su especie permanente.
 - `SemaforoLocal`: último resumen comunitario descargado para consulta offline.
+- `ConflictoLocal`: instantánea remota y operación local original necesarias para
+  resolver un `409` sin perder ninguna de las dos versiones.
+
+El esquema Room v2 agrega `ConflictoLocal` mediante una migración `1 → 2` que
+conserva jornadas, peces, movimientos y borradores ya guardados en v1.4-dev.
 
 Estados locales relevantes:
 
@@ -59,6 +66,13 @@ Estados locales relevantes:
 - `ANULADO` / `ANULADO_LOCAL`: registro conservado como histórico, sin participar en análisis.
 
 Room es la fuente visible para los formularios e historial. La interfaz no espera una respuesta de red para guardar.
+
+Al tocar un registro en `CONFLICTO`, la app presenta los valores del teléfono,
+los valores del servidor y sus diferencias. “Descartar mi cambio” sustituye la
+copia local por la remota. “Reaplicar mi cambio” conserva los datos del teléfono,
+actualiza únicamente la versión base y vuelve a poner la operación en cola; si
+el servidor cambia otra vez antes del envío, se producirá otro `409`. Un registro
+ya anulado en Django no puede reaplicarse porque la anulación es histórica.
 
 ## Configuración local
 

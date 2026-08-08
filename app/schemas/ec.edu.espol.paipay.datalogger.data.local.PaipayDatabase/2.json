@@ -1,0 +1,623 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 2,
+    "identityHash": "fd7913ddf2f5cc11ea535d8ae0d1fbdf",
+    "entities": [
+      {
+        "tableName": "jornada_local",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`uuid` TEXT NOT NULL, `piscinaUuid` TEXT NOT NULL, `piscinaCodigo` TEXT NOT NULL, `especieNombre` TEXT, `autorCorreo` TEXT NOT NULL, `capturadaEn` TEXT NOT NULL, `poblacionEstimada` INTEGER, `observaciones` TEXT, `incluyeAgua` INTEGER NOT NULL, `ph` REAL, `nitrato` REAL, `nitrito` REAL, `amonio` REAL, `estadoLocal` TEXT NOT NULL, `versionServidor` INTEGER NOT NULL, `motivoCambio` TEXT, `errorSincronizacion` TEXT, `creadaEn` INTEGER NOT NULL, `modificadaEn` INTEGER NOT NULL, PRIMARY KEY(`uuid`))",
+        "fields": [
+          {
+            "fieldPath": "uuid",
+            "columnName": "uuid",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "piscinaUuid",
+            "columnName": "piscinaUuid",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "piscinaCodigo",
+            "columnName": "piscinaCodigo",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "especieNombre",
+            "columnName": "especieNombre",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "autorCorreo",
+            "columnName": "autorCorreo",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "capturadaEn",
+            "columnName": "capturadaEn",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "poblacionEstimada",
+            "columnName": "poblacionEstimada",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "observaciones",
+            "columnName": "observaciones",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "incluyeAgua",
+            "columnName": "incluyeAgua",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ph",
+            "columnName": "ph",
+            "affinity": "REAL",
+            "notNull": false
+          },
+          {
+            "fieldPath": "nitrato",
+            "columnName": "nitrato",
+            "affinity": "REAL",
+            "notNull": false
+          },
+          {
+            "fieldPath": "nitrito",
+            "columnName": "nitrito",
+            "affinity": "REAL",
+            "notNull": false
+          },
+          {
+            "fieldPath": "amonio",
+            "columnName": "amonio",
+            "affinity": "REAL",
+            "notNull": false
+          },
+          {
+            "fieldPath": "estadoLocal",
+            "columnName": "estadoLocal",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "versionServidor",
+            "columnName": "versionServidor",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "motivoCambio",
+            "columnName": "motivoCambio",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "errorSincronizacion",
+            "columnName": "errorSincronizacion",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "creadaEn",
+            "columnName": "creadaEn",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "modificadaEn",
+            "columnName": "modificadaEn",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "uuid"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_jornada_local_autorCorreo",
+            "unique": false,
+            "columnNames": [
+              "autorCorreo"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_jornada_local_autorCorreo` ON `${TABLE_NAME}` (`autorCorreo`)"
+          },
+          {
+            "name": "index_jornada_local_piscinaUuid",
+            "unique": false,
+            "columnNames": [
+              "piscinaUuid"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_jornada_local_piscinaUuid` ON `${TABLE_NAME}` (`piscinaUuid`)"
+          },
+          {
+            "name": "index_jornada_local_capturadaEn",
+            "unique": false,
+            "columnNames": [
+              "capturadaEn"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_jornada_local_capturadaEn` ON `${TABLE_NAME}` (`capturadaEn`)"
+          },
+          {
+            "name": "index_jornada_local_estadoLocal",
+            "unique": false,
+            "columnNames": [
+              "estadoLocal"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_jornada_local_estadoLocal` ON `${TABLE_NAME}` (`estadoLocal`)"
+          }
+        ],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "observacion_pez_local",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`uuid` TEXT NOT NULL, `jornadaUuid` TEXT NOT NULL, `orden` INTEGER NOT NULL, `pesoGramos` REAL NOT NULL, `tallaCentimetros` REAL NOT NULL, PRIMARY KEY(`uuid`), FOREIGN KEY(`jornadaUuid`) REFERENCES `jornada_local`(`uuid`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "uuid",
+            "columnName": "uuid",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "jornadaUuid",
+            "columnName": "jornadaUuid",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "orden",
+            "columnName": "orden",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "pesoGramos",
+            "columnName": "pesoGramos",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tallaCentimetros",
+            "columnName": "tallaCentimetros",
+            "affinity": "REAL",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "uuid"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_observacion_pez_local_jornadaUuid",
+            "unique": false,
+            "columnNames": [
+              "jornadaUuid"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_observacion_pez_local_jornadaUuid` ON `${TABLE_NAME}` (`jornadaUuid`)"
+          },
+          {
+            "name": "index_observacion_pez_local_jornadaUuid_orden",
+            "unique": true,
+            "columnNames": [
+              "jornadaUuid",
+              "orden"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_observacion_pez_local_jornadaUuid_orden` ON `${TABLE_NAME}` (`jornadaUuid`, `orden`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "jornada_local",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "jornadaUuid"
+            ],
+            "referencedColumns": [
+              "uuid"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "piscina_local",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`uuid` TEXT NOT NULL, `codigo` TEXT NOT NULL, `nombre` TEXT NOT NULL, `tipo` TEXT NOT NULL, `descripcion` TEXT, `especieNombre` TEXT, `activa` INTEGER NOT NULL, PRIMARY KEY(`uuid`))",
+        "fields": [
+          {
+            "fieldPath": "uuid",
+            "columnName": "uuid",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "codigo",
+            "columnName": "codigo",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nombre",
+            "columnName": "nombre",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tipo",
+            "columnName": "tipo",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "descripcion",
+            "columnName": "descripcion",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "especieNombre",
+            "columnName": "especieNombre",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "activa",
+            "columnName": "activa",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "uuid"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_piscina_local_codigo",
+            "unique": true,
+            "columnNames": [
+              "codigo"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_piscina_local_codigo` ON `${TABLE_NAME}` (`codigo`)"
+          },
+          {
+            "name": "index_piscina_local_activa",
+            "unique": false,
+            "columnNames": [
+              "activa"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_piscina_local_activa` ON `${TABLE_NAME}` (`activa`)"
+          }
+        ],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "semaforo_local",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`piscinaUuid` TEXT NOT NULL, `piscinaCodigo` TEXT NOT NULL, `piscinaNombre` TEXT NOT NULL, `jornadaUuid` TEXT, `capturadaEn` TEXT, `autorNombre` TEXT, `ph` REAL, `nitrato` REAL, `nitrito` REAL, `amonio` REAL, `estado` TEXT, `resumen` TEXT, `actualizadoEn` INTEGER NOT NULL, PRIMARY KEY(`piscinaUuid`))",
+        "fields": [
+          {
+            "fieldPath": "piscinaUuid",
+            "columnName": "piscinaUuid",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "piscinaCodigo",
+            "columnName": "piscinaCodigo",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "piscinaNombre",
+            "columnName": "piscinaNombre",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "jornadaUuid",
+            "columnName": "jornadaUuid",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "capturadaEn",
+            "columnName": "capturadaEn",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "autorNombre",
+            "columnName": "autorNombre",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "ph",
+            "columnName": "ph",
+            "affinity": "REAL",
+            "notNull": false
+          },
+          {
+            "fieldPath": "nitrato",
+            "columnName": "nitrato",
+            "affinity": "REAL",
+            "notNull": false
+          },
+          {
+            "fieldPath": "nitrito",
+            "columnName": "nitrito",
+            "affinity": "REAL",
+            "notNull": false
+          },
+          {
+            "fieldPath": "amonio",
+            "columnName": "amonio",
+            "affinity": "REAL",
+            "notNull": false
+          },
+          {
+            "fieldPath": "estado",
+            "columnName": "estado",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "resumen",
+            "columnName": "resumen",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "actualizadoEn",
+            "columnName": "actualizadoEn",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "piscinaUuid"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "movimiento_local",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`uuid` TEXT NOT NULL, `tipo` TEXT NOT NULL, `cantidad` INTEGER NOT NULL, `piscinaOrigenUuid` TEXT, `piscinaDestinoUuid` TEXT, `autorCorreo` TEXT NOT NULL, `ocurridoEn` TEXT NOT NULL, `observaciones` TEXT, `estadoLocal` TEXT NOT NULL, `versionServidor` INTEGER NOT NULL, `motivoCambio` TEXT, `errorSincronizacion` TEXT, `creadaEn` INTEGER NOT NULL, `modificadaEn` INTEGER NOT NULL, PRIMARY KEY(`uuid`))",
+        "fields": [
+          {
+            "fieldPath": "uuid",
+            "columnName": "uuid",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tipo",
+            "columnName": "tipo",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "cantidad",
+            "columnName": "cantidad",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "piscinaOrigenUuid",
+            "columnName": "piscinaOrigenUuid",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "piscinaDestinoUuid",
+            "columnName": "piscinaDestinoUuid",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "autorCorreo",
+            "columnName": "autorCorreo",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ocurridoEn",
+            "columnName": "ocurridoEn",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "observaciones",
+            "columnName": "observaciones",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "estadoLocal",
+            "columnName": "estadoLocal",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "versionServidor",
+            "columnName": "versionServidor",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "motivoCambio",
+            "columnName": "motivoCambio",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "errorSincronizacion",
+            "columnName": "errorSincronizacion",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "creadaEn",
+            "columnName": "creadaEn",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "modificadaEn",
+            "columnName": "modificadaEn",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "uuid"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_movimiento_local_autorCorreo",
+            "unique": false,
+            "columnNames": [
+              "autorCorreo"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_movimiento_local_autorCorreo` ON `${TABLE_NAME}` (`autorCorreo`)"
+          },
+          {
+            "name": "index_movimiento_local_estadoLocal",
+            "unique": false,
+            "columnNames": [
+              "estadoLocal"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_movimiento_local_estadoLocal` ON `${TABLE_NAME}` (`estadoLocal`)"
+          },
+          {
+            "name": "index_movimiento_local_ocurridoEn",
+            "unique": false,
+            "columnNames": [
+              "ocurridoEn"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_movimiento_local_ocurridoEn` ON `${TABLE_NAME}` (`ocurridoEn`)"
+          }
+        ],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "conflicto_local",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`clave` TEXT NOT NULL, `tipo` TEXT NOT NULL, `entidadUuid` TEXT NOT NULL, `operacionLocal` TEXT NOT NULL, `versionRemota` INTEGER NOT NULL, `remotoJson` TEXT, `detectadoEn` INTEGER NOT NULL, PRIMARY KEY(`clave`))",
+        "fields": [
+          {
+            "fieldPath": "clave",
+            "columnName": "clave",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tipo",
+            "columnName": "tipo",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "entidadUuid",
+            "columnName": "entidadUuid",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "operacionLocal",
+            "columnName": "operacionLocal",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "versionRemota",
+            "columnName": "versionRemota",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "remotoJson",
+            "columnName": "remotoJson",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "detectadoEn",
+            "columnName": "detectadoEn",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "clave"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_conflicto_local_entidadUuid",
+            "unique": false,
+            "columnNames": [
+              "entidadUuid"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_conflicto_local_entidadUuid` ON `${TABLE_NAME}` (`entidadUuid`)"
+          },
+          {
+            "name": "index_conflicto_local_tipo",
+            "unique": false,
+            "columnNames": [
+              "tipo"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_conflicto_local_tipo` ON `${TABLE_NAME}` (`tipo`)"
+          }
+        ],
+        "foreignKeys": []
+      }
+    ],
+    "views": [],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'fd7913ddf2f5cc11ea535d8ae0d1fbdf')"
+    ]
+  }
+}

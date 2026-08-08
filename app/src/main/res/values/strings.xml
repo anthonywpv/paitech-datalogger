@@ -105,6 +105,19 @@
     <string name="filtro_pendientes">Pendientes</string>
     <string name="filtro_sincronizados">Sincronizados</string>
 
+    <!-- Resolución explícita de conflictos de versión -->
+    <string name="conflicto_titulo">Hay dos versiones de este registro</string>
+    <string name="conflicto_cargando">Preparando comparación…</string>
+    <string name="conflicto_descartar">Descartar mi cambio</string>
+    <string name="conflicto_reaplicar">Reaplicar mi cambio</string>
+    <string name="conflicto_descartar_titulo">Usar la versión del servidor</string>
+    <string name="conflicto_descartar_confirmacion">La copia de este teléfono será reemplazada por la versión actual del servidor. Tu cambio local dejará de estar disponible en la app.</string>
+    <string name="conflicto_reaplicar_titulo">Reintentar sobre la versión actual</string>
+    <string name="conflicto_reaplicar_confirmacion">Tu cambio se pondrá nuevamente en cola, ahora basado en la versión %1$d del servidor. Si alguien vuelve a modificar el registro antes de sincronizar, aparecerá un nuevo conflicto.</string>
+    <string name="conflicto_descartado">Se descartó el cambio local y se conservó la versión del servidor.</string>
+    <string name="conflicto_reaplicado">El cambio local quedó en cola sobre la versión más reciente.</string>
+    <string name="conflicto_remoto_anulado">\n\nEl servidor indica que este registro ya está anulado. Una anulación es histórica y no se sobrescribe; solo puedes descartar el cambio local.</string>
+
     <!-- Sincronización -->
     <string name="sync_titulo">Sincronización</string>
     <string name="sync_boton">Sincronizar</string>

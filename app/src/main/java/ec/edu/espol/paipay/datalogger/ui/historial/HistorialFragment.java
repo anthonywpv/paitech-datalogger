@@ -1,10 +1,13 @@
 package ec.edu.espol.paipay.datalogger.ui.historial;
 
 import android.os.Bundle;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.ScrollView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -20,7 +23,10 @@ import java.util.List;
 import java.util.Locale;
 
 import ec.edu.espol.paipay.datalogger.R;
+import ec.edu.espol.paipay.datalogger.data.local.entity.ConflictoLocal;
 import ec.edu.espol.paipay.datalogger.data.local.entity.JornadaLocal;
+import ec.edu.espol.paipay.datalogger.data.repo.ConflictoRepositorio;
+import ec.edu.espol.paipay.datalogger.data.repo.DetalleConflicto;
 import ec.edu.espol.paipay.datalogger.data.repo.MovimientoRepositorio;
 import ec.edu.espol.paipay.datalogger.data.repo.RegistroRepositorio;
 import ec.edu.espol.paipay.datalogger.databinding.FragmentHistorialBinding;
@@ -34,6 +40,7 @@ public class HistorialFragment extends Fragment {
     private FragmentHistorialBinding vista;
     private HistorialAdapter adaptador;
     private HistorialViewModel modelo;
+    private ConflictoRepositorio conflictos;
 
     @Nullable
     @Override
@@ -49,6 +56,7 @@ public class HistorialFragment extends Fragment {
         vista.lista.setLayoutManager(new LinearLayoutManager(requireContext()));
         vista.lista.setAdapter(adaptador);
         modelo = new ViewModelProvider(this).get(HistorialViewModel.class);
+        conflictos = new ConflictoRepositorio(requireContext());
         modelo.historial().observe(getViewLifecycleOwner(), this::pintar);
         vista.refrescador.setColorSchemeResources(R.color.paipay_verde_oscuro);
         vista.refrescador.setOnRefreshListener(this::refrescarDesdeServidor);
@@ -105,12 +113,101 @@ public class HistorialFragment extends Fragment {
         if (item.uuid == null || JornadaLocal.ANULADO.equals(item.estadoLocal)
                 || JornadaLocal.ANULADO_LOCAL.equals(item.estadoLocal)
                 || JornadaLocal.PENDIENTE_ANULAR.equals(item.estadoLocal)) return;
+        if (JornadaLocal.CONFLICTO.equals(item.estadoLocal)) {
+            cargarConflicto(item);
+            return;
+        }
         new MaterialAlertDialogBuilder(requireContext())
                 .setTitle(item.titulo)
                 .setItems(new String[]{"Editar", "Anular"}, (dialogo, cual) -> {
                     if (cual == 0) abrirCorreccion(item);
                     else pedirAnulacion(item);
                 }).show();
+    }
+
+    private void cargarConflicto(ItemHistorial item) {
+        Toast.makeText(requireContext(), R.string.conflicto_cargando, Toast.LENGTH_SHORT).show();
+        String tipo = item.tipo == ItemHistorial.Tipo.MOVIMIENTO
+                ? ConflictoLocal.MOVIMIENTO : ConflictoLocal.JORNADA;
+        conflictos.cargar(tipo, item.uuid, new ConflictoRepositorio.AlCargar() {
+            @Override
+            public void listo(DetalleConflicto detalle) {
+                if (isAdded() && vista != null) mostrarComparacion(detalle);
+            }
+
+            @Override
+            public void error(String mensaje) {
+                mostrarError(mensaje);
+            }
+        });
+    }
+
+    private void mostrarComparacion(DetalleConflicto detalle) {
+        TextView texto = new TextView(requireContext());
+        int margen = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 24,
+                getResources().getDisplayMetrics());
+        texto.setPadding(margen, margen / 2, margen, margen / 2);
+        texto.setText(detalle.comparacion + (detalle.puedeReaplicar ? ""
+                : getString(R.string.conflicto_remoto_anulado)));
+        texto.setTextIsSelectable(true);
+        ScrollView desplazable = new ScrollView(requireContext());
+        desplazable.addView(texto);
+
+        MaterialAlertDialogBuilder dialogo = new MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.conflicto_titulo)
+                .setView(desplazable)
+                .setNegativeButton(R.string.cancelar, null)
+                .setNeutralButton(R.string.conflicto_descartar,
+                        (d, cual) -> confirmarDescartar(detalle));
+        if (detalle.puedeReaplicar) {
+            dialogo.setPositiveButton(R.string.conflicto_reaplicar,
+                    (d, cual) -> confirmarReaplicar(detalle));
+        }
+        dialogo.show();
+    }
+
+    private void confirmarDescartar(DetalleConflicto detalle) {
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.conflicto_descartar_titulo)
+                .setMessage(R.string.conflicto_descartar_confirmacion)
+                .setNegativeButton(R.string.cancelar, null)
+                .setPositiveButton(R.string.conflicto_descartar, (d, cual) ->
+                        conflictos.descartarCambioLocal(detalle.tipo, detalle.entidadUuid,
+                                new ConflictoRepositorio.AlResolver() {
+                                    @Override public void listo() {
+                                        if (!isAdded()) return;
+                                        Toast.makeText(requireContext(),
+                                                R.string.conflicto_descartado,
+                                                Toast.LENGTH_LONG).show();
+                                    }
+                                    @Override public void error(String mensaje) {
+                                        mostrarError(mensaje);
+                                    }
+                                }))
+                .show();
+    }
+
+    private void confirmarReaplicar(DetalleConflicto detalle) {
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.conflicto_reaplicar_titulo)
+                .setMessage(getString(R.string.conflicto_reaplicar_confirmacion,
+                        detalle.versionRemota))
+                .setNegativeButton(R.string.cancelar, null)
+                .setPositiveButton(R.string.conflicto_reaplicar, (d, cual) ->
+                        conflictos.reaplicarCambioLocal(detalle.tipo, detalle.entidadUuid,
+                                new ConflictoRepositorio.AlResolver() {
+                                    @Override public void listo() {
+                                        if (!isAdded()) return;
+                                        SincronizacionWorker.programar(requireContext());
+                                        Toast.makeText(requireContext(),
+                                                R.string.conflicto_reaplicado,
+                                                Toast.LENGTH_LONG).show();
+                                    }
+                                    @Override public void error(String mensaje) {
+                                        mostrarError(mensaje);
+                                    }
+                                }))
+                .show();
     }
 
     private void abrirCorreccion(ItemHistorial item) {

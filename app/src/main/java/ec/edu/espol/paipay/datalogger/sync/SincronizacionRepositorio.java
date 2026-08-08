@@ -2,12 +2,15 @@ package ec.edu.espol.paipay.datalogger.sync;
 
 import android.content.Context;
 
+import com.google.gson.Gson;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import ec.edu.espol.paipay.datalogger.data.local.PaipayDatabase;
+import ec.edu.espol.paipay.datalogger.data.local.entity.ConflictoLocal;
 import ec.edu.espol.paipay.datalogger.data.local.entity.JornadaLocal;
 import ec.edu.espol.paipay.datalogger.data.local.entity.MovimientoLocal;
 import ec.edu.espol.paipay.datalogger.data.local.entity.PiscinaLocal;
@@ -38,6 +41,7 @@ public class SincronizacionRepositorio {
     private final PaipayDatabase db;
     private final SesionManager sesion;
     private final String dispositivoId;
+    private final Gson gson = new Gson();
 
     public SincronizacionRepositorio(Context contexto) {
         this.contexto = contexto.getApplicationContext();
@@ -111,9 +115,7 @@ public class SincronizacionRepositorio {
                     continue;
                 }
                 if (respuesta.code() == 409) {
-                    local.jornada.estadoLocal = JornadaLocal.CONFLICTO;
-                    local.jornada.errorSincronizacion = "El servidor tiene una versión más reciente.";
-                    db.jornadaDao().guardar(local.jornada, local.peces);
+                    registrarConflictoJornada(api, local, local.jornada.estadoLocal);
                     fallidos++;
                     errores.append("conflicto en jornada ").append(local.jornada.uuid).append("; ");
                     continue;
@@ -142,7 +144,7 @@ public class SincronizacionRepositorio {
                 continue;
             }
             try {
-                MovimientoApiDto cuerpo = movimientoDto(local);
+                MovimientoApiDto cuerpo = MapeadorApi.aDto(local);
                 Response<MovimientoApiDto> respuesta;
                 if (JornadaLocal.PENDIENTE_ANULAR.equals(local.estadoLocal)) {
                     Map<String, Object> anulacion = new HashMap<>();
@@ -158,12 +160,12 @@ public class SincronizacionRepositorio {
                     expirada = true;
                     fallidos++;
                 } else if (respuesta.code() == 409) {
-                    local.estadoLocal = JornadaLocal.CONFLICTO;
-                    local.errorSincronizacion = "El servidor tiene una versión más reciente.";
-                    db.movimientoDao().guardar(local);
+                    registrarConflictoMovimiento(api, local, local.estadoLocal);
                     fallidos++;
                 } else if (respuesta.isSuccessful() && respuesta.body() != null) {
-                    db.movimientoDao().guardar(movimientoLocal(respuesta.body()));
+                    db.movimientoDao().guardar(MapeadorApi.aLocal(
+                            respuesta.body(), sesion.getUsuario()));
+                    borrarConflicto(ConflictoLocal.MOVIMIENTO, local.uuid);
                     subidos++;
                 } else {
                     fallidos++;
@@ -229,7 +231,7 @@ public class SincronizacionRepositorio {
                 String estado = db.movimientoDao().estadoDe(item.id);
                 if (estado == null || JornadaLocal.SINCRONIZADO.equals(estado)
                         || JornadaLocal.ANULADO.equals(estado)) {
-                    db.movimientoDao().guardar(movimientoLocal(item));
+                    db.movimientoDao().guardar(MapeadorApi.aLocal(item, sesion.getUsuario()));
                 }
             }
         }
@@ -242,6 +244,7 @@ public class SincronizacionRepositorio {
         PiscinaLocal piscina = db.catalogoDao().piscina(dto.piscina);
         JornadaConPeces local = MapeadorApi.aLocal(dto, piscina, sesion.getUsuario());
         db.jornadaDao().guardar(local.jornada, local.peces);
+        if (forzar) borrarConflicto(ConflictoLocal.JORNADA, dto.id);
     }
 
     private SemaforoLocal semaforoLocal(SemaforoApiDto dto) {
@@ -272,35 +275,61 @@ public class SincronizacionRepositorio {
         return local;
     }
 
-    private MovimientoApiDto movimientoDto(MovimientoLocal local) {
-        MovimientoApiDto dto = new MovimientoApiDto();
-        dto.id = local.uuid;
-        dto.tipo = local.tipo;
-        dto.cantidad = local.cantidad;
-        dto.piscinaOrigen = local.piscinaOrigenUuid;
-        dto.piscinaDestino = local.piscinaDestinoUuid;
-        dto.ocurridoEn = local.ocurridoEn;
-        dto.observaciones = local.observaciones;
-        dto.version = local.versionServidor;
-        dto.motivoCorreccion = local.motivoCambio;
-        return dto;
+    private void registrarConflictoJornada(DjangoApiService api, JornadaConPeces local,
+                                            String operacionLocal) {
+        ConflictoLocal conflicto = conflictoBase(
+                ConflictoLocal.JORNADA, local.jornada.uuid, operacionLocal);
+        try {
+            Response<JornadaApiDto> actual = api.jornada(local.jornada.uuid).execute();
+            if (actual.isSuccessful() && actual.body() != null) {
+                conflicto.versionRemota = actual.body().version;
+                conflicto.remotoJson = gson.toJson(actual.body());
+            }
+        } catch (Exception ignorado) {
+            // El conflicto se conserva aunque falle la descarga de la instantánea.
+            // La pantalla de resolución volverá a solicitarla con Internet.
+        }
+        local.jornada.estadoLocal = JornadaLocal.CONFLICTO;
+        local.jornada.errorSincronizacion = "El servidor tiene una versión más reciente.";
+        db.runInTransaction(() -> {
+            db.jornadaDao().guardar(local.jornada, local.peces);
+            db.conflictoDao().guardar(conflicto);
+        });
     }
 
-    private MovimientoLocal movimientoLocal(MovimientoApiDto dto) {
-        MovimientoLocal local = new MovimientoLocal();
-        local.uuid = dto.id;
-        local.tipo = dto.tipo;
-        local.cantidad = dto.cantidad;
-        local.piscinaOrigenUuid = dto.piscinaOrigen;
-        local.piscinaDestinoUuid = dto.piscinaDestino;
-        local.ocurridoEn = dto.ocurridoEn;
-        local.observaciones = dto.observaciones;
-        local.estadoLocal = "ANULADO".equals(dto.estado) ? JornadaLocal.ANULADO : JornadaLocal.SINCRONIZADO;
-        local.versionServidor = dto.version;
-        local.autorCorreo = sesion.getUsuario();
-        local.creadaEn = System.currentTimeMillis();
-        local.modificadaEn = System.currentTimeMillis();
-        return local;
+    private void registrarConflictoMovimiento(DjangoApiService api, MovimientoLocal local,
+                                               String operacionLocal) {
+        ConflictoLocal conflicto = conflictoBase(
+                ConflictoLocal.MOVIMIENTO, local.uuid, operacionLocal);
+        try {
+            Response<MovimientoApiDto> actual = api.movimiento(local.uuid).execute();
+            if (actual.isSuccessful() && actual.body() != null) {
+                conflicto.versionRemota = actual.body().version;
+                conflicto.remotoJson = gson.toJson(actual.body());
+            }
+        } catch (Exception ignorado) {
+            // Se mantiene la copia local; la instantánea se puede recuperar después.
+        }
+        local.estadoLocal = JornadaLocal.CONFLICTO;
+        local.errorSincronizacion = "El servidor tiene una versión más reciente.";
+        db.runInTransaction(() -> {
+            db.movimientoDao().guardar(local);
+            db.conflictoDao().guardar(conflicto);
+        });
+    }
+
+    private ConflictoLocal conflictoBase(String tipo, String uuid, String operacionLocal) {
+        ConflictoLocal conflicto = new ConflictoLocal();
+        conflicto.clave = ConflictoLocal.clave(tipo, uuid);
+        conflicto.tipo = tipo;
+        conflicto.entidadUuid = uuid;
+        conflicto.operacionLocal = operacionLocal;
+        conflicto.detectadoEn = System.currentTimeMillis();
+        return conflicto;
+    }
+
+    private void borrarConflicto(String tipo, String uuid) {
+        db.conflictoDao().borrar(ConflictoLocal.clave(tipo, uuid));
     }
 
     private void notificar(CallbackSincronizacion callback, String mensaje) {

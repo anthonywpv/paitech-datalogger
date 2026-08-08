@@ -29,6 +29,9 @@ public interface DjangoApiService {
     @GET("api/v1/jornadas/")
     Call<List<JornadaApiDto>> jornadas();
 
+    @GET("api/v1/jornadas/{id}/")
+    Call<JornadaApiDto> jornada(@Path("id") String id);
+
     @POST("api/v1/jornadas/")
     Call<JornadaApiDto> crearJornada(@Body JornadaApiDto jornada);
 
@@ -43,6 +46,9 @@ public interface DjangoApiService {
 
     @GET("api/v1/movimientos/")
     Call<List<MovimientoApiDto>> movimientos();
+
+    @GET("api/v1/movimientos/{id}/")
+    Call<MovimientoApiDto> movimiento(@Path("id") String id);
 
     @POST("api/v1/movimientos/")
     Call<MovimientoApiDto> crearMovimiento(@Body MovimientoApiDto movimiento);

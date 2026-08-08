@@ -4,10 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ec.edu.espol.paipay.datalogger.data.local.entity.JornadaLocal;
+import ec.edu.espol.paipay.datalogger.data.local.entity.MovimientoLocal;
 import ec.edu.espol.paipay.datalogger.data.local.entity.ObservacionPezLocal;
 import ec.edu.espol.paipay.datalogger.data.local.entity.PiscinaLocal;
 import ec.edu.espol.paipay.datalogger.data.local.model.JornadaConPeces;
 import ec.edu.espol.paipay.datalogger.data.remote.dto.JornadaApiDto;
+import ec.edu.espol.paipay.datalogger.data.remote.dto.MovimientoApiDto;
 import ec.edu.espol.paipay.datalogger.data.remote.dto.PiscinaApiDto;
 import ec.edu.espol.paipay.datalogger.util.SeguridadUtil;
 
@@ -99,6 +101,38 @@ public final class MapeadorApi {
             }
         }
         return resultado;
+    }
+
+    public static MovimientoApiDto aDto(MovimientoLocal local) {
+        MovimientoApiDto dto = new MovimientoApiDto();
+        dto.id = local.uuid;
+        dto.tipo = local.tipo;
+        dto.cantidad = local.cantidad;
+        dto.piscinaOrigen = local.piscinaOrigenUuid;
+        dto.piscinaDestino = local.piscinaDestinoUuid;
+        dto.ocurridoEn = local.ocurridoEn;
+        dto.observaciones = local.observaciones;
+        dto.version = local.versionServidor;
+        dto.motivoCorreccion = local.motivoCambio;
+        return dto;
+    }
+
+    public static MovimientoLocal aLocal(MovimientoApiDto dto, String correoSesion) {
+        MovimientoLocal local = new MovimientoLocal();
+        local.uuid = dto.id;
+        local.tipo = dto.tipo;
+        local.cantidad = dto.cantidad;
+        local.piscinaOrigenUuid = dto.piscinaOrigen;
+        local.piscinaDestinoUuid = dto.piscinaDestino;
+        local.ocurridoEn = dto.ocurridoEn;
+        local.observaciones = dto.observaciones;
+        local.estadoLocal = "ANULADO".equals(dto.estado)
+                ? JornadaLocal.ANULADO : JornadaLocal.SINCRONIZADO;
+        local.versionServidor = dto.version;
+        local.autorCorreo = correoSesion;
+        local.creadaEn = System.currentTimeMillis();
+        local.modificadaEn = System.currentTimeMillis();
+        return local;
     }
 
     private static String numero(Double valor) {
