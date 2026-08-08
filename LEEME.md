@@ -25,7 +25,9 @@ Android no conoce credenciales de PostgreSQL, no usa Neon Auth y no escribe dire
 - Catálogo de piscinas descargado desde Django y almacenado en Room.
 - Jornadas solo de agua, solo de biometría o mixtas.
 - Población estimada obligatoria en toda jornada finalizada.
-- Bloque de agua: pH, nitrato, nitrito y amonio. Unidades y umbrales aún provisionales.
+- Bloque de agua: pH, nitrato, nitrito y amoníaco total. El equipo confirmado
+  es un API Freshwater Master Test Kit con escala ppm; la adaptación final de
+  nombres, valores discretos y semáforo está documentada como siguiente hito.
 - Peces anónimos con peso en gramos y longitud total en centímetros.
 - Borradores de jornada locales que sobreviven al cierre de la app.
 - Movimientos independientes: siembra, mortalidad, cosecha/venta, traslado, escape y ajuste.
@@ -108,6 +110,12 @@ app/build/outputs/apk/debug/app-debug.apk
 
 Las pruebas locales cubren el semáforo, estados de jornada y reglas de movimientos. Las pruebas en `app/src/androidTest` validan Room y la sesión en un dispositivo o emulador; no se ejecutan con `testDebugUnitTest`.
 
+No se necesita conectar un teléfono para desarrollar: las pruebas instrumentadas
+se ejecutarán primero en un emulador de Android Studio API 24 o superior. Sin
+embargo, antes del uso en Paipayales sí será obligatoria una prueba de aceptación
+en un teléfono físico, especialmente para funcionamiento offline, almacenamiento,
+formularios biométricos grandes y reconexión.
+
 ## Reglas que no deben romperse
 
 1. No inferir mortalidad comparando cuántos peces se midieron en dos jornadas.
@@ -117,5 +125,7 @@ Las pruebas locales cubren el semáforo, estados de jornada y reglas de movimien
 5. No sobrescribir un conflicto de versión sin intervención del usuario.
 6. No agregar especie a cada pez o movimiento; la especie pertenece permanentemente a la piscina.
 7. No incorporar temperatura, oxígeno, laboratorio o variables de lombricultura sin una nueva decisión documentada.
+8. No construir SQL con datos externos. Room debe recibirlos mediante parámetros
+   DAO y toda escritura remota debe atravesar los serializers/ORM de Django.
 
 El diseño funcional y las razones de arquitectura se mantienen en `../decisiones.md`. El contrato del servidor está en `../PaiPayTech_Django/API.md`.

@@ -1,6 +1,7 @@
 package ec.edu.espol.paipay.datalogger.data.local;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 import android.content.Context;
 
@@ -15,6 +16,7 @@ import org.junit.runner.RunWith;
 
 import java.util.Collections;
 
+import ec.edu.espol.paipay.datalogger.data.local.entity.ConflictoLocal;
 import ec.edu.espol.paipay.datalogger.data.local.entity.JornadaLocal;
 import ec.edu.espol.paipay.datalogger.data.local.entity.ObservacionPezLocal;
 import ec.edu.espol.paipay.datalogger.data.local.model.JornadaConPeces;
@@ -53,5 +55,20 @@ public class JornadaDaoTest {
         assertEquals(200, (int) guardada.jornada.poblacionEstimada);
         assertEquals(1, guardada.peces.size());
         assertEquals(250.4, guardada.peces.get(0).pesoGramos, 0.001);
+    }
+
+    @Test public void parametroConSintaxisSqlSeTrataComoDato() {
+        String claveMaliciosa = "JORNADA:x' OR 1=1; DROP TABLE jornada_local; --";
+        ConflictoLocal conflicto = new ConflictoLocal();
+        conflicto.clave = claveMaliciosa;
+        conflicto.tipo = ConflictoLocal.JORNADA;
+        conflicto.entidadUuid = "x' OR 1=1; DROP TABLE jornada_local; --";
+        conflicto.operacionLocal = JornadaLocal.PENDIENTE_EDITAR;
+
+        db.conflictoDao().guardar(conflicto);
+
+        assertEquals(claveMaliciosa, db.conflictoDao().porClave(claveMaliciosa).clave);
+        // La tabla sigue disponible después de consultar con el parámetro hostil.
+        assertNull(db.jornadaDao().porUuid("inexistente"));
     }
 }
