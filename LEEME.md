@@ -87,6 +87,17 @@ API_BASE_URL=https://TU-SERVICIO.up.railway.app/
 
 La URL debe terminar en `/`. El valor de ejemplo del proyecto no es un servidor funcional; antes de probar login debe apuntar al despliegue Django real.
 
+Para probar contra Django ejecutándose en la misma computadora que el emulador:
+
+```properties
+API_BASE_URL=http://10.0.2.2:8000/
+```
+
+`10.0.2.2` es la dirección especial con la que el AVD alcanza al anfitrión. Django
+debe escuchar en `0.0.0.0:8000` y aceptar `10.0.2.2` en `ALLOWED_HOSTS`. Solo el
+source set `debug` autoriza HTTP hacia ese host; cualquier otro destino HTTP se
+rechaza y la variante `release` conserva tráfico en texto claro deshabilitado.
+
 Requisitos recomendados:
 
 - JDK 17.
@@ -110,11 +121,11 @@ app/build/outputs/apk/debug/app-debug.apk
 
 Las pruebas locales cubren el semáforo, estados de jornada y reglas de movimientos. Las pruebas en `app/src/androidTest` validan Room y la sesión en un dispositivo o emulador; no se ejecutan con `testDebugUnitTest`.
 
-No se necesita conectar un teléfono para desarrollar: las pruebas instrumentadas
-se ejecutarán primero en un emulador de Android Studio API 24 o superior. Sin
-embargo, antes del uso en Paipayales sí será obligatoria una prueba de aceptación
-en un teléfono físico, especialmente para funcionamiento offline, almacenamiento,
-formularios biométricos grandes y reconexión.
+No se necesita conectar un teléfono para desarrollar. Las 8 pruebas instrumentadas
+se ejecutaron sin fallos en el AVD `Paipay_API_24`, incluidas las migraciones Room
+`1 → 2` y `2 → 3`. Sin embargo, antes del uso en Paipayales sí será obligatoria una
+prueba de aceptación en un teléfono físico, especialmente para funcionamiento
+offline, almacenamiento, formularios biométricos grandes y reconexión.
 
 ## Reglas que no deben romperse
 
