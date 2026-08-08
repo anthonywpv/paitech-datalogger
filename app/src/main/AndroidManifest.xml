@@ -6,7 +6,9 @@
 
     <application
         android:name=".PaipayApp"
-        android:allowBackup="true"
+        android:allowBackup="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
@@ -14,27 +16,21 @@
         android:usesCleartextTraffic="false"
         android:theme="@style/Theme.Paipay">
 
-        <!--
-          La app abre directo al semáforo: registrar datos en campo no exige
-          cuenta ni señal. Las credenciales solo hacen falta para SUBIR, así que
-          LoginActivity dejó de ser el punto de entrada y ahora la abre la
-          pantalla de sincronización cuando de verdad se necesita.
-        -->
         <activity
             android:name=".ui.main.MainActivity"
-            android:exported="true"
+            android:exported="false"
             android:theme="@style/Theme.Paipay.Splash"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".ui.login.LoginActivity"
+            android:exported="true"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <activity
-            android:name=".ui.login.LoginActivity"
-            android:exported="false"
-            android:windowSoftInputMode="adjustResize" />
 
     </application>
 </manifest>

@@ -13,17 +13,16 @@
     <string name="login_entrar">Entrar</string>
     <string name="login_error_vacio">Escribe tu usuario y tu contraseña</string>
     <string name="login_error_credenciales">Usuario o contraseña incorrectos</string>
+    <string name="login_error_otra_cuenta">Este teléfono conserva borradores o cambios sin resolver de otra cuenta. Inicia sesión con esa cuenta y sincronízalos antes de cambiar de usuario.</string>
     <string name="login_error_sin_internet">Necesitas internet solo para este primer ingreso</string>
     <string name="login_verificando">Verificando…</string>
-    <string name="login_recordar">No volver a preguntar (30 días)</string>
-    <string name="login_recordar_ayuda">Si no lo marcas, se te pedirán las credenciales cada vez que sincronices.</string>
-    <string name="login_error_rechazado">El servidor rechazó la conexión (403). No es tu contraseña: revisa que el origen de la app esté declarado como confiable en Neon Auth.</string>
+    <string name="login_error_rechazado">El servidor rechazó la conexión. Revisa la configuración de la API Django.</string>
     <string name="login_error_servidor">No se pudo verificar tus credenciales. Revisa tu conexión e inténtalo de nuevo.</string>
-    <string name="sesion_sin_iniciar">Sin sesión · registro sin conexión</string>
+    <string name="sesion_sin_iniciar">Sesión no disponible</string>
 
     <!-- Credenciales al sincronizar -->
-    <string name="sync_credenciales_titulo">Identifícate para subir</string>
-    <string name="sync_credenciales_mensaje">Para sincronizar los datos a la base necesitas colocar primero tus credenciales.</string>
+    <string name="sync_credenciales_titulo">Sesión no disponible</string>
+    <string name="sync_credenciales_mensaje">Vuelve a iniciar sesión para conservar la autoría correcta y sincronizar.</string>
     <string name="historial_refresco_sin_sesion">Necesitas identificarte para traer tus registros del servidor. Se muestra lo guardado en este teléfono.</string>
 
     <!-- Navegación -->
@@ -36,7 +35,6 @@
     <string name="registro_titulo">¿Qué vas a registrar?</string>
     <string name="tab_biometria">Peces</string>
     <string name="tab_agua">Agua</string>
-    <string name="tab_laboratorio">Laboratorio</string>
 
     <string name="campo_fecha">Fecha</string>
     <string name="campo_piscina">Piscina</string>
@@ -52,7 +50,7 @@
     <string name="edicion_aviso">Al guardar, el registro se vuelve a marcar como pendiente y la próxima sincronización actualizará la fila que ya está en la base principal.</string>
     <string name="historial_editar">Corregir</string>
     <string name="historial_refrescando">Consultando la base principal…</string>
-    <string name="historial_refresco_ok">Historial actualizado: %1$d registro(s) traídos del servidor.</string>
+    <string name="historial_refresco_ok">Historial actualizado desde el servidor.</string>
     <string name="historial_refresco_sin_internet">Sin conexión. Se muestra lo guardado en este teléfono.</string>
     <string name="historial_refresco_error">No se pudo consultar la base principal. Se muestra lo guardado en este teléfono.</string>
     <string name="historial_muestreo">Muestreo %1$s</string>
@@ -63,20 +61,13 @@
     <string name="campo_nitrito">Nitrito (mg/L)</string>
     <string name="campo_amonio">Amonio (mg/L)</string>
     <string name="campo_poblacion">Población (peces estimados)</string>
-    <string name="campo_poblacion_ayuda">Opcional. Si lo anotas en cada muestreo, la app avisa cuando la población baja.</string>
+    <string name="campo_poblacion_ayuda">Obligatoria en cada jornada. Se compara con la población teórica sin inferir mortalidad desde la muestra biométrica.</string>
 
     <!-- Lombricultura -->
     <string name="tab_lombricultura">Lombricultura</string>
     <string name="lombricultura_titulo">Sección en construcción</string>
-    <string name="lombricultura_mensaje">El registro de los lechos de lombricultura todavía está por definir con el equipo de Acuicultura de la ESPOL.\n\nCuando se acuerde qué datos se toman (humedad, temperatura del lecho, alimento aportado, lombriz cosechada), esta pestaña los recogerá igual que las demás: sin necesidad de internet y con sincronización diferida.</string>
-    <string name="lombricultura_piscinas">El lecho LOM-01 ya está en el catálogo, así que no habrá que crearlo cuando se defina qué se registra.</string>
+    <string name="lombricultura_mensaje">Próximamente. Las variables y reglas de lombricultura se definirán antes de implementar esta sección.</string>
     <string name="campo_observacion">Observación (opcional)</string>
-    <string name="campo_tipo_muestra">Tipo de muestra</string>
-    <string name="campo_parametro">Parámetro analizado</string>
-    <string name="campo_valor">Valor</string>
-    <string name="campo_unidad">Unidad</string>
-    <string name="campo_laboratorio">Laboratorio / responsable</string>
-    <string name="campo_codigo_muestra">Código de muestra</string>
 
     <string name="accion_guardar">Guardar registro</string>
     <string name="accion_limpiar">Limpiar</string>

@@ -1,7 +1,5 @@
 package ec.edu.espol.paipay.datalogger.domain;
 
-import ec.edu.espol.paipay.datalogger.data.local.entity.RegistroAgua;
-
 /**
  * ===========================================================================
  *  SEMÁFORO DE ALERTAS — LÓGICA DE NEGOCIO (BACKEND EN JAVA)
@@ -75,25 +73,21 @@ public final class EvaluadorSemaforo {
     public static final double NH3_PRECAUCION = 0.02;
     public static final double NH3_CRITICO = 0.05;
 
-    /** Caída de población entre muestreos que se considera mortalidad. */
-    public static final double MORTALIDAD_PRECAUCION = 0.10;   // 10 %
-    public static final double MORTALIDAD_CRITICA = 0.25;      // 25 %
-
     private EvaluadorSemaforo() { }
 
     /** Punto de entrada principal: evalúa una medición completa de agua. */
-    public static ResultadoSemaforo evaluar(RegistroAgua registro) {
-        ResultadoSemaforo resultado =
-                new ResultadoSemaforo(registro.piscina, registro.fechaMuestreo);
+    public static ResultadoSemaforo evaluar(String piscina, String fecha,
+                                             double ph, double nitrato,
+                                             double nitrito, double amonio) {
+        ResultadoSemaforo resultado = new ResultadoSemaforo(piscina, fecha);
 
-        resultado.agregar(evaluarPh(registro.ph));
-        resultado.agregar(evaluarNitrito(registro.nitritoMgL));
-        resultado.agregar(evaluarAmonio(registro.amonioMgL));
-        resultado.agregar(evaluarNitrato(registro.nitratoMgL));
+        resultado.agregar(evaluarPh(ph));
+        resultado.agregar(evaluarNitrito(nitrito));
+        resultado.agregar(evaluarAmonio(amonio));
+        resultado.agregar(evaluarNitrato(nitrato));
+        resultado.agregar(evaluarAmoniacoLibre(ph, amonio));
 
-        resultado.agregar(evaluarAmoniacoLibre(registro.ph, registro.amonioMgL));
-
-        LecturaEvaluada ciclo = evaluarCicloNitrogeno(registro.amonioMgL, registro.nitritoMgL);
+        LecturaEvaluada ciclo = evaluarCicloNitrogeno(amonio, nitrito);
         if (ciclo != null) {
             resultado.agregar(ciclo);
         }
@@ -289,41 +283,4 @@ public final class EvaluadorSemaforo {
         return null;
     }
 
-    // ======================= MORTALIDAD ENTRE MUESTREOS =======================
-
-    /**
-     * Compara la población estimada con la del muestreo anterior de la misma
-     * piscina. Una caída fuerte es la señal más clara de que algo va mal,
-     * aunque todos los parámetros del agua salgan en verde el día de la visita:
-     * el productor pudo llegar después del episodio.
-     *
-     * Devuelve null si falta alguno de los dos conteos o si no hubo caída.
-     */
-    public static LecturaEvaluada evaluarMortalidad(Integer poblacionAnterior,
-                                                    Integer poblacionActual) {
-        if (poblacionAnterior == null || poblacionActual == null) return null;
-        if (poblacionAnterior <= 0 || poblacionActual >= poblacionAnterior) return null;
-
-        int perdidos = poblacionAnterior - poblacionActual;
-        double caida = (double) perdidos / poblacionAnterior;
-
-        if (caida >= MORTALIDAD_CRITICA) {
-            return new LecturaEvaluada("Mortalidad", perdidos, "peces",
-                    EstadoAlerta.ROJO,
-                    "Se perdió más de la cuarta parte de la población desde el muestreo "
-                            + "anterior (" + poblacionAnterior + " → " + poblacionActual + ").",
-                    "Revisar la piscina hoy: buscar peces muertos, medir el agua otra vez "
-                            + "y avisar al técnico de la ESPOL.");
-        }
-
-        if (caida >= MORTALIDAD_PRECAUCION) {
-            return new LecturaEvaluada("Mortalidad", perdidos, "peces",
-                    EstadoAlerta.AMARILLO,
-                    "Bajó la población desde el muestreo anterior ("
-                            + poblacionAnterior + " → " + poblacionActual + ").",
-                    "Vigilar de cerca y medir el agua con más frecuencia esta semana.");
-        }
-
-        return null;
-    }
 }

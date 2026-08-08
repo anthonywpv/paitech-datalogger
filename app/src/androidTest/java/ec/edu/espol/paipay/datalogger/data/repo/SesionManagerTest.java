@@ -33,7 +33,7 @@ public class SesionManagerTest {
     @Test
     public void guardarSesion_sobreviveAVolverAPedirLaInstancia() {
         SesionManager sesion = SesionManager.obtener(contexto());
-        sesion.guardarSesion(CORREO, "Productor Paipayales");
+        sesion.guardarSesion(CORREO, "Productor Paipayales", "token-prueba");
 
         assertTrue(sesion.haySesionActiva());
         assertEquals(CORREO, sesion.getUsuario());
@@ -43,20 +43,20 @@ public class SesionManagerTest {
     @Test
     public void getNombre_caeAlCorreoCuandoNoHayNombre() {
         SesionManager sesion = SesionManager.obtener(contexto());
-        sesion.guardarSesion(CORREO, "");
+        sesion.guardarSesion(CORREO, "", "token-prueba");
         assertEquals(CORREO, sesion.getNombre());
     }
 
     @Test
     public void cerrarSesion_dejaLaSesionInactiva() {
         SesionManager sesion = SesionManager.obtener(contexto());
-        sesion.guardarSesion(CORREO, "Productor Paipayales");
+        sesion.guardarSesion(CORREO, "Productor Paipayales", "token-prueba");
         sesion.cerrarSesion();
 
         assertFalse(sesion.haySesionActiva());
 
         // Se deja abierta para poder inspeccionar la app a mano tras las pruebas.
-        sesion.guardarSesion(CORREO, "Productor Paipayales");
+        sesion.guardarSesion(CORREO, "Productor Paipayales", "token-prueba");
     }
 
     @Test

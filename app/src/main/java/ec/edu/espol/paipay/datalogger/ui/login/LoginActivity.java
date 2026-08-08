@@ -12,18 +12,14 @@ import ec.edu.espol.paipay.datalogger.R;
 import ec.edu.espol.paipay.datalogger.data.repo.AutenticacionRepositorio;
 import ec.edu.espol.paipay.datalogger.data.repo.SesionManager;
 import ec.edu.espol.paipay.datalogger.databinding.ActivityLoginBinding;
+import ec.edu.espol.paipay.datalogger.ui.main.MainActivity;
 
 /**
  * Pantalla de credenciales.
  *
- * NO es el punto de entrada de la app: registrar datos en campo no exige cuenta
- * ni señal. Esta pantalla la abre la sección de sincronización cuando hace falta
- * saber quién sube los datos, y devuelve RESULT_OK para que la subida continúe
- * donde se quedó.
- *
- * La sesión sigue siendo persistente: se pide una sola vez y a partir de ahí las
- * siguientes subidas no vuelven a preguntar, hasta que el productor cierre
- * sesión desde el menú.
+ * Es el punto de entrada cuando todavía no hay identidad local. El primer
+ * ingreso requiere internet para validar la cuenta y descargar piscinas; luego
+ * la sesión cifrada permite trabajar offline hasta el cierre explícito.
  */
 public class LoginActivity extends AppCompatActivity {
 
@@ -39,10 +35,8 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Si ya hay sesión no hay nada que preguntar: se devuelve el control.
         if (SesionManager.obtener(this).haySesionActiva()) {
-            setResult(RESULT_OK);
-            finish();
+            abrirPrincipal();
             return;
         }
 
@@ -72,14 +66,12 @@ public class LoginActivity extends AppCompatActivity {
 
         mostrarCargando(true);
 
-        final boolean recordar = vista.casillaRecordar.isChecked();
-        autenticacion.iniciarSesion(usuario, clave, recordar,
+        autenticacion.iniciarSesion(usuario, clave, true,
                 new AutenticacionRepositorio.Callback() {
             @Override
             public void onExito(String nombre) {
                 mostrarCargando(false);
-                setResult(RESULT_OK);
-                finish();
+                abrirPrincipal();
             }
 
             @Override
@@ -92,6 +84,9 @@ public class LoginActivity extends AppCompatActivity {
                         break;
                     case CREDENCIALES_INVALIDAS:
                         mensaje = R.string.login_error_credenciales;
+                        break;
+                    case DATOS_DE_OTRA_CUENTA:
+                        mensaje = R.string.login_error_otra_cuenta;
                         break;
                     case RECHAZADO_POR_SERVIDOR:
                         mensaje = R.string.login_error_rechazado;
@@ -114,5 +109,10 @@ public class LoginActivity extends AppCompatActivity {
         vista.botonEntrar.setText(cargando ? getString(R.string.login_verificando)
                                            : getString(R.string.login_entrar));
         if (cargando) vista.textoMensaje.setVisibility(View.GONE);
+    }
+
+    private void abrirPrincipal() {
+        startActivity(new Intent(this, MainActivity.class));
+        finish();
     }
 }

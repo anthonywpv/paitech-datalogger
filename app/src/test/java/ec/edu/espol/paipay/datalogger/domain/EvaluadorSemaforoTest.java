@@ -7,8 +7,6 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
-import ec.edu.espol.paipay.datalogger.data.local.entity.RegistroAgua;
-
 /**
  * Pruebas del Semáforo de Alertas.
  *
@@ -18,18 +16,6 @@ import ec.edu.espol.paipay.datalogger.data.local.entity.RegistroAgua;
  * separado no puede detectar.
  */
 public class EvaluadorSemaforoTest {
-
-    private static RegistroAgua medicion(double ph, double nitrato,
-                                         double nitrito, double amonio) {
-        RegistroAgua r = new RegistroAgua();
-        r.piscina = "P-01";
-        r.fechaMuestreo = "2026-08-04";
-        r.ph = ph;
-        r.nitratoMgL = nitrato;
-        r.nitritoMgL = nitrito;
-        r.amonioMgL = amonio;
-        return r;
-    }
 
     // ------------------------- pH -------------------------
 
@@ -160,47 +146,19 @@ public class EvaluadorSemaforoTest {
         assertNull(EvaluadorSemaforo.evaluarCicloNitrogeno(0.1, 0.1));
     }
 
-    // ------------------------- MORTALIDAD -------------------------
-
-    @Test
-    public void caidaFuerteDePoblacion_esRoja() {
-        LecturaEvaluada m = EvaluadorSemaforo.evaluarMortalidad(1000, 700);
-        assertNotNull(m);
-        assertEquals(EstadoAlerta.ROJO, m.estado);
-    }
-
-    @Test
-    public void caidaLeveDePoblacion_esAmarilla() {
-        LecturaEvaluada m = EvaluadorSemaforo.evaluarMortalidad(1000, 880);
-        assertNotNull(m);
-        assertEquals(EstadoAlerta.AMARILLO, m.estado);
-    }
-
-    @Test
-    public void poblacionQueSubeOSeMantiene_noEsAlerta() {
-        assertNull(EvaluadorSemaforo.evaluarMortalidad(1000, 1000));
-        assertNull(EvaluadorSemaforo.evaluarMortalidad(1000, 1200));
-    }
-
-    @Test
-    public void sinConteoAnterior_noSeInventaMortalidad() {
-        assertNull(EvaluadorSemaforo.evaluarMortalidad(null, 500));
-        assertNull(EvaluadorSemaforo.evaluarMortalidad(500, null));
-    }
-
     // ------------------------- ESTADO GLOBAL -------------------------
 
     @Test
     public void estadoGlobal_esElPeorDeLosParametros() {
         // Todo perfecto salvo el nitrito: la piscina está en rojo.
         assertEquals(EstadoAlerta.ROJO,
-                EvaluadorSemaforo.evaluar(medicion(7.2, 20, 2.0, 0.1)).getEstadoGlobal());
+                EvaluadorSemaforo.evaluar("P-01", "2026-08-04", 7.2, 20, 2.0, 0.1).getEstadoGlobal());
     }
 
     @Test
     public void condicionesIdeales_danVerde() {
         assertEquals(EstadoAlerta.VERDE,
-                EvaluadorSemaforo.evaluar(medicion(7.2, 20, 0.1, 0.1)).getEstadoGlobal());
+                EvaluadorSemaforo.evaluar("P-01", "2026-08-04", 7.2, 20, 0.1, 0.1).getEstadoGlobal());
     }
 
     @Test

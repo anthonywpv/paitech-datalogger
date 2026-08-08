@@ -4,8 +4,6 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
-import android.net.NetworkInfo;
-import android.os.Build;
 
 /**
  * Detección de conectividad.
@@ -22,30 +20,23 @@ public final class RedUtil {
                 contexto.getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
         if (cm == null) return false;
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            Network red = cm.getActiveNetwork();
-            if (red == null) return false;
-            NetworkCapabilities cap = cm.getNetworkCapabilities(red);
-            if (cap == null) return false;
-            boolean transporte = cap.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
-                    || cap.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)
-                    || cap.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET);
-            boolean validada = cap.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                validada = validada && cap.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED);
-            }
-            return transporte && validada;
-        } else {
-            NetworkInfo info = cm.getActiveNetworkInfo();
-            return info != null && info.isConnected();
-        }
+        Network red = cm.getActiveNetwork();
+        if (red == null) return false;
+        NetworkCapabilities cap = cm.getNetworkCapabilities(red);
+        if (cap == null) return false;
+        boolean transporte = cap.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
+                || cap.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)
+                || cap.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET);
+        boolean validada = cap.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                && cap.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED);
+        return transporte && validada;
     }
 
     /** true si la conexión es por datos móviles (útil para advertir sobre consumo). */
     public static boolean esDatosMoviles(Context contexto) {
         ConnectivityManager cm = (ConnectivityManager)
                 contexto.getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
-        if (cm == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return false;
+        if (cm == null) return false;
         Network red = cm.getActiveNetwork();
         if (red == null) return false;
         NetworkCapabilities cap = cm.getNetworkCapabilities(red);

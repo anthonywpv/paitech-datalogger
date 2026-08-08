@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:layout_marginTop="@dimen/espacio_s" app:cardCornerRadius="14dp"
+    app:cardElevation="0dp" app:strokeColor="@color/paipay_gris_alto" app:strokeWidth="1dp">
+    <LinearLayout
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="vertical" android:padding="@dimen/espacio_s">
+        <TextView
+            android:id="@+id/textoNumero" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:textColor="@color/paipay_marron"
+            android:textStyle="bold" />
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/campoPeso" style="@style/Paipay.Campo"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:hint="Peso (g)">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/campoPesoTexto" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:inputType="numberDecimal" />
+        </com.google.android.material.textfield.TextInputLayout>
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/campoTalla" style="@style/Paipay.Campo"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:hint="Longitud total (cm)">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/campoTallaTexto" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:inputType="numberDecimal" />
+        </com.google.android.material.textfield.TextInputLayout>
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/botonQuitar" style="@style/Paipay.Boton.Secundario"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_gravity="end" android:text="Quitar" />
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

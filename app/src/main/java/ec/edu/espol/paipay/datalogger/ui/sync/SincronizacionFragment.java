@@ -1,14 +1,10 @@
 package ec.edu.espol.paipay.datalogger.ui.sync;
 
-import android.app.Activity;
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
@@ -47,19 +43,6 @@ public class SincronizacionFragment extends Fragment {
     private SincronizacionRepositorio sincronizacion;
     private SesionManager sesion;
     private AutenticacionRepositorio autenticacion;
-
-    /**
-     * Vuelta de la pantalla de credenciales. Si el productor se identificó, la
-     * subida continúa sola: no tiene que volver a pulsar [Sincronizar].
-     */
-    private final ActivityResultLauncher<Intent> pedirCredenciales =
-            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
-                    resultado -> {
-                        if (resultado.getResultCode() == Activity.RESULT_OK) {
-                            pedirConfirmacion();
-                        }
-                        refrescar();
-                    });
 
     @Nullable
     @Override
@@ -136,9 +119,8 @@ public class SincronizacionFragment extends Fragment {
     /**
      * Puerta de entrada de [Sincronizar].
      *
-     * Registrar no exige cuenta, pero subir sí: la base principal tiene que
-     * saber quién manda cada dato. Si todavía no hay sesión se piden las
-     * credenciales y, al volver, la subida sigue sola.
+     * La app exige una identidad activa desde el inicio. Esta verificación
+     * adicional protege el caso excepcional en que la sesión se haya limpiado.
      */
     private void iniciarSubida() {
         if (sesion.haySesionActiva()) {
@@ -151,9 +133,7 @@ public class SincronizacionFragment extends Fragment {
                 .setIcon(R.drawable.ic_candado)
                 .setMessage(R.string.sync_credenciales_mensaje)
                 .setNegativeButton(R.string.cancelar, null)
-                .setPositiveButton(R.string.aceptar,
-                        (d, w) -> pedirCredenciales.launch(
-                                LoginActivity.intent(requireContext())))
+                .setPositiveButton(R.string.aceptar, (d, w) -> irAlLogin())
                 .show();
     }
 
@@ -211,9 +191,6 @@ public class SincronizacionFragment extends Fragment {
             public void terminado(ResultadoSincronizacion resultado) {
                 if (vista == null) return;
                 mostrarProgreso(false, null);
-                // Si no pidió que se recordara su sesión, se olvida aquí: la
-                // próxima subida volverá a pedirle las credenciales.
-                autenticacion.olvidarSiNoSeRecuerda();
                 informarResultado(resultado);
                 refrescar();
             }
@@ -246,7 +223,7 @@ public class SincronizacionFragment extends Fragment {
                 break;
 
             case SESION_EXPIRADA:
-                // La cookie ya no sirve. Se olvida y se vuelve a pedir en el
+                // El token ya no sirve. Se olvida y se vuelve a pedir en el
                 // sitio, en vez de mandar al productor a buscar el menú.
                 autenticacion.cerrarSesion();
                 new MaterialAlertDialogBuilder(requireContext())
@@ -254,9 +231,7 @@ public class SincronizacionFragment extends Fragment {
                         .setIcon(R.drawable.ic_candado)
                         .setMessage(R.string.sync_sesion_expirada)
                         .setNegativeButton(R.string.cancelar, null)
-                        .setPositiveButton(R.string.aceptar,
-                                (d, w) -> pedirCredenciales.launch(
-                                        LoginActivity.intent(requireContext())))
+                        .setPositiveButton(R.string.aceptar, (d, w) -> irAlLogin())
                         .show();
                 break;
 
@@ -282,6 +257,12 @@ public class SincronizacionFragment extends Fragment {
                 .setMessage(mensaje)
                 .setPositiveButton(R.string.aceptar, null)
                 .show();
+    }
+
+    private void irAlLogin() {
+        if (!isAdded()) return;
+        startActivity(LoginActivity.intent(requireContext()));
+        requireActivity().finish();
     }
 
     @Override

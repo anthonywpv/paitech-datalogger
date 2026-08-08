@@ -1,5 +1,6 @@
 package ec.edu.espol.paipay.datalogger.ui.main;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
@@ -18,6 +19,7 @@ import ec.edu.espol.paipay.datalogger.data.repo.SesionManager;
 import ec.edu.espol.paipay.datalogger.databinding.ActivityMainBinding;
 import ec.edu.espol.paipay.datalogger.sync.SincronizacionWorker;
 import ec.edu.espol.paipay.datalogger.ui.historial.HistorialFragment;
+import ec.edu.espol.paipay.datalogger.ui.login.LoginActivity;
 import ec.edu.espol.paipay.datalogger.ui.registro.RegistroFragment;
 import ec.edu.espol.paipay.datalogger.ui.semaforo.SemaforoFragment;
 import ec.edu.espol.paipay.datalogger.ui.sync.SincronizacionFragment;
@@ -28,6 +30,7 @@ public class MainActivity extends AppCompatActivity {
     private ActivityMainBinding vista;
     private SesionManager sesion;
     private AlmacenamientoRepositorio almacenamiento;
+    private boolean avisoEspacioMostrado;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,9 +39,14 @@ public class MainActivity extends AppCompatActivity {
         vista = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(vista.getRoot());
 
-        // No se exige sesión para entrar: el productor registra en campo sin
-        // cuenta y sin señal. Las credenciales se piden al sincronizar.
+        // El primer ingreso requiere conexión; después el token cifrado permite
+        // abrir la app y atribuir registros correctamente incluso sin señal.
         sesion = SesionManager.obtener(this);
+        if (!sesion.haySesionActiva()) {
+            startActivity(LoginActivity.intent(this));
+            finish();
+            return;
+        }
         almacenamiento = new AlmacenamientoRepositorio(this);
 
         vista.barraHerramientas.setNavigationOnClickListener(
@@ -83,6 +91,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         pintarMenuLateral();
+        advertirEspacioBajo();
     }
 
     // ------------------------------------------------------------------
@@ -112,13 +121,9 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    /**
-     * Cerrar sesión solo tiene sentido si hay algo guardado que cerrar, es
-     * decir, si el productor marcó "no volver a preguntar". Sin eso la sesión
-     * se olvida sola al terminar cada subida y el botón no haría nada.
-     */
+    /** Cerrar sesión solo está disponible cuando existe una identidad activa. */
     private boolean puedeCerrarSesion() {
-        return sesion.haySesionActiva() && sesion.recordarSesion();
+        return sesion.haySesionActiva();
     }
 
     /** Refresca lo que el menú muestra: sesión, espacio ocupado y disponibilidad. */
@@ -210,17 +215,48 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void confirmarCierreSesion() {
+        almacenamiento.resumir(resumen -> {
+            if (resumen.pendientes > 0) {
+                new MaterialAlertDialogBuilder(this)
+                        .setTitle("Hay datos pendientes")
+                        .setMessage("Antes de cerrar sesión debes sincronizar los "
+                                + resumen.pendientes + " borradores o cambios asociados a esta cuenta. "
+                                + "Así otra cuenta no podrá apropiarse de su autoría.")
+                        .setPositiveButton(R.string.aceptar, null)
+                        .show();
+                return;
+            }
+            confirmarCierreSinPendientes();
+        });
+    }
+
+    private void confirmarCierreSinPendientes() {
         new MaterialAlertDialogBuilder(this)
                 .setTitle(R.string.menu_cerrar_sesion)
                 .setMessage(R.string.cerrar_sesion_pregunta)
                 .setNegativeButton(R.string.cancelar, null)
                 .setPositiveButton(R.string.aceptar, (d, w) -> {
-                    // No se sale de la app: solo se olvida quién era. El
-                    // productor puede seguir registrando; se le volverán a
-                    // pedir credenciales la próxima vez que sincronice.
+                    // Se vuelve al login: sin una identidad activa no se crean
+                    // registros cuya autoría pueda quedar ambigua.
                     new AutenticacionRepositorio(this).cerrarSesion();
-                    pintarMenuLateral();
+                    startActivity(LoginActivity.intent(this));
+                    finish();
                 })
                 .show();
+    }
+
+    private void advertirEspacioBajo() {
+        if (avisoEspacioMostrado) return;
+        almacenamiento.resumir(resumen -> {
+            if (!resumen.espacioBajo() || isFinishing()) return;
+            avisoEspacioMostrado = true;
+            new MaterialAlertDialogBuilder(this)
+                    .setTitle("Poco espacio disponible")
+                    .setIcon(R.drawable.ic_alerta)
+                    .setMessage("Quedan " + resumen.disponibleLegible()
+                            + ". Sincroniza y libera copias locales antes de registrar una jornada grande.")
+                    .setPositiveButton(R.string.aceptar, null)
+                    .show();
+        });
     }
 }

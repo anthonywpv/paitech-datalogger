@@ -2,9 +2,9 @@
 #  Paipay DataLogger — archivos que NO deben entrar al repositorio
 # ===========================================================================
 
-# --- CREDENCIALES (lo más importante) --------------------------------------
-# Contiene NEON_AUTH_URL, NEON_DATA_API_URL y la ruta del SDK.
-# Si esto llega a GitHub, tus endpoints de Neon quedan públicos.
+# --- CONFIGURACIÓN LOCAL ----------------------------------------------------
+# Contiene la ruta del Android SDK y la URL del despliegue Django usado por
+# cada desarrollador. No debe mezclarse con la configuración versionada.
 local.properties
 
 # --- Compilación ------------------------------------------------------------

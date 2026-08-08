@@ -1,26 +1,214 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:fillViewport="true">
 
-    <com.google.android.material.tabs.TabLayout
-        android:id="@+id/pestanas"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/paipay_superficie"
-        app:tabGravity="fill"
-        app:tabMode="fixed"
-        app:tabIndicatorColor="@color/paipay_verde_1"
-        app:tabIndicatorHeight="4dp"
-        app:tabSelectedTextColor="@color/paipay_marron"
-        app:tabTextColor="@color/paipay_gris_bajo"
-        app:tabIconTint="@color/selector_nav" />
+        android:orientation="vertical"
+        android:padding="@dimen/espacio_m">
 
-    <androidx.viewpager2.widget.ViewPager2
-        android:id="@+id/paginador"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1" />
-</LinearLayout>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Jornada de registro"
+            android:textColor="@color/paipay_marron"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/textoEstadoBorrador"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/espacio_xs"
+            android:text="Se guarda primero en este teléfono; no necesitas internet."
+            android:textColor="@color/paipay_gris_bajo" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/espacio_l"
+            android:text="Piscina"
+            android:textColor="@color/paipay_marron"
+            android:textStyle="bold" />
+
+        <Spinner
+            android:id="@+id/selectorPiscina"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:background="@drawable/chip_neutro" />
+
+        <TextView
+            android:id="@+id/textoEspecie"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/espacio_xs"
+            android:textColor="@color/paipay_gris_bajo" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/campoFecha"
+            style="@style/Paipay.Campo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/espacio_m"
+            android:hint="Fecha y hora">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/campoFechaTexto"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:focusable="false"
+                android:clickable="true" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/campoPoblacion"
+            style="@style/Paipay.Campo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/espacio_m"
+            android:hint="Población total estimada">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/campoPoblacionTexto"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="number" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Paipay.Campo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/espacio_m"
+            android:hint="Observaciones generales">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/campoObservacionesTexto"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="top"
+                android:inputType="textCapSentences|textMultiLine"
+                android:minLines="3" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/incluirAgua"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/espacio_l"
+            android:text="Incluir calidad del agua"
+            android:textColor="@color/paipay_marron"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:id="@+id/grupoAgua"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Unidades mg/L provisionales, pendientes de validación biológica."
+                android:textColor="@color/paipay_gris_bajo"
+                android:textSize="12sp" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/campoPh" style="@style/Paipay.Campo"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/espacio_s" android:hint="pH (0 a 14)">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/campoPhTexto" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:inputType="numberDecimal" />
+            </com.google.android.material.textfield.TextInputLayout>
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/campoNitrato" style="@style/Paipay.Campo"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/espacio_s" android:hint="Nitrato">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/campoNitratoTexto" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:inputType="numberDecimal" />
+            </com.google.android.material.textfield.TextInputLayout>
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/campoNitrito" style="@style/Paipay.Campo"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/espacio_s" android:hint="Nitrito">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/campoNitritoTexto" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:inputType="numberDecimal" />
+            </com.google.android.material.textfield.TextInputLayout>
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/campoAmonio" style="@style/Paipay.Campo"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/espacio_s" android:hint="Amonio">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/campoAmonioTexto" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:inputType="numberDecimal" />
+            </com.google.android.material.textfield.TextInputLayout>
+        </LinearLayout>
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/incluirBiometria"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/espacio_l"
+            android:text="Incluir muestra biométrica"
+            android:textColor="@color/paipay_marron"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:id="@+id/grupoBiometria"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+            <TextView
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Cada fila es un pez anónimo: peso en gramos y longitud total en centímetros."
+                android:textColor="@color/paipay_gris_bajo" android:textSize="12sp" />
+            <LinearLayout
+                android:id="@+id/contenedorPeces"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="vertical" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/botonAgregarPez" style="@style/Paipay.Boton.Secundario"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/espacio_s" android:text="Agregar pez" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/espacio_l" android:orientation="horizontal">
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/botonBorrador" style="@style/Paipay.Boton.Secundario"
+                android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:text="Guardar borrador" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/botonFinalizar" style="@style/Paipay.Boton.Principal"
+                android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/espacio_s" android:layout_weight="1"
+                android:text="Finalizar jornada" />
+        </LinearLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/botonMovimiento"
+            style="@style/Paipay.Boton.Secundario"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/espacio_m"
+            android:text="Registrar movimiento poblacional" />
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/espacio_l" android:layout_marginBottom="@dimen/espacio_l"
+            app:cardBackgroundColor="@color/paipay_fondo" app:cardCornerRadius="16dp"
+            app:contentPadding="@dimen/espacio_m">
+            <TextView
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Lombricultura · Próximamente\nLas variables biológicas todavía están por definirse."
+                android:textColor="@color/paipay_gris_bajo" />
+        </com.google.android.material.card.MaterialCardView>
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

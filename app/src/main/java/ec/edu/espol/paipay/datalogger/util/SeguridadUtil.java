@@ -6,7 +6,7 @@ import java.util.UUID;
  * Utilidades de identificación.
  *
  * Nota: la app NO maneja contraseñas por su cuenta. La autenticación la
- * resuelve Neon Auth (Managed Better Auth) del lado del servidor, que ya
+ * resuelve Django del lado del servidor, que ya
  * aplica hashing seguro. Aquí solo se generan identificadores de registro.
  */
 public final class SeguridadUtil {

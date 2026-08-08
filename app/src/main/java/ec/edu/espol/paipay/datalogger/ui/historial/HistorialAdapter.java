@@ -111,19 +111,31 @@ public class HistorialAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 
             int icono;
             switch (item.tipo) {
-                case AGUA:        icono = R.drawable.ic_gota; break;
-                case LABORATORIO: icono = R.drawable.ic_laboratorio; break;
-                default:          icono = R.drawable.ic_pez; break;
+                case MOVIMIENTO: icono = R.drawable.ic_piscina; break;
+                default: icono = R.drawable.ic_formulario; break;
             }
             v.icono.setImageResource(icono);
 
             if (item.sincronizado) {
-                v.textoEstado.setText(R.string.etiqueta_sincronizado);
+                if ("ANULADO".equals(item.estadoLocal)
+                        || "ANULADO_LOCAL".equals(item.estadoLocal)) {
+                    v.textoEstado.setText("Anulado");
+                } else {
+                    v.textoEstado.setText(R.string.etiqueta_sincronizado);
+                }
                 v.textoEstado.setBackgroundResource(R.drawable.chip_sincronizado);
                 v.textoEstado.setTextColor(
                         ContextCompat.getColor(contexto, R.color.estado_sincronizado));
             } else {
-                v.textoEstado.setText(R.string.etiqueta_pendiente);
+                if ("CONFLICTO".equals(item.estadoLocal)) {
+                    v.textoEstado.setText("Conflicto");
+                } else if ("BORRADOR".equals(item.estadoLocal)) {
+                    v.textoEstado.setText("Borrador");
+                } else if ("PENDIENTE_ANULAR".equals(item.estadoLocal)) {
+                    v.textoEstado.setText("Por anular");
+                } else {
+                    v.textoEstado.setText(R.string.etiqueta_pendiente);
+                }
                 v.textoEstado.setBackgroundResource(R.drawable.chip_pendiente);
                 v.textoEstado.setTextColor(
                         ContextCompat.getColor(contexto, R.color.estado_pendiente));

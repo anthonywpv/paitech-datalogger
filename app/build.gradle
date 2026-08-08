@@ -2,7 +2,7 @@ plugins {
     id 'com.android.application'
 }
 
-// Lee credenciales desde local.properties (fuera del control de versiones)
+// Lee configuración del entorno local (fuera del control de versiones).
 def localProps = new Properties()
 def localFile = rootProject.file("local.properties")
 if (localFile.exists()) {
@@ -17,19 +17,15 @@ android {
         applicationId "ec.edu.espol.paipay.datalogger"
         minSdk 24
         targetSdk 35
-        versionCode 4
-        versionName "1.3"
+        versionCode 5
+        versionName "1.4-dev"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
 
-        // Credenciales inyectadas desde local.properties: no quedan en el código fuente.
-        buildConfigField "String", "NEON_DATA_API_URL",
-                "\"${localProps.getProperty('NEON_DATA_API_URL', 'https://CONFIGURA-TU-ENDPOINT.apirest.neon.tech/neondb/rest/v1/')}\""
-        buildConfigField "String", "NEON_AUTH_URL",
-                "\"${localProps.getProperty('NEON_AUTH_URL', 'https://CONFIGURA-TU-ENDPOINT.neonauth.neon.tech/neondb/auth/')}\""
-        buildConfigField "String", "NEON_ORIGIN",
-                "\"${localProps.getProperty('NEON_ORIGIN', 'https://paipay.espol.edu.ec')}\""
+        // URL del único backend autorizado para la app: Django REST Framework.
+        buildConfigField "String", "API_BASE_URL",
+                "\"${localProps.getProperty('API_BASE_URL', 'https://CONFIGURA-TU-SERVICIO.up.railway.app/')}\""
 
         javaCompileOptions {
             annotationProcessorOptions {
@@ -80,13 +76,13 @@ dependencies {
     implementation 'androidx.room:room-runtime:2.6.1'
     annotationProcessor 'androidx.room:room-compiler:2.6.1'
 
-    // Retrofit - consumo de Neon Data API (REST sobre Postgres)
+    // Retrofit - consumo exclusivo de la API Django en Railway
     implementation 'com.squareup.retrofit2:retrofit:2.11.0'
     implementation 'com.squareup.retrofit2:converter-gson:2.11.0'
     implementation 'com.squareup.okhttp3:logging-interceptor:4.12.0'
 
     // Sesión persistente cifrada
-    implementation 'androidx.security:security-crypto:1.1.0-alpha06'
+    implementation 'androidx.security:security-crypto:1.1.0'
 
     // Sincronización en segundo plano al recuperar conexión
     implementation 'androidx.work:work-runtime:2.9.1'

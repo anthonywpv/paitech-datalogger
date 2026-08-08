@@ -1,6 +1,6 @@
 <!--
   Portapapeles con renglones: la sección "Registrar" no es solo peces, también
-  agua, laboratorio y lombricultura, así que el pez ahí engañaba.
+  agua, biometría y movimientos, así que el pez ahí engañaba.
 
   Los renglones son AGUJEROS (fillType evenOdd) para que sigan viéndose cuando
   el icono se tiñe de un solo color en la barra inferior.

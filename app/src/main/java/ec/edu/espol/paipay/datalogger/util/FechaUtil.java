@@ -4,11 +4,13 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
+import java.util.TimeZone;
 
 /** Formatos de fecha unificados para toda la app (zona horaria de Ecuador). */
 public final class FechaUtil {
 
     public static final Locale EC = new Locale("es", "EC");
+    private static final TimeZone GUAYAQUIL = TimeZone.getTimeZone("America/Guayaquil");
 
     private static final SimpleDateFormat ISO = new SimpleDateFormat("yyyy-MM-dd", EC);
     private static final SimpleDateFormat LEGIBLE = new SimpleDateFormat("dd 'de' MMMM 'de' yyyy", EC);
@@ -21,7 +23,12 @@ public final class FechaUtil {
             new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
 
     static {
-        ISO_UTC.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
+        ISO.setTimeZone(GUAYAQUIL);
+        LEGIBLE.setTimeZone(GUAYAQUIL);
+        CORTA.setTimeZone(GUAYAQUIL);
+        CON_HORA.setTimeZone(GUAYAQUIL);
+        DDMMYYYY.setTimeZone(GUAYAQUIL);
+        ISO_UTC.setTimeZone(TimeZone.getTimeZone("UTC"));
     }
 
     private FechaUtil() { }
@@ -57,8 +64,25 @@ public final class FechaUtil {
         return CON_HORA.format(new Date(millis));
     }
 
+    public static String conHoraDesdeIsoUtc(String texto) {
+        long invalido = Long.MIN_VALUE;
+        long millis = millisDesdeIsoUtc(texto, invalido);
+        return millis == invalido ? texto : conHora(millis);
+    }
+
+    public static long ahoraAlMinuto() {
+        long ahora = System.currentTimeMillis();
+        return ahora - (ahora % 60_000L);
+    }
+
+    public static Calendar calendarioGuayaquil(long millis) {
+        Calendar calendario = Calendar.getInstance(GUAYAQUIL, EC);
+        calendario.setTimeInMillis(millis);
+        return calendario;
+    }
+
     /**
-     * "2026-08-04T17:30:00Z" — formato que viaja a Neon.
+     * "2026-08-04T17:30:00Z" — formato que viaja a Django.
      *
      * Se usa SimpleDateFormat y no java.time.Instant porque Instant exige
      * API 26 y la app soporta desde API 24 (teléfonos gama baja del recinto).
