@@ -31,7 +31,7 @@ public class JornadaLocal {
     public Double ph;
     public Double nitrato;
     public Double nitrito;
-    public Double amonio;
+    public Double amoniacoTotal;
     @NonNull public String estadoLocal = BORRADOR;
     public int versionServidor;
     public String motivoCambio;

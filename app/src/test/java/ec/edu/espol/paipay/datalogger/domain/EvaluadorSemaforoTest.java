@@ -1,6 +1,7 @@
 package ec.edu.espol.paipay.datalogger.domain;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -12,8 +13,7 @@ import org.junit.Test;
  *
  * Se ejecutan sin emulador porque la lógica es Java puro. Verifican sobre todo
  * los BORDES de cada umbral, que es donde un semáforo mal programado engaña al
- * productor, y el acoplamiento pH–amonio, que es lo que un parámetro leído por
- * separado no puede detectar.
+ * productor, y la estimación provisional pH–amoníaco total.
  */
 public class EvaluadorSemaforoTest {
 
@@ -60,24 +60,26 @@ public class EvaluadorSemaforoTest {
         assertEquals(EstadoAlerta.ROJO, EvaluadorSemaforo.evaluarNitrito(1.01).estado);
     }
 
-    // ------------------------- AMONIO -------------------------
+    // ------------------------- AMONÍACO TOTAL -------------------------
 
     @Test
-    public void amonio_bajoElUmbral_esVerde() {
-        assertEquals(EstadoAlerta.VERDE, EvaluadorSemaforo.evaluarAmonio(0.49).estado);
+    public void amoniacoTotal_bajoElUmbral_esVerde() {
+        assertEquals(EstadoAlerta.VERDE,
+                EvaluadorSemaforo.evaluarAmoniacoTotal(0.49).estado);
     }
 
     @Test
-    public void amonio_sobreElCritico_esRojo() {
-        assertEquals(EstadoAlerta.ROJO, EvaluadorSemaforo.evaluarAmonio(1.01).estado);
+    public void amoniacoTotal_sobreElCritico_esRojo() {
+        assertEquals(EstadoAlerta.ROJO,
+                EvaluadorSemaforo.evaluarAmoniacoTotal(1.01).estado);
     }
 
     // ------------------------- NITRATO -------------------------
 
     @Test
     public void nitrato_toleraValoresMuchoMasAltosQueElNitrito() {
-        // Es el producto final del ciclo y el menos tóxico: 40 mg/L está bien,
-        // mientras que 40 mg/L de nitrito sería letal.
+        // Es el producto final del ciclo y el menos tóxico: 40 ppm está bien,
+        // mientras que 40 ppm de nitrito activa rojo.
         assertEquals(EstadoAlerta.VERDE, EvaluadorSemaforo.evaluarNitrato(40).estado);
         assertEquals(EstadoAlerta.ROJO, EvaluadorSemaforo.evaluarNitrito(40).estado);
     }
@@ -87,55 +89,56 @@ public class EvaluadorSemaforoTest {
         assertEquals(EstadoAlerta.ROJO, EvaluadorSemaforo.evaluarNitrato(101).estado);
     }
 
-    // ------------------------- AMONÍACO LIBRE (pH × AMONIO) -------------------------
+    // -------- AMONÍACO NO IONIZADO ESTIMADO (pH × AMONÍACO TOTAL) --------
 
     @Test
-    public void amoniacoLibre_creceMuchoConElPh() {
-        // Mismo amonio total, distinto pH: la fracción tóxica se dispara.
-        double aPh7 = EvaluadorSemaforo.amoniacoLibre(7.0, 1.0);
-        double aPh9 = EvaluadorSemaforo.amoniacoLibre(9.0, 1.0);
+    public void amoniacoNoIonizadoEstimado_creceMuchoConElPh() {
+        double aPh7 = EvaluadorSemaforo.amoniacoNoIonizadoEstimado(7.0, 1.0);
+        double aPh9 = EvaluadorSemaforo.amoniacoNoIonizadoEstimado(9.0, 1.0);
         assertTrue("a pH 9 debe haber mucho más NH3 que a pH 7", aPh9 > aPh7 * 10);
     }
 
     @Test
-    public void amoniacoLibre_coincideConLasTablasPublicadas() {
+    public void amoniacoNoIonizadoEstimado_conservaLaFormulaProvisional() {
         // A 25 °C: ~0.6 % a pH 7, ~5 % a pH 8, ~36 % a pH 9.
-        assertEquals(0.006, EvaluadorSemaforo.amoniacoLibre(7.0, 1.0), 0.002);
-        assertEquals(0.053, EvaluadorSemaforo.amoniacoLibre(8.0, 1.0), 0.01);
-        assertEquals(0.360, EvaluadorSemaforo.amoniacoLibre(9.0, 1.0), 0.03);
+        assertEquals(0.006, EvaluadorSemaforo.amoniacoNoIonizadoEstimado(7.0, 1.0), 0.002);
+        assertEquals(0.053, EvaluadorSemaforo.amoniacoNoIonizadoEstimado(8.0, 1.0), 0.01);
+        assertEquals(0.360, EvaluadorSemaforo.amoniacoNoIonizadoEstimado(9.0, 1.0), 0.03);
     }
 
     /**
-     * El caso que justifica toda la regla: un amonio que leído solo pasaría por
+     * El caso que justifica toda la regla: un amoníaco total que leído solo pasaría por
      * aceptable se vuelve peligroso cuando el pH está alto.
      */
     @Test
-    public void amonioAceptableConPhAlto_disparaAlertaDeAmoniacoLibre() {
-        assertEquals("0.4 mg/L de amonio total es VERDE por sí solo",
-                EstadoAlerta.VERDE, EvaluadorSemaforo.evaluarAmonio(0.4).estado);
+    public void amoniacoTotalAceptableConPhAlto_disparaEstimacionCritica() {
+        assertEquals("0.4 ppm de amoníaco total es VERDE por sí solo",
+                EstadoAlerta.VERDE,
+                EvaluadorSemaforo.evaluarAmoniacoTotal(0.4).estado);
 
-        LecturaEvaluada libre = EvaluadorSemaforo.evaluarAmoniacoLibre(9.0, 0.4);
+        LecturaEvaluada libre = EvaluadorSemaforo
+                .evaluarAmoniacoNoIonizadoEstimado(9.0, 0.4);
         assertEquals("pero a pH 9 esa misma lectura es crítica",
                 EstadoAlerta.ROJO, libre.estado);
     }
 
     @Test
-    public void mismoAmonioConPhNeutro_noAlarma() {
+    public void mismoAmoniacoTotalConPhNeutro_noAlarma() {
         assertEquals(EstadoAlerta.VERDE,
-                EvaluadorSemaforo.evaluarAmoniacoLibre(7.0, 0.4).estado);
+                EvaluadorSemaforo.evaluarAmoniacoNoIonizadoEstimado(7.0, 0.4).estado);
     }
 
     // ------------------------- ESTADO DEL CICLO -------------------------
 
     @Test
-    public void amonioAltoConNitritoBajo_indicaFiltroSinArrancar() {
+    public void amoniacoTotalAltoConNitritoBajo_indicaFiltroSinArrancar() {
         LecturaEvaluada ciclo = EvaluadorSemaforo.evaluarCicloNitrogeno(0.8, 0.1);
         assertNotNull(ciclo);
         assertEquals(EstadoAlerta.AMARILLO, ciclo.estado);
     }
 
     @Test
-    public void amonioYNitritoAltosALaVez_esRojo() {
+    public void amoniacoTotalYNitritoAltosALaVez_esRojo() {
         LecturaEvaluada ciclo = EvaluadorSemaforo.evaluarCicloNitrogeno(0.8, 0.8);
         assertNotNull(ciclo);
         assertEquals(EstadoAlerta.ROJO, ciclo.estado);
@@ -159,6 +162,14 @@ public class EvaluadorSemaforoTest {
     public void condicionesIdeales_danVerde() {
         assertEquals(EstadoAlerta.VERDE,
                 EvaluadorSemaforo.evaluar("P-01", "2026-08-04", 7.2, 20, 0.1, 0.1).getEstadoGlobal());
+    }
+
+    @Test
+    public void valoresKitDistinguenLecturaObservableDeDecimalInventado() {
+        assertTrue(ValoresKitAgua.contiene(0.25, ValoresKitAgua.AMONIACO_TOTAL));
+        assertTrue(ValoresKitAgua.contiene(7.4, ValoresKitAgua.PH));
+        assertFalse(ValoresKitAgua.contiene(0.37, ValoresKitAgua.AMONIACO_TOTAL));
+        assertFalse(ValoresKitAgua.contiene(7.3, ValoresKitAgua.PH));
     }
 
     @Test

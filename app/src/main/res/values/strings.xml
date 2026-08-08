@@ -55,11 +55,11 @@
     <string name="historial_refresco_error">No se pudo consultar la base principal. Se muestra lo guardado en este teléfono.</string>
     <string name="historial_muestreo">Muestreo %1$s</string>
     <string name="historial_muestreo_conteo">%1$d registro(s)</string>
-    <string name="agua_ayuda">Estos datos alimentan el semáforo de alertas. Mide siempre a la misma hora del día: el amonio sube después de alimentar.</string>
-    <string name="campo_ph">pH (0 a 14)</string>
-    <string name="campo_nitrato">Nitrato (mg/L)</string>
-    <string name="campo_nitrito">Nitrito (mg/L)</string>
-    <string name="campo_amonio">Amonio (mg/L)</string>
+    <string name="agua_ayuda">Estos datos alimentan el semáforo de alertas. En pH registra un solo resultado final aunque uses ambas pruebas; copia los otros colores en ppm.</string>
+    <string name="campo_ph">pH final</string>
+    <string name="campo_nitrato">Nitrato (NO₃⁻), ppm</string>
+    <string name="campo_nitrito">Nitrito (NO₂⁻), ppm</string>
+    <string name="campo_amoniaco_total">Amoníaco total (NH₃/NH₄⁺), ppm</string>
     <string name="campo_poblacion">Población (peces estimados)</string>
     <string name="campo_poblacion_ayuda">Obligatoria en cada jornada. Se compara con la población teórica sin inferir mortalidad desde la muestra biométrica.</string>
 

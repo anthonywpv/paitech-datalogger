@@ -27,7 +27,7 @@ public class ComparadorConflictosTest {
         local.jornada.ph = 7.2;
         local.jornada.nitrato = 4.0;
         local.jornada.nitrito = 0.1;
-        local.jornada.amonio = 0.2;
+        local.jornada.amoniacoTotal = 0.25;
         ObservacionPezLocal pez = new ObservacionPezLocal();
         pez.pesoGramos = 250;
         pez.tallaCentimetros = 21;
@@ -43,7 +43,7 @@ public class ComparadorConflictosTest {
         remota.agua.ph = "7.4";
         remota.agua.nitrato = "4";
         remota.agua.nitrito = "0.1";
-        remota.agua.amonio = "0.2";
+        remota.agua.amoniacoTotal = "0.25";
         remota.peces = new ArrayList<>();
 
         String resultado = ComparadorConflictos.jornada(local, remota);

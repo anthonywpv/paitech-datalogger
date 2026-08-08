@@ -260,7 +260,7 @@ public class SincronizacionRepositorio {
             local.ph = Double.valueOf(dto.jornada.agua.ph);
             local.nitrato = Double.valueOf(dto.jornada.agua.nitrato);
             local.nitrito = Double.valueOf(dto.jornada.agua.nitrito);
-            local.amonio = Double.valueOf(dto.jornada.agua.amonio);
+            local.amoniacoTotal = Double.valueOf(dto.jornada.agua.amoniacoTotal);
             local.estado = dto.semaforo == null ? null : dto.semaforo.estado;
             if (dto.semaforo != null && dto.semaforo.lecturas != null && !dto.semaforo.lecturas.isEmpty()) {
                 local.resumen = dto.semaforo.lecturas.get(0).diagnostico;

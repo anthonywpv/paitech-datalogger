@@ -14,18 +14,18 @@ package ec.edu.espol.paipay.datalogger.domain;
  *
  * EL CICLO DEL NITRÓGENO, que es de lo que trata este semáforo:
  *
- *     peces  →  AMONIO (NH4+/NH3)  →  NITRITO (NO2-)  →  NITRATO (NO3-)
+ *     peces → AMONÍACO TOTAL (NH3/NH4+) → NITRITO (NO2-) → NITRATO (NO3-)
  *                   tóxico              muy tóxico         poco tóxico
  *                            ↑ bacterias nitrificantes ↑
  *
  * Leer un solo parámetro engaña; lo que informa es la combinación:
  *
- *   · Amonio alto + nitrito bajo  → piscina nueva, el filtro biológico aún no
+ *   · Amoníaco total alto + nitrito bajo → piscina nueva, el filtro biológico aún no
  *     arranca. Las bacterias todavía no están.
  *   · Nitrito alto                → ciclo a medio hacer. Es el momento más
  *     peligroso: el nitrito impide a la sangre transportar oxígeno.
  *   · Solo nitrato alto           → ciclo sano pero agua vieja: toca recambio.
- *   · Amonio y nitrito altos a la vez → el filtro no da abasto para la carga.
+ *   · Amoníaco total y nitrito altos a la vez → el filtro no da abasto para la carga.
  *
  * RANGOS DE REFERENCIA (ajustables por el equipo de Acuicultura FIMCM):
  *
@@ -34,16 +34,14 @@ package ec.edu.espol.paipay.datalogger.domain;
  *     AMARILLO  6.0 – 6.4  y  8.6 – 9.0
  *     ROJO      < 6.0  o  > 9.0
  *
- *   Nitrito (mg/L)          Amonio total (mg/L)      Nitrato (mg/L)
+ *   Nitrito (ppm)        Amoníaco total (ppm)       Nitrato (ppm)
  *     VERDE     < 0.5         VERDE     < 0.5          VERDE     < 50
  *     AMARILLO  0.5 – 1.0     AMARILLO  0.5 – 1.0      AMARILLO  50 – 100
  *     ROJO      > 1.0         ROJO      > 1.0          ROJO      > 100
  *
- * IMPORTANTE: el amonio y el pH están acoplados. Lo que mata no es el amonio
- * total que marca el kit, sino la fracción en forma de amoníaco libre (NH3),
- * que crece de golpe con el pH. Ese acoplamiento vive en amoniacoLibre() y en
- * evaluarAmoniacoLibre(), y es el equivalente a la vieja regla de temperatura
- * y oxígeno.
+ * La estimación de NH3 conserva la regla provisional existente: usa pKa 9.25,
+ * equivalente aproximadamente a 25 °C. Como v1.4 no mide temperatura, esta
+ * salida debe entenderse como orientación y no como concentración confirmada.
  */
 public final class EvaluadorSemaforo {
 
@@ -53,22 +51,22 @@ public final class EvaluadorSemaforo {
     public static final double PH_CRITICO_MIN = 6.0;
     public static final double PH_CRITICO_MAX = 9.0;
 
-    // ---- Umbrales de nitrito (mg/L) ----
+    // ---- Umbrales de nitrito (ppm) ----
     public static final double NITRITO_PRECAUCION = 0.5;
     public static final double NITRITO_CRITICO = 1.0;
 
-    // ---- Umbrales de amonio total (mg/L) ----
-    public static final double AMONIO_PRECAUCION = 0.5;
-    public static final double AMONIO_CRITICO = 1.0;
+    // ---- Umbrales de amoníaco total (ppm) ----
+    public static final double AMONIACO_TOTAL_PRECAUCION = 0.5;
+    public static final double AMONIACO_TOTAL_CRITICO = 1.0;
 
-    // ---- Umbrales de nitrato (mg/L) ----
+    // ---- Umbrales de nitrato (ppm) ----
     public static final double NITRATO_PRECAUCION = 50.0;
     public static final double NITRATO_CRITICO = 100.0;
 
     /**
-     * Umbrales de amoníaco libre NH3 (mg/L), el tóxico de verdad.
+     * Umbrales provisionales de amoníaco no ionizado NH3 estimado (ppm).
      * Por debajo de 0.02 no hay daño apreciable; por encima de 0.05 hay daño
-     * agudo en branquias aunque el amonio total parezca aceptable.
+     * agudo en branquias aunque el amoníaco total parezca aceptable.
      */
     public static final double NH3_PRECAUCION = 0.02;
     public static final double NH3_CRITICO = 0.05;
@@ -78,16 +76,16 @@ public final class EvaluadorSemaforo {
     /** Punto de entrada principal: evalúa una medición completa de agua. */
     public static ResultadoSemaforo evaluar(String piscina, String fecha,
                                              double ph, double nitrato,
-                                             double nitrito, double amonio) {
+                                             double nitrito, double amoniacoTotal) {
         ResultadoSemaforo resultado = new ResultadoSemaforo(piscina, fecha);
 
         resultado.agregar(evaluarPh(ph));
         resultado.agregar(evaluarNitrito(nitrito));
-        resultado.agregar(evaluarAmonio(amonio));
+        resultado.agregar(evaluarAmoniacoTotal(amoniacoTotal));
         resultado.agregar(evaluarNitrato(nitrato));
-        resultado.agregar(evaluarAmoniacoLibre(ph, amonio));
+        resultado.agregar(evaluarAmoniacoNoIonizadoEstimado(ph, amoniacoTotal));
 
-        LecturaEvaluada ciclo = evaluarCicloNitrogeno(amonio, nitrito);
+        LecturaEvaluada ciclo = evaluarCicloNitrogeno(amoniacoTotal, nitrito);
         if (ciclo != null) {
             resultado.agregar(ciclo);
         }
@@ -109,7 +107,7 @@ public final class EvaluadorSemaforo {
                     + "Avisar al técnico de la ESPOL.";
         } else if (ph > PH_CRITICO_MAX) {
             estado = EstadoAlerta.ROJO;
-            diagnostico = "Agua demasiado alcalina. Además vuelve mucho más tóxico el amonio.";
+            diagnostico = "Agua demasiado alcalina. Además aumenta la fracción tóxica del amoníaco total.";
             recomendacion = "Recambiar agua de inmediato y suspender la alimentación del día.";
         } else if (ph < PH_OPTIMO_MIN || ph > PH_OPTIMO_MAX) {
             estado = EstadoAlerta.AMARILLO;
@@ -147,32 +145,33 @@ public final class EvaluadorSemaforo {
             recomendacion = "Mantener el manejo actual.";
         }
 
-        return new LecturaEvaluada("Nitrito", nitrito, "mg/L", estado, diagnostico, recomendacion);
+        return new LecturaEvaluada("Nitrito", nitrito, "ppm", estado, diagnostico, recomendacion);
     }
 
-    // ======================= AMONIO TOTAL =======================
+    // ======================= AMONÍACO TOTAL =======================
 
-    public static LecturaEvaluada evaluarAmonio(double amonio) {
+    public static LecturaEvaluada evaluarAmoniacoTotal(double amoniacoTotal) {
         EstadoAlerta estado;
         String diagnostico;
         String recomendacion;
 
-        if (amonio > AMONIO_CRITICO) {
+        if (amoniacoTotal > AMONIACO_TOTAL_CRITICO) {
             estado = EstadoAlerta.ROJO;
-            diagnostico = "Amonio crítico. Quema las branquias y el pez deja de comer.";
+            diagnostico = "Amoníaco total crítico. Puede dañar las branquias y reducir el consumo.";
             recomendacion = "Recambiar la mitad del agua y suspender la alimentación "
                     + "hasta que baje. El alimento no consumido es la causa más común.";
-        } else if (amonio >= AMONIO_PRECAUCION) {
+        } else if (amoniacoTotal >= AMONIACO_TOTAL_PRECAUCION) {
             estado = EstadoAlerta.AMARILLO;
-            diagnostico = "Amonio por encima de lo deseable.";
+            diagnostico = "Amoníaco total por encima de lo deseable.";
             recomendacion = "Retirar el alimento no consumido del fondo y reducir la ración.";
         } else {
             estado = EstadoAlerta.VERDE;
-            diagnostico = "Amonio en nivel seguro.";
+            diagnostico = "Amoníaco total en nivel seguro.";
             recomendacion = "Mantener el manejo actual.";
         }
 
-        return new LecturaEvaluada("Amonio", amonio, "mg/L", estado, diagnostico, recomendacion);
+        return new LecturaEvaluada("Amoníaco total", amoniacoTotal, "ppm",
+                estado, diagnostico, recomendacion);
     }
 
     // ======================= NITRATO =======================
@@ -196,34 +195,33 @@ public final class EvaluadorSemaforo {
             recomendacion = "Mantener el manejo actual.";
         }
 
-        return new LecturaEvaluada("Nitrato", nitrato, "mg/L", estado, diagnostico, recomendacion);
+        return new LecturaEvaluada("Nitrato", nitrato, "ppm", estado, diagnostico, recomendacion);
     }
 
-    // ======================= AMONÍACO LIBRE (pH × AMONIO) =======================
+    // ========== AMONÍACO NO IONIZADO ESTIMADO (pH × AMONÍACO TOTAL) ==========
 
     /**
-     * Fracción del amonio total que está como amoníaco libre NH3, que es la
-     * forma que atraviesa la branquia y envenena al pez.
+     * Estima la fracción del amoníaco total que estaría como NH3 no ionizado.
      *
      * NH3 / (NH3 + NH4+) = 1 / (1 + 10^(pKa - pH)), con pKa ≈ 9.25 a 25 °C,
-     * temperatura representativa de las piscinas del recinto. Se fija la
-     * temperatura porque ya no se mide; el error que introduce es pequeño al
-     * lado del efecto del pH, que es el que domina:
+     * valor aproximado a 25 °C. La temperatura real no se registra en v1.4,
+     * por lo que el resultado no es una medición confirmada de NH3:
      *
-     *     pH 7 → 0.6 % del amonio es tóxico
+     *     pH 7 → 0.6 % del amoníaco total se estima como NH3
      *     pH 8 → 5.4 %
      *     pH 9 → 36 %
      *
      * Es decir, la MISMA lectura del kit es unas sesenta veces más peligrosa a
-     * pH 9 que a pH 7. Por eso el amonio nunca se juzga solo.
+     * pH 9 que a pH 7. Por eso la lectura total nunca se juzga sola.
      */
-    public static double amoniacoLibre(double ph, double amonioTotal) {
+    public static double amoniacoNoIonizadoEstimado(double ph, double amoniacoTotal) {
         final double pKa = 9.25;
-        return amonioTotal / (1d + Math.pow(10d, pKa - ph));
+        return amoniacoTotal / (1d + Math.pow(10d, pKa - ph));
     }
 
-    public static LecturaEvaluada evaluarAmoniacoLibre(double ph, double amonioTotal) {
-        double nh3 = amoniacoLibre(ph, amonioTotal);
+    public static LecturaEvaluada evaluarAmoniacoNoIonizadoEstimado(
+            double ph, double amoniacoTotal) {
+        double nh3 = amoniacoNoIonizadoEstimado(ph, amoniacoTotal);
 
         EstadoAlerta estado;
         String diagnostico;
@@ -231,50 +229,48 @@ public final class EvaluadorSemaforo {
 
         if (nh3 > NH3_CRITICO) {
             estado = EstadoAlerta.ROJO;
-            diagnostico = "Amoníaco libre en nivel tóxico. Con este pH, el amonio medido "
-                    + "está en su forma que envenena.";
+            diagnostico = "La estimación provisional de NH3 supera el nivel crítico.";
             recomendacion = "Recambiar agua de inmediato y no alimentar. "
                     + "Bajar el pH reduce la toxicidad al instante.";
         } else if (nh3 > NH3_PRECAUCION) {
             estado = EstadoAlerta.AMARILLO;
-            diagnostico = "El pH está volviendo tóxico el amonio presente, aunque el "
-                    + "total parezca aceptable.";
+            diagnostico = "El pH eleva la fracción estimada de NH3 aunque el total parezca aceptable.";
             recomendacion = "No encalar por ahora: subir el pH empeoraría esto. "
                     + "Recambiar un tercio del agua.";
         } else {
             estado = EstadoAlerta.VERDE;
-            diagnostico = "El amonio presente está en su forma inofensiva.";
+            diagnostico = "La estimación provisional de NH3 está por debajo de precaución.";
             recomendacion = "Mantener el manejo actual.";
         }
 
-        return new LecturaEvaluada("Amoníaco libre", nh3, "mg/L",
+        return new LecturaEvaluada("Amoníaco no ionizado estimado", nh3, "ppm",
                 estado, diagnostico, recomendacion);
     }
 
     // ======================= ESTADO DEL CICLO =======================
 
     /**
-     * Interpreta amonio y nitrito juntos para decir en qué punto está el ciclo.
+     * Interpreta amoníaco total y nitrito juntos para decir en qué punto está el ciclo.
      * Devuelve null cuando no hay nada que reportar más allá de los parámetros
      * sueltos.
      */
-    public static LecturaEvaluada evaluarCicloNitrogeno(double amonio, double nitrito) {
-        boolean amonioAlto = amonio >= AMONIO_PRECAUCION;
+    public static LecturaEvaluada evaluarCicloNitrogeno(double amoniacoTotal, double nitrito) {
+        boolean amoniacoTotalAlto = amoniacoTotal >= AMONIACO_TOTAL_PRECAUCION;
         boolean nitritoAlto = nitrito >= NITRITO_PRECAUCION;
 
-        if (amonioAlto && nitritoAlto) {
-            return new LecturaEvaluada("Ciclo del nitrógeno", nitrito, "mg/L",
+        if (amoniacoTotalAlto && nitritoAlto) {
+            return new LecturaEvaluada("Ciclo del nitrógeno", nitrito, "ppm",
                     EstadoAlerta.ROJO,
-                    "Amonio y nitrito altos a la vez: las bacterias no dan abasto con "
+                    "Amoníaco total y nitrito altos a la vez: las bacterias no dan abasto con "
                             + "la carga de la piscina. Los dos venenos están presentes.",
                     "Suspender la alimentación, recambiar la mitad del agua y no sembrar "
                             + "más peces hasta que ambos bajen.");
         }
 
-        if (amonioAlto && nitrito < NITRITO_PRECAUCION) {
-            return new LecturaEvaluada("Ciclo del nitrógeno", amonio, "mg/L",
+        if (amoniacoTotalAlto && nitrito < NITRITO_PRECAUCION) {
+            return new LecturaEvaluada("Ciclo del nitrógeno", amoniacoTotal, "ppm",
                     EstadoAlerta.AMARILLO,
-                    "Sube el amonio pero el nitrito sigue bajo: el filtro biológico "
+                    "Sube el amoníaco total pero el nitrito sigue bajo: el filtro biológico "
                             + "todavía no arranca. Es lo normal en una piscina recién llenada.",
                     "Alimentar poco durante una o dos semanas y medir cada dos días. "
                             + "Las bacterias se establecen solas.");

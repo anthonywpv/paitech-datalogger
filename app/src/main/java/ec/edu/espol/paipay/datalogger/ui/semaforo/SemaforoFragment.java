@@ -62,8 +62,8 @@ public class SemaforoFragment extends Fragment {
             if (dato.ph != null) {
                 alerta(vista.contenedorPiscina, estado, "Valores de la última jornada",
                         String.format(Locale.getDefault(),
-                                "pH %.2f · nitrato %.3f · nitrito %.3f · amonio %.3f mg/L",
-                                dato.ph, dato.nitrato, dato.nitrito, dato.amonio), null);
+                                "pH %.2f · nitrato %.3f ppm · nitrito %.3f ppm · amoníaco total %.3f ppm",
+                                dato.ph, dato.nitrato, dato.nitrito, dato.amoniacoTotal), null);
             }
         }
         alerta(vista.contenedorLombricultura, EstadoAlerta.SIN_DATO,

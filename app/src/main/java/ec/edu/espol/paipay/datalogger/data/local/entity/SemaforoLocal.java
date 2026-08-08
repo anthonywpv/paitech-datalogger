@@ -15,7 +15,7 @@ public class SemaforoLocal {
     public Double ph;
     public Double nitrato;
     public Double nitrito;
-    public Double amonio;
+    public Double amoniacoTotal;
     public String estado;
     public String resumen;
     public long actualizadoEn;

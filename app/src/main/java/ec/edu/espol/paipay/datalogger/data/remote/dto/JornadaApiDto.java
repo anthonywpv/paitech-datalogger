@@ -25,7 +25,7 @@ public class JornadaApiDto {
         public String ph;
         public String nitrato;
         public String nitrito;
-        public String amonio;
+        @SerializedName("amoniaco_total") public String amoniacoTotal;
     }
 
     public static class PezDto {

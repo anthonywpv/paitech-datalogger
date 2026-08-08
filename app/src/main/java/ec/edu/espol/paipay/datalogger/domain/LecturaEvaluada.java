@@ -1,6 +1,6 @@
 package ec.edu.espol.paipay.datalogger.domain;
 
-/** Resultado de evaluar un parámetro individual (pH, amonio, nitrito, nitrato…). */
+/** Resultado de evaluar un parámetro individual (pH, amoníaco total, nitrito, nitrato…). */
 public class LecturaEvaluada {
 
     public final String parametro;

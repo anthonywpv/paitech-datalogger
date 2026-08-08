@@ -34,8 +34,8 @@ public final class ComparadorConflictos {
                 remota.agua == null ? "Sin medición" : decimal(remota.agua.nitrato));
         agregar(diferencias, "Nitrito", decimal(j.nitrito),
                 remota.agua == null ? "Sin medición" : decimal(remota.agua.nitrito));
-        agregar(diferencias, "Amonio", decimal(j.amonio),
-                remota.agua == null ? "Sin medición" : decimal(remota.agua.amonio));
+        agregar(diferencias, "Amoníaco total", decimal(j.amoniacoTotal),
+                remota.agua == null ? "Sin medición" : decimal(remota.agua.amoniacoTotal));
         if (!pecesIguales(local.peces, remota.peces)) {
             diferencias.add("Biometría: teléfono «" + pecesLocales
                     + "» / servidor «" + pecesRemotos + "»");
@@ -44,14 +44,14 @@ public final class ComparadorConflictos {
         return "TU CAMBIO EN EL TELÉFONO (basado en v" + j.versionServidor + ")\n"
                 + resumenJornada(j.piscinaCodigo, j.capturadaEn, j.poblacionEstimada,
                 j.observaciones, j.incluyeAgua, decimal(j.ph), decimal(j.nitrato),
-                decimal(j.nitrito), decimal(j.amonio), pecesLocales)
+                decimal(j.nitrito), decimal(j.amoniacoTotal), pecesLocales)
                 + "\n\nVERSIÓN ACTUAL DEL SERVIDOR (v" + remota.version + ")\n"
                 + resumenJornada(remota.piscinaCodigo, remota.capturadaEn,
                 remota.poblacionEstimada, remota.observaciones, remota.agua != null,
                 remota.agua == null ? null : decimal(remota.agua.ph),
                 remota.agua == null ? null : decimal(remota.agua.nitrato),
                 remota.agua == null ? null : decimal(remota.agua.nitrito),
-                remota.agua == null ? null : decimal(remota.agua.amonio), pecesRemotos)
+                remota.agua == null ? null : decimal(remota.agua.amoniacoTotal), pecesRemotos)
                 + "\n\nDIFERENCIAS DETECTADAS\n" + listaDiferencias(diferencias);
     }
 
@@ -79,10 +79,10 @@ public final class ComparadorConflictos {
     private static String resumenJornada(String piscina, String fecha, Integer poblacion,
                                           String observaciones, boolean incluyeAgua,
                                           String ph, String nitrato, String nitrito,
-                                          String amonio, String peces) {
+                                          String amoniacoTotal, String peces) {
         String agua = incluyeAgua
-                ? "pH " + ph + ", nitrato " + nitrato + ", nitrito " + nitrito
-                + ", amonio " + amonio
+                ? "pH " + ph + ", nitrato " + nitrato + " ppm, nitrito " + nitrito + " ppm"
+                + ", amoníaco total " + amoniacoTotal + " ppm"
                 : "Sin bloque de agua";
         return "Piscina: " + vacio(piscina)
                 + "\nFecha y hora: " + vacio(fecha)

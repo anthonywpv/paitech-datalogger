@@ -111,41 +111,46 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Unidades mg/L provisionales, pendientes de validación biológica."
+                android:text="Selecciona el color más cercano de la tarjeta. Guarda un solo pH final; los otros parámetros están en ppm."
                 android:textColor="@color/paipay_gris_bajo"
                 android:textSize="12sp" />
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/campoPh" style="@style/Paipay.Campo"
                 android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/espacio_s" android:hint="pH (0 a 14)">
-                <com.google.android.material.textfield.TextInputEditText
+                android:layout_marginTop="@dimen/espacio_s" android:hint="pH final"
+                app:endIconMode="dropdown_menu">
+                <com.google.android.material.textfield.MaterialAutoCompleteTextView
                     android:id="@+id/campoPhTexto" android:layout_width="match_parent"
-                    android:layout_height="wrap_content" android:inputType="numberDecimal" />
+                    android:layout_height="wrap_content" android:inputType="none" />
             </com.google.android.material.textfield.TextInputLayout>
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/campoNitrato" style="@style/Paipay.Campo"
                 android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/espacio_s" android:hint="Nitrato">
-                <com.google.android.material.textfield.TextInputEditText
+                android:layout_marginTop="@dimen/espacio_s" android:hint="Nitrato (NO₃⁻), ppm"
+                app:endIconMode="dropdown_menu">
+                <com.google.android.material.textfield.MaterialAutoCompleteTextView
                     android:id="@+id/campoNitratoTexto" android:layout_width="match_parent"
-                    android:layout_height="wrap_content" android:inputType="numberDecimal" />
+                    android:layout_height="wrap_content" android:inputType="none" />
             </com.google.android.material.textfield.TextInputLayout>
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/campoNitrito" style="@style/Paipay.Campo"
                 android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/espacio_s" android:hint="Nitrito">
-                <com.google.android.material.textfield.TextInputEditText
+                android:layout_marginTop="@dimen/espacio_s" android:hint="Nitrito (NO₂⁻), ppm"
+                app:endIconMode="dropdown_menu">
+                <com.google.android.material.textfield.MaterialAutoCompleteTextView
                     android:id="@+id/campoNitritoTexto" android:layout_width="match_parent"
-                    android:layout_height="wrap_content" android:inputType="numberDecimal" />
+                    android:layout_height="wrap_content" android:inputType="none" />
             </com.google.android.material.textfield.TextInputLayout>
             <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/campoAmonio" style="@style/Paipay.Campo"
+                android:id="@+id/campoAmoniacoTotal" style="@style/Paipay.Campo"
                 android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/espacio_s" android:hint="Amonio">
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/campoAmonioTexto" android:layout_width="match_parent"
-                    android:layout_height="wrap_content" android:inputType="numberDecimal" />
+                android:layout_marginTop="@dimen/espacio_s"
+                android:hint="Amoníaco total (NH₃/NH₄⁺), ppm"
+                app:endIconMode="dropdown_menu">
+                <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                    android:id="@+id/campoAmoniacoTotalTexto" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:inputType="none" />
             </com.google.android.material.textfield.TextInputLayout>
         </LinearLayout>
 

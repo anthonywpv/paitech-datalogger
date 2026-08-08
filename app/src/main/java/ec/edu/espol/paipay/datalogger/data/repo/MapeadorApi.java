@@ -44,7 +44,7 @@ public final class MapeadorApi {
             dto.agua.ph = numero(j.ph);
             dto.agua.nitrato = numero(j.nitrato);
             dto.agua.nitrito = numero(j.nitrito);
-            dto.agua.amonio = numero(j.amonio);
+            dto.agua.amoniacoTotal = numero(j.amoniacoTotal);
         }
         dto.peces = new ArrayList<>();
         if (local.peces != null) {
@@ -78,7 +78,7 @@ public final class MapeadorApi {
             j.ph = decimal(dto.agua.ph);
             j.nitrato = decimal(dto.agua.nitrato);
             j.nitrito = decimal(dto.agua.nitrito);
-            j.amonio = decimal(dto.agua.amonio);
+            j.amoniacoTotal = decimal(dto.agua.amoniacoTotal);
         }
         j.estadoLocal = "ANULADA".equals(dto.estado)
                 ? JornadaLocal.ANULADO : JornadaLocal.SINCRONIZADO;
