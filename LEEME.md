@@ -26,8 +26,8 @@ Android no conoce credenciales de PostgreSQL, no usa Neon Auth y no escribe dire
 - Jornadas solo de agua, solo de biometría o mixtas.
 - Población estimada obligatoria en toda jornada finalizada.
 - Bloque de agua: pH, nitrato, nitrito y amoníaco total. El equipo confirmado
-  es un API Freshwater Master Test Kit con escala ppm; la adaptación final de
-  nombres, valores discretos y semáforo está documentada como siguiente hito.
+  es un API Freshwater Master Test Kit con escala ppm; los nombres y valores
+  discretos de la tarjeta ya forman parte del contrato v1.4.
 - Peces anónimos con peso en gramos y longitud total en centímetros.
 - Borradores de jornada locales que sobreviven al cierre de la app.
 - Movimientos independientes: siembra, mortalidad, cosecha/venta, traslado, escape y ajuste.
@@ -74,7 +74,8 @@ los valores del servidor y sus diferencias. “Descartar mi cambio” sustituye 
 copia local por la remota. “Reaplicar mi cambio” conserva los datos del teléfono,
 actualiza únicamente la versión base y vuelve a poner la operación en cola; si
 el servidor cambia otra vez antes del envío, se producirá otro `409`. Un registro
-ya anulado en Django no puede reaplicarse porque la anulación es histórica.
+ya anulado en Django no puede reaplicarse porque la anulación es histórica. La
+comparación se puede cerrar sin decidir con Atrás o tocando fuera del diálogo.
 
 ## Configuración local
 
@@ -90,13 +91,16 @@ La URL debe terminar en `/`. El valor de ejemplo del proyecto no es un servidor 
 Para probar contra Django ejecutándose en la misma computadora que el emulador:
 
 ```properties
-API_BASE_URL=http://10.0.2.2:8000/
+API_BASE_URL=http://10.0.2.2:PUERTO/
 ```
 
 `10.0.2.2` es la dirección especial con la que el AVD alcanza al anfitrión. Django
-debe escuchar en `0.0.0.0:8000` y aceptar `10.0.2.2` en `ALLOWED_HOSTS`. Solo el
+debe escuchar en `0.0.0.0:PUERTO` y aceptar `10.0.2.2` en `ALLOWED_HOSTS`. Solo el
 source set `debug` autoriza HTTP hacia ese host; cualquier otro destino HTTP se
 rechaza y la variante `release` conserva tráfico en texto claro deshabilitado.
+En esta configuración local de depuración la app acepta que Android marque la
+red del AVD como no validada si todavía puede alcanzar `10.0.2.2`; producción
+continúa exigiendo `NET_CAPABILITY_VALIDATED`.
 
 Requisitos recomendados:
 
@@ -110,7 +114,7 @@ Requisitos recomendados:
 Con Gradle disponible:
 
 ```powershell
-gradle testDebugUnitTest assembleDebug
+gradle testDebugUnitTest lintDebug assembleDebug connectedDebugAndroidTest
 ```
 
 El APK de depuración queda en:
@@ -119,13 +123,22 @@ El APK de depuración queda en:
 app/build/outputs/apk/debug/app-debug.apk
 ```
 
-Las pruebas locales cubren el semáforo, estados de jornada y reglas de movimientos. Las pruebas en `app/src/androidTest` validan Room y la sesión en un dispositivo o emulador; no se ejecutan con `testDebugUnitTest`.
+Las 38 pruebas JVM cubren el semáforo, estados de jornada, reglas de movimientos,
+mapeo del contrato API y conectividad de depuración. Las pruebas en
+`app/src/androidTest` validan Room y la sesión en un dispositivo o emulador; no
+se ejecutan con `testDebugUnitTest`.
 
 No se necesita conectar un teléfono para desarrollar. Las 8 pruebas instrumentadas
 se ejecutaron sin fallos en el AVD `Paipay_API_24`, incluidas las migraciones Room
 `1 → 2` y `2 → 3`. Sin embargo, antes del uso en Paipayales sí será obligatoria una
 prueba de aceptación en un teléfono físico, especialmente para funcionamiento
 offline, almacenamiento, formularios biométricos grandes y reconexión.
+
+También se verificó manualmente en ese AVD el recorrido integrado contra Django
+local: login, creación de una jornada biométrica sin red, sincronización, edición
+offline, respuesta `409` provocada por una corrección concurrente, comparación
+de las versiones y reaplicación sobre la versión remota. La creación omite el
+campo `version`; las correcciones sí envían la versión positiva conocida.
 
 ## Reglas que no deben romperse
 

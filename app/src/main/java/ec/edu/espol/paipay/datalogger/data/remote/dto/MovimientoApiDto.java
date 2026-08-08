@@ -11,6 +11,6 @@ public class MovimientoApiDto {
     @SerializedName("ocurrido_en") public String ocurridoEn;
     public String observaciones;
     public String estado;
-    public int version;
+    public Integer version;
     @SerializedName("motivo_correccion") public String motivoCorreccion;
 }

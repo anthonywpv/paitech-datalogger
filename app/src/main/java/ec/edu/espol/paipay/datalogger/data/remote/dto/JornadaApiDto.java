@@ -16,7 +16,7 @@ public class JornadaApiDto {
     public String observaciones;
     @SerializedName("dispositivo_id") public String dispositivoId;
     public String estado;
-    public int version;
+    public Integer version;
     @SerializedName("motivo_correccion") public String motivoCorreccion;
     public AguaDto agua;
     public List<PezDto> peces = new ArrayList<>();

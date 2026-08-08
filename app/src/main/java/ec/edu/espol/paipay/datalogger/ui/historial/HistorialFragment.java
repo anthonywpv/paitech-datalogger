@@ -156,7 +156,6 @@ public class HistorialFragment extends Fragment {
         MaterialAlertDialogBuilder dialogo = new MaterialAlertDialogBuilder(requireContext())
                 .setTitle(R.string.conflicto_titulo)
                 .setView(desplazable)
-                .setNegativeButton(R.string.cancelar, null)
                 .setNeutralButton(R.string.conflicto_descartar,
                         (d, cual) -> confirmarDescartar(detalle));
         if (detalle.puedeReaplicar) {

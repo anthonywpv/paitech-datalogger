@@ -5,6 +5,8 @@ import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
 
+import ec.edu.espol.paipay.datalogger.BuildConfig;
+
 /**
  * Detección de conectividad.
  *
@@ -27,9 +29,25 @@ public final class RedUtil {
         boolean transporte = cap.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
                 || cap.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)
                 || cap.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET);
-        boolean validada = cap.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-                && cap.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED);
-        return transporte && validada;
+        boolean declaraInternet = cap.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET);
+        boolean validada = cap.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED);
+        boolean backendLocalDebug = BuildConfig.DEBUG
+                && BuildConfig.API_BASE_URL.startsWith("http://10.0.2.2");
+        return esRedUtilizable(transporte, declaraInternet, validada, backendLocalDebug);
+    }
+
+    /**
+     * Producción exige la validación de Android. El único caso excepcional es
+     * el backend local del AVD en debug: puede alcanzar 10.0.2.2 aunque el AVD
+     * no tenga salida al comprobador público que marca la red como validada.
+     */
+    static boolean esRedUtilizable(
+            boolean transporte,
+            boolean declaraInternet,
+            boolean validada,
+            boolean backendLocalDebug
+    ) {
+        return transporte && declaraInternet && (validada || backendLocalDebug);
     }
 
     /** true si la conexión es por datos móviles (útil para advertir sobre consumo). */

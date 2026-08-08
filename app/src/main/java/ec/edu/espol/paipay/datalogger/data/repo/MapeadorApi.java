@@ -37,7 +37,7 @@ public final class MapeadorApi {
         dto.poblacionEstimada = j.poblacionEstimada;
         dto.observaciones = j.observaciones == null ? "" : j.observaciones;
         dto.dispositivoId = dispositivoId;
-        dto.version = j.versionServidor;
+        dto.version = j.versionServidor > 0 ? j.versionServidor : null;
         dto.motivoCorreccion = j.motivoCambio == null ? "" : j.motivoCambio;
         if (j.incluyeAgua) {
             dto.agua = new JornadaApiDto.AguaDto();
@@ -82,7 +82,7 @@ public final class MapeadorApi {
         }
         j.estadoLocal = "ANULADA".equals(dto.estado)
                 ? JornadaLocal.ANULADO : JornadaLocal.SINCRONIZADO;
-        j.versionServidor = dto.version;
+        j.versionServidor = dto.version == null ? 0 : dto.version;
         j.creadaEn = System.currentTimeMillis();
         j.modificadaEn = System.currentTimeMillis();
         resultado.jornada = j;
@@ -112,7 +112,7 @@ public final class MapeadorApi {
         dto.piscinaDestino = local.piscinaDestinoUuid;
         dto.ocurridoEn = local.ocurridoEn;
         dto.observaciones = local.observaciones;
-        dto.version = local.versionServidor;
+        dto.version = local.versionServidor > 0 ? local.versionServidor : null;
         dto.motivoCorreccion = local.motivoCambio;
         return dto;
     }
@@ -128,7 +128,7 @@ public final class MapeadorApi {
         local.observaciones = dto.observaciones;
         local.estadoLocal = "ANULADO".equals(dto.estado)
                 ? JornadaLocal.ANULADO : JornadaLocal.SINCRONIZADO;
-        local.versionServidor = dto.version;
+        local.versionServidor = dto.version == null ? 0 : dto.version;
         local.autorCorreo = correoSesion;
         local.creadaEn = System.currentTimeMillis();
         local.modificadaEn = System.currentTimeMillis();
