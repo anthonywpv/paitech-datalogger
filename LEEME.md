@@ -106,15 +106,38 @@ Requisitos recomendados:
 
 - JDK 17.
 - Android SDK Platform 35.
-- Android Build Tools 34.0.0 o compatibles con Android Gradle Plugin 8.7.3.
-- Gradle 8.9. El repositorio no incluye actualmente los binarios del wrapper, por lo que puede abrirse con Android Studio o usarse una instalación compatible de Gradle.
+- Android SDK Build Tools compatibles con Android Gradle Plugin 8.11.1.
+- No instalar Gradle manualmente: el wrapper versionado descarga y verifica
+  Gradle 8.13.
+
+## Dependencias reproducibles
+
+Las versiones directas se fijan de forma exacta en `build.gradle` y
+`app/build.gradle`. `app/gradle.lockfile` inmoviliza las resoluciones transitivas,
+`gradle/verification-metadata.xml` acepta únicamente los artefactos cuyos hashes
+fueron revisados y el wrapper valida también el SHA-256 de Gradle 8.13.
+
+Cuando una actualización sea deliberada, se modifica primero la versión directa
+y luego se regeneran los bloqueos y metadatos junto con las verificaciones:
+
+```powershell
+.\gradlew.bat --write-locks --write-verification-metadata sha256 testDebugUnitTest lintDebug assembleDebug
+.\gradlew.bat --offline testDebugUnitTest lintDebug assembleDebug
+```
+
+Antes de versionar se debe revisar el diff de los archivos de bloqueo y confirmar
+en documentación oficial que todas las versiones sean finales (`stable`), no
+`alpha`, `beta`, `RC` ni instantáneas. `androidx.security:security-crypto:1.1.0`
+es la última versión estable, pero sus APIs están deprecadas; su sustitución por
+Android Keystore directo requiere una migración de sesión separada y pruebas de
+compatibilidad, no un cambio silencioso de dependencia.
 
 ## Compilación y pruebas
 
-Con Gradle disponible:
+Con el wrapper incluido:
 
 ```powershell
-gradle testDebugUnitTest lintDebug assembleDebug connectedDebugAndroidTest
+.\gradlew.bat testDebugUnitTest lintDebug assembleDebug connectedDebugAndroidTest
 ```
 
 El APK de depuración queda en:

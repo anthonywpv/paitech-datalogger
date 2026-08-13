@@ -10,17 +10,17 @@ if (localFile.exists()) {
 }
 
 android {
-    namespace 'ec.edu.espol.paipay.datalogger'
-    compileSdk 35
+    namespace = 'ec.edu.espol.paipay.datalogger'
+    compileSdk = 35
 
     defaultConfig {
-        applicationId "ec.edu.espol.paipay.datalogger"
-        minSdk 24
-        targetSdk 35
-        versionCode 5
-        versionName "1.4-dev"
+        applicationId = "ec.edu.espol.paipay.datalogger"
+        minSdk = 24
+        targetSdk = 35
+        versionCode = 5
+        versionName = "1.4-dev"
 
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
 
         // URL del único backend autorizado para la app: Django REST Framework.
@@ -36,7 +36,7 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled = false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
@@ -47,8 +47,8 @@ android {
     }
 
     buildFeatures {
-        viewBinding true
-        buildConfig true
+        viewBinding = true
+        buildConfig = true
     }
 
     sourceSets {
@@ -60,36 +60,37 @@ android {
 }
 
 dependencies {
-    implementation 'androidx.appcompat:appcompat:1.7.0'
-    implementation 'com.google.android.material:material:1.12.0'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    implementation 'androidx.coordinatorlayout:coordinatorlayout:1.2.0'
-    implementation 'androidx.recyclerview:recyclerview:1.3.2'
-    implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
+    implementation 'androidx.appcompat:appcompat:1.7.1'
+    implementation 'com.google.android.material:material:1.14.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.2.2'
+    implementation 'androidx.coordinatorlayout:coordinatorlayout:1.3.0'
+    implementation 'androidx.recyclerview:recyclerview:1.4.0'
+    implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.2.0'
     implementation 'androidx.drawerlayout:drawerlayout:1.2.0'
 
     // Lifecycle (ViewModel + LiveData)
-    implementation 'androidx.lifecycle:lifecycle-viewmodel:2.8.7'
-    implementation 'androidx.lifecycle:lifecycle-livedata:2.8.7'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel:2.11.0'
+    implementation 'androidx.lifecycle:lifecycle-livedata:2.11.0'
 
     // Room - base de datos local (sincronización diferida)
-    implementation 'androidx.room:room-runtime:2.6.1'
-    annotationProcessor 'androidx.room:room-compiler:2.6.1'
+    implementation 'androidx.room:room-runtime:2.8.4'
+    annotationProcessor 'androidx.room:room-compiler:2.8.4'
 
     // Retrofit - consumo exclusivo de la API Django en Railway
-    implementation 'com.squareup.retrofit2:retrofit:2.11.0'
-    implementation 'com.squareup.retrofit2:converter-gson:2.11.0'
+    implementation 'com.squareup.retrofit2:retrofit:3.0.0'
+    implementation 'com.squareup.retrofit2:converter-gson:3.0.0'
+    // Retrofit 3.0.0 declara OkHttp 4.12 como su línea soportada.
     implementation 'com.squareup.okhttp3:logging-interceptor:4.12.0'
 
     // Sesión persistente cifrada
     implementation 'androidx.security:security-crypto:1.1.0'
 
     // Sincronización en segundo plano al recuperar conexión
-    implementation 'androidx.work:work-runtime:2.9.1'
+    implementation 'androidx.work:work-runtime:2.11.2'
 
     testImplementation 'junit:junit:4.13.2'
-    androidTestImplementation 'androidx.test.ext:junit:1.2.1'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
+    androidTestImplementation 'androidx.test.ext:junit:1.3.0'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.7.0'
     // Prueba de la migración de la base local sobre un dispositivo real.
-    androidTestImplementation 'androidx.room:room-testing:2.6.1'
+    androidTestImplementation 'androidx.room:room-testing:2.8.4'
 }

@@ -1,4 +1,13 @@
 // Build script raíz - Paipay DataLogger
 plugins {
-    id 'com.android.application' version '8.7.3' apply false
+    // Matriz oficial de Material Components 1.14.0: AGP 8.11.1 + Gradle 8.13.
+    id 'com.android.application' version '8.11.1' apply false
+}
+
+// Inmoviliza también las dependencias transitivas en gradle.lockfile.
+allprojects {
+    dependencyLocking {
+        lockAllConfigurations()
+        lockMode = LockMode.STRICT
+    }
 }
