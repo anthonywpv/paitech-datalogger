@@ -13,6 +13,10 @@ public class SesionManager {
     private static final String K_NOMBRE = "nombre";
     private static final String K_TOKEN = "token";
     private static final String K_ULTIMA_SYNC = "ultima_sync";
+    private static final String K_ULTIMA_VALIDACION = "ultima_validacion_servidor";
+    private static final String K_PROPIETARIO_LOCAL = "propietario_datos_locales";
+    private static final String K_CAMBIO_CLAVE_REQUERIDO = "cambio_clave_requerido";
+    public static final long VIGENCIA_OFFLINE_MS = 30L * 24L * 60L * 60L * 1000L;
     private static volatile SesionManager INSTANCIA;
     private final SharedPreferences prefs;
 
@@ -42,11 +46,26 @@ public class SesionManager {
     }
 
     public void guardarSesion(String correo, String nombre, String token) {
+        guardarSesion(correo, nombre, token, false);
+    }
+
+    public void guardarSesion(String correo, String nombre, String token,
+                              boolean cambioClaveRequerido) {
         prefs.edit().putString(K_CORREO, correo).putString(K_NOMBRE, nombre)
-                .putString(K_TOKEN, token).apply();
+                .putString(K_TOKEN, token)
+                .putString(K_PROPIETARIO_LOCAL, correo)
+                .putBoolean(K_CAMBIO_CLAVE_REQUERIDO, cambioClaveRequerido)
+                .putLong(K_ULTIMA_VALIDACION, System.currentTimeMillis()).apply();
     }
 
     public boolean haySesionActiva() {
+        if (!hayCredencialesGuardadas() || requiereCambioClave()) return false;
+        long ultima = getUltimaValidacionServidor();
+        long transcurrido = System.currentTimeMillis() - ultima;
+        return ultima > 0 && transcurrido >= 0 && transcurrido <= VIGENCIA_OFFLINE_MS;
+    }
+
+    public boolean hayCredencialesGuardadas() {
         return !getUsuario().isEmpty() && !getToken().isEmpty();
     }
 
@@ -56,8 +75,25 @@ public class SesionManager {
         return nombre == null || nombre.isEmpty() ? getUsuario() : nombre;
     }
     public String getToken() { return prefs.getString(K_TOKEN, ""); }
+    public String getPropietarioLocal() { return prefs.getString(K_PROPIETARIO_LOCAL, ""); }
+    public boolean requiereCambioClave() {
+        return prefs.getBoolean(K_CAMBIO_CLAVE_REQUERIDO, false);
+    }
     public void cerrarSesion() {
-        prefs.edit().remove(K_CORREO).remove(K_NOMBRE).remove(K_TOKEN).apply();
+        prefs.edit().remove(K_CORREO).remove(K_NOMBRE).remove(K_TOKEN)
+                .remove(K_ULTIMA_VALIDACION).remove(K_CAMBIO_CLAVE_REQUERIDO).apply();
+    }
+
+    public void cerrarSesionCompletaLocal() {
+        prefs.edit().clear().apply();
+    }
+
+    public void registrarValidacionServidor(long momento) {
+        prefs.edit().putLong(K_ULTIMA_VALIDACION, momento).apply();
+    }
+
+    public long getUltimaValidacionServidor() {
+        return prefs.getLong(K_ULTIMA_VALIDACION, -1L);
     }
 
     public void registrarSincronizacion(long momento) {

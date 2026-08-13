@@ -10,6 +10,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
 
 import org.junit.Test;
+import org.junit.Before;
 import org.junit.runner.RunWith;
 
 /**
@@ -28,6 +29,11 @@ public class SesionManagerTest {
 
     private Context contexto() {
         return InstrumentationRegistry.getInstrumentation().getTargetContext();
+    }
+
+    @Before
+    public void limpiarSesionAnterior() {
+        SesionManager.obtener(contexto()).cerrarSesionCompletaLocal();
     }
 
     @Test
@@ -64,5 +70,47 @@ public class SesionManagerTest {
         SesionManager sesion = SesionManager.obtener(contexto());
         sesion.registrarSincronizacion(1754200000000L);
         assertEquals(1754200000000L, sesion.getUltimaSincronizacion());
+    }
+
+    @Test
+    public void sesionCaducaTrasTreintaDiasSinValidarConServidor() {
+        SesionManager sesion = SesionManager.obtener(contexto());
+        sesion.guardarSesion(CORREO, "Productor Paipayales", "token-prueba");
+        sesion.registrarValidacionServidor(
+                System.currentTimeMillis() - SesionManager.VIGENCIA_OFFLINE_MS - 1L);
+
+        assertTrue(sesion.hayCredencialesGuardadas());
+        assertFalse(sesion.haySesionActiva());
+    }
+
+    @Test
+    public void validacionRecienteRenuevaLaVentanaOffline() {
+        SesionManager sesion = SesionManager.obtener(contexto());
+        sesion.guardarSesion(CORREO, "Productor Paipayales", "token-prueba");
+        sesion.registrarValidacionServidor(System.currentTimeMillis());
+
+        assertTrue(sesion.haySesionActiva());
+        assertTrue(sesion.getUltimaValidacionServidor() > 0L);
+    }
+
+    @Test
+    public void cuentaTemporalNoSeConsideraSesionOperativa() {
+        SesionManager sesion = SesionManager.obtener(contexto());
+        sesion.guardarSesion(CORREO, "Productor Paipayales", "token-prueba", true);
+
+        assertTrue(sesion.hayCredencialesGuardadas());
+        assertTrue(sesion.requiereCambioClave());
+        assertFalse(sesion.haySesionActiva());
+    }
+
+    @Test
+    public void expiracionConservaPropietarioHastaCerrarSesionCompleta() {
+        SesionManager sesion = SesionManager.obtener(contexto());
+        sesion.guardarSesion(CORREO, "Productor Paipayales", "token-prueba");
+        sesion.cerrarSesion();
+
+        assertEquals(CORREO, sesion.getPropietarioLocal());
+        sesion.cerrarSesionCompletaLocal();
+        assertEquals("", sesion.getPropietarioLocal());
     }
 }

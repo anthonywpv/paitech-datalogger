@@ -31,6 +31,9 @@ import retrofit2.Response;
 
 /** Cola offline contra Django con UUID idempotente y versiones optimistas. */
 public class SincronizacionRepositorio {
+    private static class SesionExpiradaException extends Exception {
+        SesionExpiradaException() { super("Sesión expirada"); }
+    }
     public interface CallbackResumen { void listo(ResumenPendientes resumen); }
     public interface CallbackSincronizacion {
         void progreso(String mensaje);
@@ -114,6 +117,9 @@ public class SincronizacionRepositorio {
                     fallidos++;
                     continue;
                 }
+                if (respuesta.isSuccessful() || respuesta.code() == 409) {
+                    sesion.registrarValidacionServidor(System.currentTimeMillis());
+                }
                 if (respuesta.code() == 409) {
                     registrarConflictoJornada(api, local, local.jornada.estadoLocal);
                     fallidos++;
@@ -160,9 +166,11 @@ public class SincronizacionRepositorio {
                     expirada = true;
                     fallidos++;
                 } else if (respuesta.code() == 409) {
+                    sesion.registrarValidacionServidor(System.currentTimeMillis());
                     registrarConflictoMovimiento(api, local, local.estadoLocal);
                     fallidos++;
                 } else if (respuesta.isSuccessful() && respuesta.body() != null) {
+                    sesion.registrarValidacionServidor(System.currentTimeMillis());
                     db.movimientoDao().guardar(MapeadorApi.aLocal(
                             respuesta.body(), sesion.getUsuario()));
                     borrarConflicto(ConflictoLocal.MOVIMIENTO, local.uuid);
@@ -179,6 +187,7 @@ public class SincronizacionRepositorio {
         if (!expirada) {
             notificar(callback, "Actualizando catálogos y semáforo…");
             try { refrescarDesdeServidor(api); }
+            catch (SesionExpiradaException error) { expirada = true; }
             catch (Exception error) { errores.append("refresco: ").append(error.getMessage()).append("; "); }
         }
 
@@ -195,11 +204,17 @@ public class SincronizacionRepositorio {
 
     public void refrescarSoloLectura(CallbackSincronizacion callback) {
         if (!hayInternet()) { terminar(callback, ResultadoSincronizacion.sinInternet()); return; }
+        if (!sesion.haySesionActiva()) {
+            terminar(callback, ResultadoSincronizacion.sesionExpirada());
+            return;
+        }
         AppExecutors.io().execute(() -> {
             try {
                 refrescarDesdeServidor(DjangoCliente.api(contexto));
                 terminar(callback, new ResultadoSincronizacion(
                         ResultadoSincronizacion.Estado.EXITO, 0, 0, null));
+            } catch (SesionExpiradaException error) {
+                terminar(callback, ResultadoSincronizacion.sesionExpirada());
             } catch (Exception error) {
                 terminar(callback, new ResultadoSincronizacion(
                         ResultadoSincronizacion.Estado.ERROR, 0, 1, error.getMessage()));
@@ -208,25 +223,32 @@ public class SincronizacionRepositorio {
     }
 
     private void refrescarDesdeServidor(DjangoApiService api) throws Exception {
+        boolean servidorValido = false;
         Response<List<PiscinaApiDto>> piscinas = api.piscinas().execute();
         if (piscinas.isSuccessful() && piscinas.body() != null) {
+            servidorValido = true;
             List<PiscinaLocal> locales = new ArrayList<>();
             for (PiscinaApiDto item : piscinas.body()) locales.add(MapeadorApi.piscina(item));
             db.catalogoDao().guardarPiscinas(locales);
         }
         Response<List<JornadaApiDto>> jornadas = api.jornadas().execute();
-        if (jornadas.code() == 401) throw new IllegalStateException("Sesión expirada");
+        if (jornadas.code() == 401 || jornadas.code() == 403) {
+            throw new SesionExpiradaException();
+        }
         if (jornadas.isSuccessful() && jornadas.body() != null) {
+            servidorValido = true;
             for (JornadaApiDto item : jornadas.body()) guardarJornadaRemota(item, false);
         }
         Response<List<SemaforoApiDto>> semaforos = api.semaforos().execute();
         if (semaforos.isSuccessful() && semaforos.body() != null) {
+            servidorValido = true;
             List<SemaforoLocal> locales = new ArrayList<>();
             for (SemaforoApiDto item : semaforos.body()) locales.add(semaforoLocal(item));
             db.catalogoDao().guardarSemaforos(locales);
         }
         Response<List<MovimientoApiDto>> movimientos = api.movimientos().execute();
         if (movimientos.isSuccessful() && movimientos.body() != null) {
+            servidorValido = true;
             for (MovimientoApiDto item : movimientos.body()) {
                 String estado = db.movimientoDao().estadoDe(item.id);
                 if (estado == null || JornadaLocal.SINCRONIZADO.equals(estado)
@@ -234,6 +256,9 @@ public class SincronizacionRepositorio {
                     db.movimientoDao().guardar(MapeadorApi.aLocal(item, sesion.getUsuario()));
                 }
             }
+        }
+        if (servidorValido) {
+            sesion.registrarValidacionServidor(System.currentTimeMillis());
         }
     }
 

@@ -23,6 +23,9 @@ public interface DjangoApiService {
     @POST("api/v1/auth/logout/")
     Call<Void> cerrarSesion(@Header("Authorization") String autorizacion);
 
+    @POST("api/v1/auth/cambiar-clave/")
+    Call<Void> cambiarClave(@Body Map<String, String> datos);
+
     @GET("api/v1/catalogos/piscinas/")
     Call<List<PiscinaApiDto>> piscinas();
 

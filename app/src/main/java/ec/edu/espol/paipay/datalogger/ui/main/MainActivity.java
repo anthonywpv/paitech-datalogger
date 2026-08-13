@@ -1,5 +1,7 @@
 package ec.edu.espol.paipay.datalogger.ui.main;
 
+import android.app.KeyguardManager;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -31,6 +33,7 @@ public class MainActivity extends AppCompatActivity {
     private SesionManager sesion;
     private AlmacenamientoRepositorio almacenamiento;
     private boolean avisoEspacioMostrado;
+    private boolean avisoDispositivoMostrado;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,7 +46,9 @@ public class MainActivity extends AppCompatActivity {
         // abrir la app y atribuir registros correctamente incluso sin señal.
         sesion = SesionManager.obtener(this);
         if (!sesion.haySesionActiva()) {
-            startActivity(LoginActivity.intent(this));
+            startActivity(sesion.hayCredencialesGuardadas()
+                    ? LoginActivity.intentSesionExpirada(this)
+                    : LoginActivity.intent(this));
             finish();
             return;
         }
@@ -92,6 +97,7 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         pintarMenuLateral();
         advertirEspacioBajo();
+        advertirDispositivoSinBloqueo();
     }
 
     // ------------------------------------------------------------------
@@ -238,10 +244,24 @@ public class MainActivity extends AppCompatActivity {
                 .setPositiveButton(R.string.aceptar, (d, w) -> {
                     // Se vuelve al login: sin una identidad activa no se crean
                     // registros cuya autoría pueda quedar ambigua.
-                    new AutenticacionRepositorio(this).cerrarSesion();
-                    startActivity(LoginActivity.intent(this));
-                    finish();
+                    new AutenticacionRepositorio(this).cerrarSesionCompleta(() -> {
+                        startActivity(LoginActivity.intent(this));
+                        finish();
+                    });
                 })
+                .show();
+    }
+
+    private void advertirDispositivoSinBloqueo() {
+        if (avisoDispositivoMostrado || isFinishing()) return;
+        KeyguardManager seguridad = (KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
+        if (seguridad != null && seguridad.isDeviceSecure()) return;
+        avisoDispositivoMostrado = true;
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.seguridad_dispositivo_titulo)
+                .setIcon(R.drawable.ic_candado)
+                .setMessage(R.string.seguridad_dispositivo_mensaje)
+                .setPositiveButton(R.string.aceptar, null)
                 .show();
     }
 

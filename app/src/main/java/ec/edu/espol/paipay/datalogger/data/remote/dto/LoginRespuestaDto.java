@@ -2,6 +2,8 @@ package ec.edu.espol.paipay.datalogger.data.remote.dto;
 
 public class LoginRespuestaDto {
     public String token;
+    public String expira_en;
+    public boolean debe_cambiar_clave;
     public UsuarioDto usuario;
 
     public static class UsuarioDto {

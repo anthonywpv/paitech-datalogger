@@ -161,7 +161,21 @@
     <string name="almacenamiento_aviso">Los pendientes NUNCA se borran: siguen aquí hasta que los subas. Lo que se borra ya está guardado en la base principal y puedes volver a traerlo deslizando en el historial.</string>
     <string name="almacenamiento_confirmar">¿Borrar %1$d registros sincronizados de este teléfono? Siguen guardados en la base principal.</string>
     <string name="almacenamiento_borrados">Se liberaron %1$d registros.</string>
-    <string name="cerrar_sesion_pregunta">¿Cerrar sesión? Los datos aún no sincronizados se conservan en el teléfono.</string>
+    <string name="cerrar_sesion_pregunta">¿Cerrar sesión? Se eliminarán de este teléfono la sesión y las copias locales ya sincronizadas. Los datos principales seguirán en el servidor.</string>
     <string name="aceptar">Aceptar</string>
     <string name="cancelar">Cancelar</string>
+    <!-- Seguridad de acceso -->
+    <string name="login_error_bloqueado">No fue posible iniciar sesión. Verifica los datos o intenta más tarde.</string>
+    <string name="cambio_clave_titulo">Cambia la contraseña temporal</string>
+    <string name="cambio_clave_mensaje">Elige una contraseña definitiva. Al guardarla se cerrarán todas las sesiones y deberás ingresar nuevamente.</string>
+    <string name="cambio_clave_actual">Contraseña temporal</string>
+    <string name="cambio_clave_nueva">Nueva contraseña</string>
+    <string name="cambio_clave_confirmacion">Confirmar nueva contraseña</string>
+    <string name="cambio_clave_guardar">Guardar</string>
+    <string name="cambio_clave_longitud">Debe tener entre 8 y 32 caracteres.</string>
+    <string name="cambio_clave_no_coincide">Las contraseñas no coinciden.</string>
+    <string name="cambio_clave_exito">Contraseña actualizada. Inicia sesión nuevamente.</string>
+    <string name="seguridad_dispositivo_titulo">Protege este teléfono</string>
+    <string name="seguridad_dispositivo_mensaje">Este teléfono no tiene PIN, patrón, contraseña ni biometría de bloqueo. Tus registros y tu sesión estarán mejor protegidos si activas una opción de seguridad en Android. Puedes continuar usando la app.</string>
+    <string name="sesion_offline_expirada">La sesión sin conexión alcanzó el límite de 30 días. Vuelve a ingresar cuando tengas internet. Los datos pendientes siguen guardados en este teléfono.</string>
 </resources>
