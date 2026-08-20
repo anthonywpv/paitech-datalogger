@@ -165,11 +165,14 @@ public class EvaluadorSemaforoTest {
     }
 
     @Test
-    public void valoresKitDistinguenLecturaObservableDeDecimalInventado() {
-        assertTrue(ValoresKitAgua.contiene(0.25, ValoresKitAgua.AMONIACO_TOTAL));
-        assertTrue(ValoresKitAgua.contiene(7.4, ValoresKitAgua.PH));
-        assertFalse(ValoresKitAgua.contiene(0.37, ValoresKitAgua.AMONIACO_TOTAL));
-        assertFalse(ValoresKitAgua.contiene(7.3, ValoresKitAgua.PH));
+    public void capturaAguaAceptaDecimalesManualesYConservaLimites() {
+        assertTrue(ValidadorAgua.esDecimalValido("7.31", 2, 14));
+        assertTrue(ValidadorAgua.esDecimalValido("0,375", 3, 9_999_999.999));
+        assertTrue(ValidadorAgua.esDecimalValido("12.375", 3, 9_999_999.999));
+        assertTrue(ValidadorAgua.esDecimalValido("", 3, 9_999_999.999));
+        assertFalse(ValidadorAgua.esDecimalValido("14.01", 2, 14));
+        assertFalse(ValidadorAgua.esDecimalValido("-0.1", 3, 9_999_999.999));
+        assertFalse(ValidadorAgua.esDecimalValido("0.1234", 3, 9_999_999.999));
     }
 
     @Test

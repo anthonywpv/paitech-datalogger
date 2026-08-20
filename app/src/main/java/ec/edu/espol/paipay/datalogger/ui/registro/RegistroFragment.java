@@ -27,7 +27,7 @@ import ec.edu.espol.paipay.datalogger.data.local.model.JornadaConPeces;
 import ec.edu.espol.paipay.datalogger.data.repo.RegistroRepositorio;
 import ec.edu.espol.paipay.datalogger.databinding.FragmentRegistroBinding;
 import ec.edu.espol.paipay.datalogger.databinding.ItemPezFormBinding;
-import ec.edu.espol.paipay.datalogger.domain.ValoresKitAgua;
+import ec.edu.espol.paipay.datalogger.domain.ValidadorAgua;
 import ec.edu.espol.paipay.datalogger.sync.SincronizacionWorker;
 import ec.edu.espol.paipay.datalogger.util.FechaUtil;
 import ec.edu.espol.paipay.datalogger.util.SeguridadUtil;
@@ -68,8 +68,6 @@ public class RegistroFragment extends Fragment {
         repositorio = new RegistroRepositorio(requireContext());
         capturadaEnMillis = FechaUtil.ahoraAlMinuto();
         pintarFecha();
-        configurarSelectoresAgua();
-
         vista.campoFechaTexto.setOnClickListener(v -> elegirFechaHora());
         vista.incluirAgua.setOnCheckedChangeListener((boton, activo) ->
                 vista.grupoAgua.setVisibility(activo ? View.VISIBLE : View.GONE));
@@ -128,11 +126,10 @@ public class RegistroFragment extends Fragment {
         vista.campoObservacionesTexto.setText(j.observaciones);
         vista.incluirAgua.setChecked(j.incluyeAgua);
         if (j.incluyeAgua) {
-            vista.campoPhTexto.setText(numeroKit(j.ph, ValoresKitAgua.PH), false);
-            vista.campoNitratoTexto.setText(numeroKit(j.nitrato, ValoresKitAgua.NITRATO), false);
-            vista.campoNitritoTexto.setText(numeroKit(j.nitrito, ValoresKitAgua.NITRITO), false);
-            vista.campoAmoniacoTotalTexto.setText(
-                    numeroKit(j.amoniacoTotal, ValoresKitAgua.AMONIACO_TOTAL), false);
+            vista.campoPhTexto.setText(numero(j.ph));
+            vista.campoNitratoTexto.setText(numero(j.nitrato));
+            vista.campoNitritoTexto.setText(numero(j.nitrito));
+            vista.campoAmoniacoTotalTexto.setText(numero(j.amoniacoTotal));
         }
         filasPeces.clear();
         vista.contenedorPeces.removeAllViews();
@@ -242,25 +239,34 @@ public class RegistroFragment extends Fragment {
         jornada.incluyeAgua = agua;
         jornada.motivoCambio = versionServidor > 0 ? "Corrección realizada desde Android" : "";
         if (agua) {
-            jornada.ph = decimal(texto(vista.campoPhTexto));
-            jornada.nitrato = decimal(texto(vista.campoNitratoTexto));
-            jornada.nitrito = decimal(texto(vista.campoNitritoTexto));
-            jornada.amoniacoTotal = decimal(texto(vista.campoAmoniacoTotalTexto));
+            String phTexto = texto(vista.campoPhTexto);
+            String nitratoTexto = texto(vista.campoNitratoTexto);
+            String nitritoTexto = texto(vista.campoNitritoTexto);
+            String amoniacoTexto = texto(vista.campoAmoniacoTotalTexto);
+            jornada.ph = decimal(phTexto);
+            jornada.nitrato = decimal(nitratoTexto);
+            jornada.nitrito = decimal(nitritoTexto);
+            jornada.amoniacoTotal = decimal(amoniacoTexto);
             if (completar && (jornada.ph == null || jornada.nitrato == null
                     || jornada.nitrito == null || jornada.amoniacoTotal == null)) {
                 Toast.makeText(requireContext(), "Completa los cuatro parámetros del agua.", Toast.LENGTH_LONG).show();
                 return null;
             }
-            if ((jornada.ph != null && !ValoresKitAgua.contiene(jornada.ph, ValoresKitAgua.PH))
-                    || (jornada.nitrato != null && !ValoresKitAgua.contiene(
-                    jornada.nitrato, ValoresKitAgua.NITRATO))
-                    || (jornada.nitrito != null && !ValoresKitAgua.contiene(
-                    jornada.nitrito, ValoresKitAgua.NITRITO))
-                    || (jornada.amoniacoTotal != null && !ValoresKitAgua.contiene(
-                    jornada.amoniacoTotal, ValoresKitAgua.AMONIACO_TOTAL))) {
-                Toast.makeText(requireContext(),
-                        "Selecciona valores impresos en la tarjeta del kit.",
-                        Toast.LENGTH_LONG).show();
+            if (!validarDecimalAgua(phTexto, jornada.ph, 2, 14d, vista.campoPh,
+                    "Ingresa un pH entre 0 y 14, con máximo 2 decimales")) {
+                return null;
+            }
+            if (!validarDecimalAgua(nitratoTexto, jornada.nitrato, 3, 9_999_999.999d,
+                    vista.campoNitrato, "Ingresa un nitrato no negativo, con máximo 3 decimales")) {
+                return null;
+            }
+            if (!validarDecimalAgua(nitritoTexto, jornada.nitrito, 3, 9_999_999.999d,
+                    vista.campoNitrito, "Ingresa un nitrito no negativo, con máximo 3 decimales")) {
+                return null;
+            }
+            if (!validarDecimalAgua(amoniacoTexto, jornada.amoniacoTotal, 3, 9_999_999.999d,
+                    vista.campoAmoniacoTotal,
+                    "Ingresa amoníaco total no negativo, con máximo 3 decimales")) {
                 return null;
             }
         }
@@ -343,36 +349,32 @@ public class RegistroFragment extends Fragment {
         vista.campoPhTexto.setText("");
         vista.campoNitratoTexto.setText("");
         vista.campoNitritoTexto.setText("");
-        vista.campoAmoniacoTotalTexto.setText("", false);
+        vista.campoAmoniacoTotalTexto.setText("");
         filasPeces.clear();
         vista.contenedorPeces.removeAllViews();
         vista.textoEstadoBorrador.setText("Se guarda primero en este teléfono; no necesitas internet.");
     }
 
-    private void limpiarErrores() { vista.campoPoblacion.setError(null); vista.campoPh.setError(null); }
+    private void limpiarErrores() {
+        vista.campoPoblacion.setError(null);
+        vista.campoPh.setError(null);
+        vista.campoNitrato.setError(null);
+        vista.campoNitrito.setError(null);
+        vista.campoAmoniacoTotal.setError(null);
+    }
     private String texto(android.widget.EditText campo) { return campo.getText() == null ? "" : campo.getText().toString().trim(); }
     private Integer entero(String valor) { try { return valor.isEmpty() ? null : Integer.valueOf(valor); } catch (Exception e) { return null; } }
     private Double decimal(String valor) { try { return valor.isEmpty() ? null : Double.valueOf(valor.replace(',', '.')); } catch (Exception e) { return null; } }
     private String numero(Double valor) { return valor == null ? "" : String.valueOf(valor); }
 
-    private void configurarSelectoresAgua() {
-        vista.campoPhTexto.setAdapter(adaptador(ValoresKitAgua.PH));
-        vista.campoNitratoTexto.setAdapter(adaptador(ValoresKitAgua.NITRATO));
-        vista.campoNitritoTexto.setAdapter(adaptador(ValoresKitAgua.NITRITO));
-        vista.campoAmoniacoTotalTexto.setAdapter(adaptador(ValoresKitAgua.AMONIACO_TOTAL));
-    }
-
-    private ArrayAdapter<String> adaptador(String[] valores) {
-        return new ArrayAdapter<>(requireContext(),
-                android.R.layout.simple_dropdown_item_1line, valores);
-    }
-
-    private String numeroKit(Double valor, String[] permitidos) {
-        if (valor == null) return "";
-        for (String permitido : permitidos) {
-            if (Double.compare(valor, Double.parseDouble(permitido)) == 0) return permitido;
-        }
-        return numero(valor);
+    private boolean validarDecimalAgua(
+            String texto, Double valor, int decimales, double maximo,
+            com.google.android.material.textfield.TextInputLayout campo, String mensaje) {
+        if (texto.isEmpty()) return true;
+        boolean valido = valor != null
+                && ValidadorAgua.esDecimalValido(texto, decimales, maximo);
+        if (!valido) campo.setError(mensaje);
+        return valido;
     }
 
     @Override public void onStop() {

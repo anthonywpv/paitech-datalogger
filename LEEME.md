@@ -196,5 +196,5 @@ campo `version`; las correcciones sí envían la versión positiva conocida.
 El diseño funcional y las razones de arquitectura se mantienen en `../decisiones.md`. El contrato del servidor está en `../PaiPayTech_Django/API.md`.
 
 Para compartir el APK de esta versión se usa una copia fuera del repositorio:
-`../distribucion/PaiPayTech-1.5-dev-railway.apk`. El archivo de compilación dentro
+`../distribucion/PaiPayTech-1.5.1-dev-railway.apk`. El archivo de compilación dentro
 de `app/build/` y todo `*.apk` están ignorados por Git.
