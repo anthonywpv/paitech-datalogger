@@ -178,4 +178,19 @@
     <string name="seguridad_dispositivo_titulo">Protege este teléfono</string>
     <string name="seguridad_dispositivo_mensaje">Este teléfono no tiene PIN, patrón, contraseña ni biometría de bloqueo. Tus registros y tu sesión estarán mejor protegidos si activas una opción de seguridad en Android. Puedes continuar usando la app.</string>
     <string name="sesion_offline_expirada">La sesión sin conexión alcanzó el límite de 30 días. Vuelve a ingresar cuando tengas internet. Los datos pendientes siguen guardados en este teléfono.</string>
+    <string name="nav_ciclos">Ciclos</string>
+    <string name="ciclos_titulo">Ciclos de cosecha</string>
+    <string name="ciclos_descripcion">Inicia la cohorte de una piscina, consulta los recordatorios y ciérrala cuando termine por completo. Funciona sin internet.</string>
+    <string name="ciclo_fecha_inicio">Fecha y hora de inicio</string>
+    <string name="ciclo_poblacion_inicial">Población inicial sembrada</string>
+    <string name="ciclo_duracion">Duración estimada en meses (opcional)</string>
+    <string name="observaciones_opcional">Observaciones (opcional)</string>
+    <string name="ciclo_calcular_prediccion">Calcular estimación</string>
+    <string name="ciclo_iniciar">Confirmar e iniciar ciclo</string>
+    <string name="ciclo_cierre_aviso">Cierra el ciclo solo cuando terminó toda la cohorte. Una venta o traslado parcial se registra como movimiento.</string>
+    <string name="ciclo_fecha_cierre">Fecha y hora de cierre</string>
+    <string name="ciclo_poblacion_final">Población final viva</string>
+    <string name="ciclo_peso_total">Peso total cosechado en kg (opcional)</string>
+    <string name="ciclo_cerrar">Cerrar ciclo</string>
+    <string name="ciclo_resolver_conflicto">Revisar conflicto de sincronización</string>
 </resources>

@@ -7,10 +7,12 @@ import java.util.List;
 import java.util.Objects;
 
 import ec.edu.espol.paipay.datalogger.data.local.entity.JornadaLocal;
+import ec.edu.espol.paipay.datalogger.data.local.entity.CicloLocal;
 import ec.edu.espol.paipay.datalogger.data.local.entity.MovimientoLocal;
 import ec.edu.espol.paipay.datalogger.data.local.entity.ObservacionPezLocal;
 import ec.edu.espol.paipay.datalogger.data.local.model.JornadaConPeces;
 import ec.edu.espol.paipay.datalogger.data.remote.dto.JornadaApiDto;
+import ec.edu.espol.paipay.datalogger.data.remote.dto.CicloApiDto;
 import ec.edu.espol.paipay.datalogger.data.remote.dto.MovimientoApiDto;
 
 /** Construye una comparación legible sin decidir por el usuario. */
@@ -76,6 +78,32 @@ public final class ComparadorConflictos {
                 + "\n\nDIFERENCIAS DETECTADAS\n" + listaDiferencias(diferencias);
     }
 
+    public static String ciclo(CicloLocal local, CicloApiDto remoto) {
+        List<String> diferencias = new ArrayList<>();
+        agregar(diferencias, "Identificador", local.uuid, remoto.id);
+        agregar(diferencias, "Piscina", local.piscinaCodigo, remoto.piscinaCodigo);
+        agregar(diferencias, "Estado", local.estado, remoto.estado);
+        agregar(diferencias, "Fecha de inicio", local.iniciadoEn, remoto.iniciadoEn);
+        agregar(diferencias, "Población inicial", texto(local.poblacionInicial),
+                texto(remoto.poblacionInicial));
+        agregar(diferencias, "Fecha de cierre", vacio(local.cerradoEn),
+                vacio(remoto.cerradoEn));
+        agregar(diferencias, "Destino de cierre", vacio(local.destinoCierre),
+                vacio(remoto.destinoCierre));
+        agregar(diferencias, "Población final", texto(local.poblacionFinal),
+                texto(remoto.poblacionFinal));
+
+        return "TU CICLO EN EL TELÉFONO (basado en v" + local.versionServidor + ")\n"
+                + resumenCiclo(local.uuid, local.piscinaCodigo, local.estado,
+                local.iniciadoEn, local.poblacionInicial, local.cerradoEn,
+                local.destinoCierre, local.poblacionFinal)
+                + "\n\nCICLO ACTUAL DEL SERVIDOR (v" + remoto.version + ")\n"
+                + resumenCiclo(remoto.id, remoto.piscinaCodigo, remoto.estado,
+                remoto.iniciadoEn, remoto.poblacionInicial, remoto.cerradoEn,
+                remoto.destinoCierre, remoto.poblacionFinal)
+                + "\n\nDIFERENCIAS DETECTADAS\n" + listaDiferencias(diferencias);
+    }
+
     private static String resumenJornada(String piscina, String fecha, Integer poblacion,
                                           String observaciones, boolean incluyeAgua,
                                           String ph, String nitrato, String nitrito,
@@ -101,6 +129,20 @@ public final class ComparadorConflictos {
                 + "\nPiscina de destino: " + vacio(destino)
                 + "\nFecha y hora: " + vacio(fecha)
                 + "\nObservaciones: " + vacio(observaciones);
+    }
+
+    private static String resumenCiclo(String uuid, String piscina, String estado,
+                                       String inicio, int poblacionInicial,
+                                       String cierre, String destino,
+                                       Integer poblacionFinal) {
+        return "UUID: " + vacio(uuid)
+                + "\nPiscina: " + vacio(piscina)
+                + "\nEstado: " + vacio(estado)
+                + "\nInicio: " + vacio(inicio)
+                + "\nPoblación inicial: " + poblacionInicial
+                + "\nCierre: " + vacio(cierre)
+                + "\nDestino: " + vacio(destino)
+                + "\nPoblación final: " + texto(poblacionFinal);
     }
 
     private static String resumenPecesLocales(List<ObservacionPezLocal> peces) {

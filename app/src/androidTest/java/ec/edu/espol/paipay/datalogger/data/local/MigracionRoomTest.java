@@ -17,6 +17,7 @@ import org.junit.runner.RunWith;
 public class MigracionRoomTest {
     private static final String BASE_PRUEBA_CONFLICTOS = "migracion-conflictos";
     private static final String BASE_PRUEBA_AGUA = "migracion-agua-kit";
+    private static final String BASE_PRUEBA_CICLOS = "migracion-ciclos-v15";
 
     @Rule
     public MigrationTestHelper helper = new MigrationTestHelper(
@@ -82,6 +83,28 @@ public class MigracionRoomTest {
         semaforo.moveToFirst();
         assertEquals(0.25, semaforo.getDouble(0), 0.0001);
         semaforo.close();
+        db.close();
+    }
+
+    @Test public void migracionTresACuatroConservaJornadasYPreparaCiclos() throws Exception {
+        SupportSQLiteDatabase db = helper.createDatabase(BASE_PRUEBA_CICLOS, 3);
+        db.execSQL("INSERT INTO jornada_local "
+                + "(uuid,piscinaUuid,piscinaCodigo,autorCorreo,capturadaEn,incluyeAgua,"
+                + "estadoLocal,versionServidor,creadaEn,modificadaEn) VALUES "
+                + "('j-v15','p-1','P-01','ana@example.com','2026-08-07T20:00:00Z',0,"
+                + "'SINCRONIZADO',1,1,1)");
+        db.close();
+
+        db = helper.runMigrationsAndValidate(
+                BASE_PRUEBA_CICLOS, 4, true, PaipayDatabase.MIGRACION_3_4);
+        Cursor jornadas = db.query("SELECT cicloUuid FROM jornada_local WHERE uuid='j-v15'");
+        jornadas.moveToFirst();
+        assertEquals(true, jornadas.isNull(0));
+        jornadas.close();
+        Cursor ciclos = db.query("SELECT COUNT(*) FROM ciclo_local");
+        ciclos.moveToFirst();
+        assertEquals(0, ciclos.getInt(0));
+        ciclos.close();
         db.close();
     }
 }

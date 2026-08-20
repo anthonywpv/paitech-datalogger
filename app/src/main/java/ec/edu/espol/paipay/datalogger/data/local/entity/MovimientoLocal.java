@@ -12,6 +12,8 @@ public class MovimientoLocal {
     public int cantidad;
     public String piscinaOrigenUuid;
     public String piscinaDestinoUuid;
+    public String cicloOrigenUuid;
+    public String cicloDestinoUuid;
     @NonNull public String autorCorreo = "";
     @NonNull public String ocurridoEn = "";
     public String observaciones;

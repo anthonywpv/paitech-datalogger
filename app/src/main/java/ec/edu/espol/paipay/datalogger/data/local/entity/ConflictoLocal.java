@@ -18,6 +18,7 @@ import androidx.room.PrimaryKey;
 public class ConflictoLocal {
     public static final String JORNADA = "JORNADA";
     public static final String MOVIMIENTO = "MOVIMIENTO";
+    public static final String CICLO = "CICLO";
 
     @PrimaryKey @NonNull public String clave = "";
     @NonNull public String tipo = "";

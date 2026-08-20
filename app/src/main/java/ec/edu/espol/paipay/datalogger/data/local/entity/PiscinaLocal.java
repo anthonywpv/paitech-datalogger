@@ -14,6 +14,11 @@ public class PiscinaLocal {
     public String descripcion;
     public String especieNombre;
     public boolean activa;
+    public String cicloActivoUuid;
+    public Integer cicloActivoNumero;
+    public String recordatorioAguaEstado;
+    public String recordatorioBiometriaEstado;
+    public String recordatoriosActualizadosEn;
 
     @Override public String toString() {
         return codigo + " · " + nombre;

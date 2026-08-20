@@ -36,7 +36,6 @@ public class MovimientoFragment extends Fragment {
     private static final String ARG_UUID = "movimiento_uuid";
 
     private static final List<TipoOpcion> TIPOS = Arrays.asList(
-            new TipoOpcion("SIEMBRA", "Siembra"),
             new TipoOpcion("MORTALIDAD", "Mortalidad"),
             new TipoOpcion("COSECHA_VENTA", "Cosecha o venta"),
             new TipoOpcion("TRASLADO", "Traslado"),
@@ -170,8 +169,7 @@ public class MovimientoFragment extends Fragment {
         String tipo = ((TipoOpcion) vista.selectorTipo.getSelectedItem()).valor;
         boolean ajuste = "AJUSTE".equals(tipo);
         boolean traslado = "TRASLADO".equals(tipo);
-        boolean entrada = "SIEMBRA".equals(tipo)
-                || (ajuste && vista.selectorDireccionAjuste.getSelectedItemPosition() == 0);
+        boolean entrada = ajuste && vista.selectorDireccionAjuste.getSelectedItemPosition() == 0;
         boolean salida = Arrays.asList("MORTALIDAD", "COSECHA_VENTA", "ESCAPE").contains(tipo)
                 || (ajuste && vista.selectorDireccionAjuste.getSelectedItemPosition() == 1);
 
@@ -183,7 +181,6 @@ public class MovimientoFragment extends Fragment {
 
         String ayuda;
         switch (tipo) {
-            case "SIEMBRA": ayuda = "Registra peces que ingresan a la piscina."; break;
             case "MORTALIDAD": ayuda = "Registra únicamente muertes observadas o confirmadas."; break;
             case "COSECHA_VENTA": ayuda = "Registra peces retirados por cosecha o venta."; break;
             case "TRASLADO": ayuda = "El origen y destino deben ser piscinas distintas de la misma especie."; break;
@@ -213,12 +210,18 @@ public class MovimientoFragment extends Fragment {
         boolean usaOrigen = "TRASLADO".equals(tipo)
                 || Arrays.asList("MORTALIDAD", "COSECHA_VENTA", "ESCAPE").contains(tipo)
                 || ("AJUSTE".equals(tipo) && !ajusteAumenta);
-        boolean usaDestino = "SIEMBRA".equals(tipo) || "TRASLADO".equals(tipo) || ajusteAumenta;
+        boolean usaDestino = "TRASLADO".equals(tipo) || ajusteAumenta;
 
         PiscinaLocal origen = usaOrigen ? (PiscinaLocal) vista.selectorOrigen.getSelectedItem() : null;
         PiscinaLocal destino = usaDestino ? (PiscinaLocal) vista.selectorDestino.getSelectedItem() : null;
         if ((usaOrigen && origen == null) || (usaDestino && destino == null)) {
             Toast.makeText(requireContext(), "Selecciona las piscinas requeridas.", Toast.LENGTH_LONG).show();
+            return;
+        }
+        if ((origen != null && origen.cicloActivoUuid == null)
+                || (destino != null && destino.cicloActivoUuid == null)) {
+            Toast.makeText(requireContext(),
+                    "Cada piscina afectada necesita un ciclo activo.", Toast.LENGTH_LONG).show();
             return;
         }
         String errorMovimiento = ValidadorMovimiento.validar(tipo, cantidad,
@@ -238,6 +241,8 @@ public class MovimientoFragment extends Fragment {
         movimiento.cantidad = cantidad;
         movimiento.piscinaOrigenUuid = origen == null ? null : origen.uuid;
         movimiento.piscinaDestinoUuid = destino == null ? null : destino.uuid;
+        movimiento.cicloOrigenUuid = origen == null ? null : origen.cicloActivoUuid;
+        movimiento.cicloDestinoUuid = destino == null ? null : destino.cicloActivoUuid;
         movimiento.ocurridoEn = FechaUtil.isoUtc(ocurridoEnMillis);
         movimiento.observaciones = texto(vista.campoObservacionesTexto);
         movimiento.motivoCambio = versionServidor > 0

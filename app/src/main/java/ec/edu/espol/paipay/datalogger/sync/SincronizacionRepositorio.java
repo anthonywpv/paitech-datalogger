@@ -11,6 +11,7 @@ import java.util.Map;
 
 import ec.edu.espol.paipay.datalogger.data.local.PaipayDatabase;
 import ec.edu.espol.paipay.datalogger.data.local.entity.ConflictoLocal;
+import ec.edu.espol.paipay.datalogger.data.local.entity.CicloLocal;
 import ec.edu.espol.paipay.datalogger.data.local.entity.JornadaLocal;
 import ec.edu.espol.paipay.datalogger.data.local.entity.MovimientoLocal;
 import ec.edu.espol.paipay.datalogger.data.local.entity.PiscinaLocal;
@@ -19,6 +20,8 @@ import ec.edu.espol.paipay.datalogger.data.local.model.JornadaConPeces;
 import ec.edu.espol.paipay.datalogger.data.remote.DjangoApiService;
 import ec.edu.espol.paipay.datalogger.data.remote.DjangoCliente;
 import ec.edu.espol.paipay.datalogger.data.remote.dto.JornadaApiDto;
+import ec.edu.espol.paipay.datalogger.data.remote.dto.CicloApiDto;
+import ec.edu.espol.paipay.datalogger.data.remote.dto.CierreCicloDto;
 import ec.edu.espol.paipay.datalogger.data.remote.dto.MovimientoApiDto;
 import ec.edu.espol.paipay.datalogger.data.remote.dto.PiscinaApiDto;
 import ec.edu.espol.paipay.datalogger.data.remote.dto.SemaforoApiDto;
@@ -64,7 +67,9 @@ public class SincronizacionRepositorio {
                 if (JornadaLocal.PENDIENTE_ANULAR.equals(item.estadoLocal)) anulaciones++;
                 else movimientos++;
             }
-            ResumenPendientes resumen = new ResumenPendientes(jornadas, movimientos, anulaciones);
+            int ciclos = db.cicloDao().pendientes().size();
+            ResumenPendientes resumen = new ResumenPendientes(
+                    jornadas, movimientos, ciclos, anulaciones);
             AppExecutors.enHiloPrincipal(() -> callback.listo(resumen));
         });
     }
@@ -89,6 +94,65 @@ public class SincronizacionRepositorio {
         boolean expirada = false;
         StringBuilder errores = new StringBuilder();
         DjangoApiService api = DjangoCliente.api(contexto);
+
+        List<CicloLocal> ciclos = db.cicloDao().pendientes();
+        if (!ciclos.isEmpty()) notificar(callback, "Sincronizando ciclos…");
+        for (CicloLocal local : ciclos) {
+            if (!mismoAutor(local.autorCorreo)) {
+                fallidos++;
+                errores.append("autor distinto en ciclo ").append(local.uuid).append("; ");
+                continue;
+            }
+            try {
+                boolean crear = CicloLocal.PENDIENTE_CREAR.equals(local.estadoLocal)
+                        || CicloLocal.PENDIENTE_CREAR_Y_CERRAR.equals(local.estadoLocal);
+                boolean cerrarDespues = CicloLocal.PENDIENTE_CREAR_Y_CERRAR.equals(
+                        local.estadoLocal);
+                Response<CicloApiDto> respuesta;
+                if (crear) {
+                    respuesta = api.crearCiclo(
+                            MapeadorApi.aDto(local, dispositivoId)).execute();
+                    if (respuesta.isSuccessful() && respuesta.body() != null
+                            && cerrarDespues) {
+                        CicloLocal creado = MapeadorApi.aLocal(
+                                respuesta.body(), sesion.getUsuario());
+                        creado.cerradoEn = local.cerradoEn;
+                        creado.destinoCierre = local.destinoCierre;
+                        creado.poblacionFinal = local.poblacionFinal;
+                        creado.pesoTotalCosechadoKg = local.pesoTotalCosechadoKg;
+                        creado.observacionesCierre = local.observacionesCierre;
+                        creado.piscinaDestinoCierreUuid = local.piscinaDestinoCierreUuid;
+                        respuesta = api.cerrarCiclo(
+                                creado.uuid, MapeadorApi.cierreDto(creado)).execute();
+                    }
+                } else {
+                    respuesta = api.cerrarCiclo(
+                            local.uuid, MapeadorApi.cierreDto(local)).execute();
+                }
+                if (respuesta.code() == 401 || respuesta.code() == 403) {
+                    expirada = true;
+                    fallidos++;
+                } else if (respuesta.code() == 409) {
+                    sesion.registrarValidacionServidor(System.currentTimeMillis());
+                    registrarConflictoCiclo(api, local);
+                    fallidos++;
+                    errores.append("conflicto en ciclo ").append(local.uuid).append("; ");
+                } else if (respuesta.isSuccessful() && respuesta.body() != null) {
+                    sesion.registrarValidacionServidor(System.currentTimeMillis());
+                    db.cicloDao().guardar(MapeadorApi.aLocal(
+                            respuesta.body(), sesion.getUsuario()));
+                    borrarConflicto(ConflictoLocal.CICLO, local.uuid);
+                    subidos++;
+                } else {
+                    local.errorSincronizacion = "HTTP " + respuesta.code();
+                    db.cicloDao().guardar(local);
+                    fallidos++;
+                }
+            } catch (Exception error) {
+                fallidos++;
+                errores.append("ciclo: ").append(error.getMessage()).append("; ");
+            }
+        }
 
         List<JornadaConPeces> jornadas = db.jornadaDao().pendientes();
         if (!jornadas.isEmpty()) notificar(callback, "Sincronizando jornadas…");
@@ -194,7 +258,8 @@ public class SincronizacionRepositorio {
         if (subidos > 0) sesion.registrarSincronizacion(System.currentTimeMillis());
         ResultadoSincronizacion.Estado estado;
         if (expirada) estado = ResultadoSincronizacion.Estado.SESION_EXPIRADA;
-        else if (subidos == 0 && fallidos == 0 && jornadas.isEmpty() && movimientos.isEmpty()) estado = ResultadoSincronizacion.Estado.SIN_PENDIENTES;
+        else if (subidos == 0 && fallidos == 0 && ciclos.isEmpty()
+                && jornadas.isEmpty() && movimientos.isEmpty()) estado = ResultadoSincronizacion.Estado.SIN_PENDIENTES;
         else if (fallidos == 0) estado = ResultadoSincronizacion.Estado.EXITO;
         else if (subidos > 0) estado = ResultadoSincronizacion.Estado.PARCIAL;
         else estado = ResultadoSincronizacion.Estado.ERROR;
@@ -228,8 +293,32 @@ public class SincronizacionRepositorio {
         if (piscinas.isSuccessful() && piscinas.body() != null) {
             servidorValido = true;
             List<PiscinaLocal> locales = new ArrayList<>();
-            for (PiscinaApiDto item : piscinas.body()) locales.add(MapeadorApi.piscina(item));
+            for (PiscinaApiDto item : piscinas.body()) {
+                PiscinaLocal local = MapeadorApi.piscina(item);
+                PiscinaLocal anterior = db.catalogoDao().piscina(local.uuid);
+                if (anterior != null && anterior.cicloActivoUuid != null) {
+                    CicloLocal cicloLocal = db.cicloDao().porUuid(anterior.cicloActivoUuid);
+                    if (cicloLocal != null && cicloLocal.pendiente()) {
+                        local.cicloActivoUuid = anterior.cicloActivoUuid;
+                        local.cicloActivoNumero = anterior.cicloActivoNumero;
+                    }
+                }
+                locales.add(local);
+            }
             db.catalogoDao().guardarPiscinas(locales);
+        }
+        Response<List<CicloApiDto>> ciclos = api.ciclos().execute();
+        if (ciclos.code() == 401 || ciclos.code() == 403) {
+            throw new SesionExpiradaException();
+        }
+        if (ciclos.isSuccessful() && ciclos.body() != null) {
+            servidorValido = true;
+            for (CicloApiDto item : ciclos.body()) {
+                String estado = db.cicloDao().estadoLocalDe(item.id);
+                if (estado == null || CicloLocal.SINCRONIZADO.equals(estado)) {
+                    db.cicloDao().guardar(MapeadorApi.aLocal(item, sesion.getUsuario()));
+                }
+            }
         }
         Response<List<JornadaApiDto>> jornadas = api.jornadas().execute();
         if (jornadas.code() == 401 || jornadas.code() == 403) {
@@ -339,6 +428,27 @@ public class SincronizacionRepositorio {
         local.errorSincronizacion = "El servidor tiene una versión más reciente.";
         db.runInTransaction(() -> {
             db.movimientoDao().guardar(local);
+            db.conflictoDao().guardar(conflicto);
+        });
+    }
+
+    private void registrarConflictoCiclo(DjangoApiService api, CicloLocal local) {
+        ConflictoLocal conflicto = conflictoBase(
+                ConflictoLocal.CICLO, local.uuid, local.estadoLocal);
+        try {
+            Response<CicloApiDto> actual = api.ciclo(local.uuid).execute();
+            if (actual.isSuccessful() && actual.body() != null) {
+                conflicto.versionRemota = actual.body().version;
+                conflicto.remotoJson = gson.toJson(actual.body());
+            }
+        } catch (Exception ignorado) {
+            // Puede ser un 409 por otro ciclo activo con UUID distinto. El cambio
+            // local se conserva y la piscina remota se verá tras el refresco.
+        }
+        local.estadoLocal = CicloLocal.CONFLICTO;
+        local.errorSincronizacion = "Existe un ciclo o una versión incompatible en el servidor.";
+        db.runInTransaction(() -> {
+            db.cicloDao().guardar(local);
             db.conflictoDao().guardar(conflicto);
         });
     }

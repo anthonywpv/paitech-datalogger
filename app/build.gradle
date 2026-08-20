@@ -17,8 +17,8 @@ android {
         applicationId = "ec.edu.espol.paipay.datalogger"
         minSdk = 24
         targetSdk = 35
-        versionCode = 5
-        versionName = "1.4-dev"
+        versionCode = 6
+        versionName = "1.5-dev"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
@@ -73,6 +73,10 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-livedata:2.11.0'
 
     // Room - base de datos local (sincronización diferida)
+    // Room 2.8.4 usa JSON 1.8.1 en las pruebas de migración. Alinear también
+    // core evita cargar JSON 1.8.1 junto con core 1.7.3 en Android API 24.
+    implementation platform('org.jetbrains.kotlinx:kotlinx-serialization-bom:1.8.1')
+    implementation 'org.jetbrains.kotlinx:kotlinx-serialization-core'
     implementation 'androidx.room:room-runtime:2.8.4'
     annotationProcessor 'androidx.room:room-compiler:2.8.4'
 

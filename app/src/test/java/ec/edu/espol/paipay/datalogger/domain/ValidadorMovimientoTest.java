@@ -6,8 +6,8 @@ import static org.junit.Assert.assertNull;
 import org.junit.Test;
 
 public class ValidadorMovimientoTest {
-    @Test public void siembraSoloAdmiteDestino() {
-        assertNull(ValidadorMovimiento.validar("SIEMBRA", 20,
+    @Test public void siembraSeRegistraAlAbrirElCiclo() {
+        assertNotNull(ValidadorMovimiento.validar("SIEMBRA", 20,
                 null, "p2", null, "Tilapia"));
         assertNotNull(ValidadorMovimiento.validar("SIEMBRA", 20,
                 "p1", "p2", "Tilapia", "Tilapia"));

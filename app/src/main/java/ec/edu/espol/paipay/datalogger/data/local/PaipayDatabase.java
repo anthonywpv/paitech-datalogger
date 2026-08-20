@@ -10,10 +10,12 @@ import androidx.room.migration.Migration;
 import androidx.sqlite.db.SupportSQLiteDatabase;
 
 import ec.edu.espol.paipay.datalogger.data.local.dao.CatalogoDao;
+import ec.edu.espol.paipay.datalogger.data.local.dao.CicloDao;
 import ec.edu.espol.paipay.datalogger.data.local.dao.ConflictoDao;
 import ec.edu.espol.paipay.datalogger.data.local.dao.JornadaDao;
 import ec.edu.espol.paipay.datalogger.data.local.dao.MovimientoDao;
 import ec.edu.espol.paipay.datalogger.data.local.entity.ConflictoLocal;
+import ec.edu.espol.paipay.datalogger.data.local.entity.CicloLocal;
 import ec.edu.espol.paipay.datalogger.data.local.entity.JornadaLocal;
 import ec.edu.espol.paipay.datalogger.data.local.entity.MovimientoLocal;
 import ec.edu.espol.paipay.datalogger.data.local.entity.ObservacionPezLocal;
@@ -23,8 +25,9 @@ import ec.edu.espol.paipay.datalogger.data.local.entity.SemaforoLocal;
 /** Base offline nueva de v1.4. El archivo v1.3 no se abre ni se modifica. */
 @Database(
         entities = {JornadaLocal.class, ObservacionPezLocal.class, PiscinaLocal.class,
-                SemaforoLocal.class, MovimientoLocal.class, ConflictoLocal.class},
-        version = 3,
+                SemaforoLocal.class, MovimientoLocal.class, ConflictoLocal.class,
+                CicloLocal.class},
+        version = 4,
         exportSchema = true
 )
 public abstract class PaipayDatabase extends RoomDatabase {
@@ -35,6 +38,7 @@ public abstract class PaipayDatabase extends RoomDatabase {
     public abstract CatalogoDao catalogoDao();
     public abstract MovimientoDao movimientoDao();
     public abstract ConflictoDao conflictoDao();
+    public abstract CicloDao cicloDao();
 
     public static final Migration MIGRACION_1_2 = new Migration(1, 2) {
         @Override
@@ -130,13 +134,50 @@ public abstract class PaipayDatabase extends RoomDatabase {
         }
     };
 
+    public static final Migration MIGRACION_3_4 = new Migration(3, 4) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase db) {
+            db.execSQL("ALTER TABLE `piscina_local` ADD COLUMN `cicloActivoUuid` TEXT");
+            db.execSQL("ALTER TABLE `piscina_local` ADD COLUMN `cicloActivoNumero` INTEGER");
+            db.execSQL("ALTER TABLE `piscina_local` ADD COLUMN `recordatorioAguaEstado` TEXT");
+            db.execSQL("ALTER TABLE `piscina_local` ADD COLUMN `recordatorioBiometriaEstado` TEXT");
+            db.execSQL("ALTER TABLE `piscina_local` ADD COLUMN `recordatoriosActualizadosEn` TEXT");
+            db.execSQL("ALTER TABLE `jornada_local` ADD COLUMN `cicloUuid` TEXT");
+            db.execSQL("ALTER TABLE `movimiento_local` ADD COLUMN `cicloOrigenUuid` TEXT");
+            db.execSQL("ALTER TABLE `movimiento_local` ADD COLUMN `cicloDestinoUuid` TEXT");
+            db.execSQL("CREATE TABLE IF NOT EXISTS `ciclo_local` ("
+                    + "`uuid` TEXT NOT NULL, `piscinaUuid` TEXT NOT NULL, "
+                    + "`piscinaCodigo` TEXT NOT NULL, `especieNombre` TEXT, "
+                    + "`numero` INTEGER NOT NULL, `estado` TEXT NOT NULL, "
+                    + "`iniciadoEn` TEXT NOT NULL, `poblacionInicial` INTEGER NOT NULL, "
+                    + "`duracionEstimadaMeses` INTEGER, `observacionesApertura` TEXT, "
+                    + "`autorCorreo` TEXT NOT NULL, `cerradoEn` TEXT, "
+                    + "`destinoCierre` TEXT, `poblacionFinal` INTEGER, "
+                    + "`pesoTotalCosechadoKg` REAL, `observacionesCierre` TEXT, "
+                    + "`piscinaDestinoCierreUuid` TEXT, "
+                    + "`prediccionPoblacionFinal` INTEGER, `prediccionMin` INTEGER, "
+                    + "`prediccionMax` INTEGER, `prediccionTasa` REAL, "
+                    + "`prediccionCiclosUsados` INTEGER NOT NULL, "
+                    + "`prediccionConfianza` TEXT, `prediccionMetodoVersion` TEXT, "
+                    + "`prediccionCalculadaEn` TEXT, `prediccionDatosHasta` TEXT, "
+                    + "`prediccionOrigen` TEXT, `estadoLocal` TEXT NOT NULL, "
+                    + "`versionServidor` INTEGER NOT NULL, `errorSincronizacion` TEXT, "
+                    + "`creadaEn` INTEGER NOT NULL, `modificadaEn` INTEGER NOT NULL, "
+                    + "PRIMARY KEY(`uuid`))");
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_ciclo_local_piscinaUuid` ON `ciclo_local` (`piscinaUuid`)");
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_ciclo_local_estado` ON `ciclo_local` (`estado`)");
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_ciclo_local_estadoLocal` ON `ciclo_local` (`estadoLocal`)");
+            db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_ciclo_local_piscinaUuid_numero` ON `ciclo_local` (`piscinaUuid`, `numero`)");
+        }
+    };
+
     public static PaipayDatabase obtener(Context contexto) {
         if (INSTANCIA == null) {
             synchronized (PaipayDatabase.class) {
                 if (INSTANCIA == null) {
                     INSTANCIA = Room.databaseBuilder(
                             contexto.getApplicationContext(), PaipayDatabase.class, ARCHIVO
-                    ).addMigrations(MIGRACION_1_2, MIGRACION_2_3).build();
+                    ).addMigrations(MIGRACION_1_2, MIGRACION_2_3, MIGRACION_3_4).build();
                 }
             }
         }

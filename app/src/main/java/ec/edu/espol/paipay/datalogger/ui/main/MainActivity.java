@@ -21,6 +21,7 @@ import ec.edu.espol.paipay.datalogger.data.repo.SesionManager;
 import ec.edu.espol.paipay.datalogger.databinding.ActivityMainBinding;
 import ec.edu.espol.paipay.datalogger.sync.SincronizacionWorker;
 import ec.edu.espol.paipay.datalogger.ui.historial.HistorialFragment;
+import ec.edu.espol.paipay.datalogger.ui.ciclo.CicloFragment;
 import ec.edu.espol.paipay.datalogger.ui.login.LoginActivity;
 import ec.edu.espol.paipay.datalogger.ui.registro.RegistroFragment;
 import ec.edu.espol.paipay.datalogger.ui.semaforo.SemaforoFragment;
@@ -62,6 +63,7 @@ public class MainActivity extends AppCompatActivity {
         vista.navegacionInferior.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
             if (id == R.id.nav_registro) return mostrar(new RegistroFragment());
+            if (id == R.id.nav_ciclos) return mostrar(new CicloFragment());
             if (id == R.id.nav_semaforo) return mostrar(new SemaforoFragment());
             if (id == R.id.nav_historial) return mostrar(new HistorialFragment());
             if (id == R.id.nav_sincronizar) return mostrar(new SincronizacionFragment());

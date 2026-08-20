@@ -87,7 +87,7 @@ public class RegistroRepositorio {
     }
 
     public LiveData<List<JornadaConPeces>> jornadas() {
-        return db.jornadaDao().observarHistorial(sesion.getUsuario());
+        return db.jornadaDao().observarHistorial();
     }
 
     public LiveData<List<PiscinaLocal>> piscinas() {

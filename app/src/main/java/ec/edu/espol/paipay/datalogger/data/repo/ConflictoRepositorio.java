@@ -7,6 +7,7 @@ import com.google.gson.Gson;
 
 import ec.edu.espol.paipay.datalogger.data.local.PaipayDatabase;
 import ec.edu.espol.paipay.datalogger.data.local.entity.ConflictoLocal;
+import ec.edu.espol.paipay.datalogger.data.local.entity.CicloLocal;
 import ec.edu.espol.paipay.datalogger.data.local.entity.JornadaLocal;
 import ec.edu.espol.paipay.datalogger.data.local.entity.MovimientoLocal;
 import ec.edu.espol.paipay.datalogger.data.local.entity.PiscinaLocal;
@@ -14,11 +15,14 @@ import ec.edu.espol.paipay.datalogger.data.local.model.JornadaConPeces;
 import ec.edu.espol.paipay.datalogger.data.remote.DjangoApiService;
 import ec.edu.espol.paipay.datalogger.data.remote.DjangoCliente;
 import ec.edu.espol.paipay.datalogger.data.remote.dto.JornadaApiDto;
+import ec.edu.espol.paipay.datalogger.data.remote.dto.CicloApiDto;
 import ec.edu.espol.paipay.datalogger.data.remote.dto.MovimientoApiDto;
 import ec.edu.espol.paipay.datalogger.domain.ComparadorConflictos;
 import ec.edu.espol.paipay.datalogger.util.AppExecutors;
 import ec.edu.espol.paipay.datalogger.util.RedUtil;
 import retrofit2.Response;
+
+import java.util.List;
 
 /** Conserva, compara y resuelve conflictos sin sobrescrituras automáticas. */
 public class ConflictoRepositorio {
@@ -48,7 +52,9 @@ public class ConflictoRepositorio {
             try {
                 ConflictoLocal conflicto = obtenerInstantanea(tipo, uuid);
                 DetalleConflicto detalle = ConflictoLocal.JORNADA.equals(tipo)
-                        ? detalleJornada(conflicto) : detalleMovimiento(conflicto);
+                        ? detalleJornada(conflicto)
+                        : ConflictoLocal.CICLO.equals(tipo)
+                        ? detalleCiclo(conflicto) : detalleMovimiento(conflicto);
                 AppExecutors.enHiloPrincipal(() -> callback.listo(detalle));
             } catch (Exception error) {
                 String mensaje = mensaje(error);
@@ -68,6 +74,9 @@ public class ConflictoRepositorio {
                     JornadaConPeces local = db.jornadaDao().porUuid(uuid);
                     validarAutor(local == null || local.jornada == null
                             ? null : local.jornada.autorCorreo);
+                } else if (ConflictoLocal.CICLO.equals(tipo)) {
+                    CicloLocal local = db.cicloDao().porUuid(uuid);
+                    validarAutor(local == null ? null : local.autorCorreo);
                 } else {
                     MovimientoLocal local = db.movimientoDao().porUuid(uuid);
                     validarAutor(local == null ? null : local.autorCorreo);
@@ -78,6 +87,30 @@ public class ConflictoRepositorio {
                         PiscinaLocal piscina = db.catalogoDao().piscina(dto.piscina);
                         JornadaConPeces remota = MapeadorApi.aLocal(dto, piscina, sesion.getUsuario());
                         db.jornadaDao().guardar(remota.jornada, remota.peces);
+                    } else if (ConflictoLocal.CICLO.equals(tipo)) {
+                        CicloLocal local = db.cicloDao().porUuid(uuid);
+                        CicloApiDto dto = gson.fromJson(
+                                conflicto.remotoJson, CicloApiDto.class);
+                        CicloLocal remota = MapeadorApi.aLocal(dto, sesion.getUsuario());
+                        PiscinaLocal piscina = db.catalogoDao().piscina(local.piscinaUuid);
+                        // Si dos teléfonos abrieron ciclos distintos offline, las
+                        // operaciones aún pendientes del ciclo descartado se enlazan
+                        // conscientemente al ciclo activo que se adopta del servidor.
+                        db.jornadaDao().reasignarCiclo(local.uuid, remota.uuid);
+                        db.movimientoDao().reasignarCicloOrigen(local.uuid, remota.uuid);
+                        db.movimientoDao().reasignarCicloDestino(local.uuid, remota.uuid);
+                        db.cicloDao().borrar(local.uuid);
+                        db.cicloDao().guardar(remota);
+                        if (piscina != null) {
+                            if (CicloLocal.ACTIVO.equals(remota.estado)) {
+                                piscina.cicloActivoUuid = remota.uuid;
+                                piscina.cicloActivoNumero = remota.numero;
+                            } else if (local.uuid.equals(piscina.cicloActivoUuid)) {
+                                piscina.cicloActivoUuid = null;
+                                piscina.cicloActivoNumero = null;
+                            }
+                            db.catalogoDao().guardarPiscina(piscina);
+                        }
                     } else {
                         MovimientoApiDto dto = gson.fromJson(
                                 conflicto.remotoJson, MovimientoApiDto.class);
@@ -114,6 +147,29 @@ public class ConflictoRepositorio {
                         local.jornada.errorSincronizacion = null;
                         local.jornada.modificadaEn = System.currentTimeMillis();
                         db.jornadaDao().guardar(local.jornada, local.peces);
+                        db.conflictoDao().borrar(conflicto.clave);
+                    });
+                } else if (ConflictoLocal.CICLO.equals(tipo)) {
+                    CicloApiDto remota = gson.fromJson(
+                            conflicto.remotoJson, CicloApiDto.class);
+                    CicloLocal local = db.cicloDao().porUuid(uuid);
+                    validarAutor(local == null ? null : local.autorCorreo);
+                    boolean cierreLocal = CicloLocal.PENDIENTE_CERRAR.equals(
+                            conflicto.operacionLocal)
+                            || CicloLocal.PENDIENTE_CREAR_Y_CERRAR.equals(
+                            conflicto.operacionLocal);
+                    if (!cierreLocal || !local.uuid.equals(remota.id)
+                            || !CicloLocal.ACTIVO.equals(remota.estado)) {
+                        throw new IllegalStateException(
+                                "Este conflicto de apertura no puede sobrescribir otro ciclo "
+                                        + "activo. Descarta el cambio local y revisa el ciclo del servidor.");
+                    }
+                    db.runInTransaction(() -> {
+                        local.versionServidor = remota.version == null ? 0 : remota.version;
+                        local.estadoLocal = CicloLocal.PENDIENTE_CERRAR;
+                        local.errorSincronizacion = null;
+                        local.modificadaEn = System.currentTimeMillis();
+                        db.cicloDao().guardar(local);
                         db.conflictoDao().borrar(conflicto.clave);
                     });
                 } else {
@@ -166,6 +222,28 @@ public class ConflictoRepositorio {
             }
             conflicto.versionRemota = respuesta.body().version;
             conflicto.remotoJson = gson.toJson(respuesta.body());
+        } else if (ConflictoLocal.CICLO.equals(tipo)) {
+            Response<CicloApiDto> respuesta = api.ciclo(uuid).execute();
+            CicloApiDto remota = respuesta.isSuccessful() ? respuesta.body() : null;
+            if (remota == null) {
+                CicloLocal local = db.cicloDao().porUuid(uuid);
+                Response<List<CicloApiDto>> lista = api.ciclos().execute();
+                if (lista.isSuccessful() && lista.body() != null && local != null) {
+                    for (CicloApiDto candidata : lista.body()) {
+                        if (local.piscinaUuid.equals(candidata.piscina)
+                                && CicloLocal.ACTIVO.equals(candidata.estado)) {
+                            remota = candidata;
+                            break;
+                        }
+                    }
+                }
+            }
+            if (remota == null) {
+                throw new IllegalStateException(
+                        "No se encontró el ciclo que produjo el conflicto en el servidor.");
+            }
+            conflicto.versionRemota = remota.version == null ? 0 : remota.version;
+            conflicto.remotoJson = gson.toJson(remota);
         } else {
             Response<MovimientoApiDto> respuesta = api.movimiento(uuid).execute();
             if (!respuesta.isSuccessful() || respuesta.body() == null) {
@@ -203,6 +281,23 @@ public class ConflictoRepositorio {
         boolean reaplicable = !"ANULADO".equals(remoto.estado);
         return new DetalleConflicto(conflicto.tipo, conflicto.entidadUuid,
                 ComparadorConflictos.movimiento(local, remoto), remoto.version,
+                reaplicable, remoto.estado);
+    }
+
+    private DetalleConflicto detalleCiclo(ConflictoLocal conflicto) {
+        CicloLocal local = db.cicloDao().porUuid(conflicto.entidadUuid);
+        if (local == null) {
+            throw new IllegalStateException("No se encontró el cambio local del ciclo.");
+        }
+        validarAutor(local.autorCorreo);
+        CicloApiDto remoto = gson.fromJson(conflicto.remotoJson, CicloApiDto.class);
+        boolean cierreLocal = CicloLocal.PENDIENTE_CERRAR.equals(conflicto.operacionLocal)
+                || CicloLocal.PENDIENTE_CREAR_Y_CERRAR.equals(conflicto.operacionLocal);
+        boolean reaplicable = cierreLocal && local.uuid.equals(remoto.id)
+                && CicloLocal.ACTIVO.equals(remoto.estado);
+        return new DetalleConflicto(conflicto.tipo, conflicto.entidadUuid,
+                ComparadorConflictos.ciclo(local, remoto),
+                remoto.version == null ? 0 : remoto.version,
                 reaplicable, remoto.estado);
     }
 

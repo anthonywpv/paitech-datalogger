@@ -42,4 +42,17 @@ public class MapeadorApiTest {
         MovimientoApiDto edicion = MapeadorApi.aDto(local);
         assertEquals(Integer.valueOf(2), edicion.version);
     }
+
+    @Test
+    public void movimientoRemotoConservaSuAutorComunitario() {
+        MovimientoApiDto remoto = new MovimientoApiDto();
+        remoto.id = "mov-1";
+        remoto.tipo = "MORTALIDAD";
+        remoto.autor = new JornadaApiDto.AutorDto();
+        remoto.autor.correo = "otra.persona@paipayales.test";
+
+        MovimientoLocal local = MapeadorApi.aLocal(remoto, "sesion@paipayales.test");
+
+        assertEquals("otra.persona@paipayales.test", local.autorCorreo);
+    }
 }

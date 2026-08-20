@@ -35,7 +35,7 @@ import ec.edu.espol.paipay.datalogger.sync.SincronizacionWorker;
 import ec.edu.espol.paipay.datalogger.ui.registro.MovimientoFragment;
 import ec.edu.espol.paipay.datalogger.ui.registro.RegistroFragment;
 
-/** Historial offline propio con jornadas y movimientos editables/anulables. */
+/** Historial comunitario offline; solo el autor puede editar o anular su registro. */
 public class HistorialFragment extends Fragment {
     private FragmentHistorialBinding vista;
     private HistorialAdapter adaptador;
@@ -113,6 +113,13 @@ public class HistorialFragment extends Fragment {
         if (item.uuid == null || JornadaLocal.ANULADO.equals(item.estadoLocal)
                 || JornadaLocal.ANULADO_LOCAL.equals(item.estadoLocal)
                 || JornadaLocal.PENDIENTE_ANULAR.equals(item.estadoLocal)) return;
+        if (!item.editable) {
+            Toast.makeText(requireContext(),
+                    "Puedes consultar este registro, pero solo " + item.autorCorreo
+                            + " puede editarlo o anularlo.",
+                    Toast.LENGTH_LONG).show();
+            return;
+        }
         if (JornadaLocal.CONFLICTO.equals(item.estadoLocal)) {
             cargarConflicto(item);
             return;

@@ -34,7 +34,7 @@ public class MovimientoRepositorio {
     }
 
     public LiveData<List<MovimientoLocal>> movimientos() {
-        return db.movimientoDao().observar(sesion.getUsuario());
+        return db.movimientoDao().observar();
     }
 
     public LiveData<List<PiscinaLocal>> piscinas() {

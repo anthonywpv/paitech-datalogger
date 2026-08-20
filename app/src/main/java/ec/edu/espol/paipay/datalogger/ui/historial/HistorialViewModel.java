@@ -18,8 +18,9 @@ import ec.edu.espol.paipay.datalogger.data.local.entity.PiscinaLocal;
 import ec.edu.espol.paipay.datalogger.data.local.model.JornadaConPeces;
 import ec.edu.espol.paipay.datalogger.data.repo.MovimientoRepositorio;
 import ec.edu.espol.paipay.datalogger.data.repo.RegistroRepositorio;
+import ec.edu.espol.paipay.datalogger.data.repo.SesionManager;
 
-/** Combina jornadas y movimientos propios en una única cronología local. */
+/** Combina la cronología comunitaria y marca como editables solo los registros propios. */
 public class HistorialViewModel extends AndroidViewModel {
     public enum Filtro { TODOS, PENDIENTES, SINCRONIZADOS }
 
@@ -28,11 +29,13 @@ public class HistorialViewModel extends AndroidViewModel {
     private List<MovimientoLocal> movimientos = new ArrayList<>();
     private List<PiscinaLocal> piscinas = new ArrayList<>();
     private Filtro filtro = Filtro.TODOS;
+    private final String correoSesion;
 
     public HistorialViewModel(@NonNull Application aplicacion) {
         super(aplicacion);
         RegistroRepositorio registros = new RegistroRepositorio(aplicacion);
         MovimientoRepositorio movimientosRepositorio = new MovimientoRepositorio(aplicacion);
+        correoSesion = SesionManager.obtener(aplicacion).getUsuario();
         salida.addSource(registros.jornadas(), lista -> {
             jornadas = lista == null ? new ArrayList<>() : lista;
             recalcular();
@@ -67,10 +70,12 @@ public class HistorialViewModel extends AndroidViewModel {
                     + (jornada.poblacionEstimada == null ? "sin completar" : jornada.poblacionEstimada)
                     + (peces > 0
                     ? String.format(Locale.getDefault(), " · %d peces medidos", peces) : "")
+                    + autor(jornada.autorCorreo)
                     + sufijoEstado(jornada.estadoLocal);
             items.add(new ItemHistorial(ItemHistorial.Tipo.JORNADA, jornada.uuid,
                     "Jornada · " + jornada.piscinaCodigo, detalle, jornada.capturadaEn,
-                    jornada.modificadaEn, sincronizado, jornada.estadoLocal));
+                    jornada.modificadaEn, sincronizado, jornada.estadoLocal,
+                    jornada.autorCorreo, esAutor(jornada.autorCorreo)));
         }
 
         Map<String, String> codigos = new HashMap<>();
@@ -83,10 +88,12 @@ public class HistorialViewModel extends AndroidViewModel {
             String recorrido = origen != null && destino != null ? origen + " → " + destino
                     : origen != null ? "sale de " + origen : "entra a " + destino;
             String detalle = movimiento.cantidad + " peces · " + recorrido
+                    + autor(movimiento.autorCorreo)
                     + sufijoEstado(movimiento.estadoLocal);
             items.add(new ItemHistorial(ItemHistorial.Tipo.MOVIMIENTO, movimiento.uuid,
                     etiquetaTipo(movimiento.tipo), detalle, movimiento.ocurridoEn,
-                    movimiento.modificadaEn, sincronizado, movimiento.estadoLocal));
+                    movimiento.modificadaEn, sincronizado, movimiento.estadoLocal,
+                    movimiento.autorCorreo, esAutor(movimiento.autorCorreo)));
         }
 
         items.sort((a, b) -> valor(b.fechaMuestreo).compareTo(valor(a.fechaMuestreo)));
@@ -130,4 +137,13 @@ public class HistorialViewModel extends AndroidViewModel {
     }
 
     private String valor(String texto) { return texto == null ? "" : texto; }
+
+    private boolean esAutor(String correo) {
+        return correo != null && correoSesion != null
+                && correo.equalsIgnoreCase(correoSesion);
+    }
+
+    private String autor(String correo) {
+        return correo == null || correo.trim().isEmpty() ? "" : " · por " + correo;
+    }
 }

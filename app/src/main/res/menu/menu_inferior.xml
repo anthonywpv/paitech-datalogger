@@ -11,6 +11,10 @@
         android:icon="@drawable/ic_formulario"
         android:title="@string/nav_registro" />
     <item
+        android:id="@+id/nav_ciclos"
+        android:icon="@drawable/ic_calendario"
+        android:title="@string/nav_ciclos" />
+    <item
         android:id="@+id/nav_historial"
         android:icon="@drawable/ic_historial"
         android:title="@string/nav_historial" />

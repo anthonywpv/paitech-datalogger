@@ -16,8 +16,8 @@ import ec.edu.espol.paipay.datalogger.data.local.model.JornadaConPeces;
 @Dao
 public abstract class JornadaDao {
     @Transaction
-    @Query("SELECT * FROM jornada_local WHERE autorCorreo = :correo AND estadoLocal != 'ANULADO_LOCAL' ORDER BY capturadaEn DESC, modificadaEn DESC")
-    public abstract LiveData<List<JornadaConPeces>> observarHistorial(String correo);
+    @Query("SELECT * FROM jornada_local WHERE estadoLocal != 'ANULADO_LOCAL' ORDER BY capturadaEn DESC, modificadaEn DESC")
+    public abstract LiveData<List<JornadaConPeces>> observarHistorial();
 
     @Transaction
     @Query("SELECT * FROM jornada_local WHERE uuid = :uuid LIMIT 1")
@@ -64,4 +64,7 @@ public abstract class JornadaDao {
 
     @Query("DELETE FROM jornada_local WHERE estadoLocal IN ('SINCRONIZADO','ANULADO','ANULADO_LOCAL')")
     public abstract int borrarSincronizados();
+
+    @Query("UPDATE jornada_local SET cicloUuid = :destinoUuid WHERE cicloUuid = :origenUuid")
+    public abstract void reasignarCiclo(String origenUuid, String destinoUuid);
 }

@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Map;
 
 import ec.edu.espol.paipay.datalogger.data.remote.dto.JornadaApiDto;
+import ec.edu.espol.paipay.datalogger.data.remote.dto.CicloApiDto;
+import ec.edu.espol.paipay.datalogger.data.remote.dto.CierreCicloDto;
 import ec.edu.espol.paipay.datalogger.data.remote.dto.LoginRespuestaDto;
 import ec.edu.espol.paipay.datalogger.data.remote.dto.MovimientoApiDto;
 import ec.edu.espol.paipay.datalogger.data.remote.dto.PiscinaApiDto;
@@ -28,6 +30,18 @@ public interface DjangoApiService {
 
     @GET("api/v1/catalogos/piscinas/")
     Call<List<PiscinaApiDto>> piscinas();
+
+    @GET("api/v1/ciclos/")
+    Call<List<CicloApiDto>> ciclos();
+
+    @GET("api/v1/ciclos/{id}/")
+    Call<CicloApiDto> ciclo(@Path("id") String id);
+
+    @POST("api/v1/ciclos/")
+    Call<CicloApiDto> crearCiclo(@Body CicloApiDto ciclo);
+
+    @POST("api/v1/ciclos/{id}/cerrar/")
+    Call<CicloApiDto> cerrarCiclo(@Path("id") String id, @Body CierreCicloDto cierre);
 
     @GET("api/v1/jornadas/")
     Call<List<JornadaApiDto>> jornadas();

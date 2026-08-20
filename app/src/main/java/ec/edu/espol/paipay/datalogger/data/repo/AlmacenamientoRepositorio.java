@@ -49,9 +49,11 @@ public class AlmacenamientoRepositorio {
     public void resumir(AlResumir callback) {
         AppExecutors.io().execute(() -> {
             int sincronizados = db.jornadaDao().contarSincronizados()
-                    + db.movimientoDao().contarSincronizados();
+                    + db.movimientoDao().contarSincronizados()
+                    + db.cicloDao().contarSincronizados();
             int pendientes = db.jornadaDao().contarNoResueltas()
-                    + db.movimientoDao().contarNoResueltos();
+                    + db.movimientoDao().contarNoResueltos()
+                    + db.cicloDao().contarNoResueltos();
             Resumen resumen = new Resumen(sincronizados, pendientes,
                     bytesDeLaBase(), bytesDisponibles());
             AppExecutors.enHiloPrincipal(() -> callback.listo(resumen));
@@ -61,7 +63,8 @@ public class AlmacenamientoRepositorio {
     public void liberarSincronizados(AlLiberar callback) {
         AppExecutors.io().execute(() -> {
             int borrados = db.jornadaDao().borrarSincronizados()
-                    + db.movimientoDao().borrarSincronizados();
+                    + db.movimientoDao().borrarSincronizados()
+                    + db.cicloDao().borrarCerradosSincronizados();
             try {
                 db.getOpenHelper().getWritableDatabase().query("VACUUM").close();
             } catch (Exception ignorada) { }

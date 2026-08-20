@@ -16,6 +16,9 @@ public interface CatalogoDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void guardarPiscinas(List<PiscinaLocal> piscinas);
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    void guardarPiscina(PiscinaLocal piscina);
+
     @Query("SELECT * FROM piscina_local WHERE activa = 1 AND tipo = 'PECES' ORDER BY codigo")
     LiveData<List<PiscinaLocal>> observarPiscinasPeces();
 

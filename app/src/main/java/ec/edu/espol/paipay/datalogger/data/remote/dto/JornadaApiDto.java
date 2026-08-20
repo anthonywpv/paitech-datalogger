@@ -8,6 +8,7 @@ import java.util.List;
 public class JornadaApiDto {
     public String id;
     public String piscina;
+    public String ciclo;
     @SerializedName("piscina_codigo") public String piscinaCodigo;
     public String especie;
     public AutorDto autor;

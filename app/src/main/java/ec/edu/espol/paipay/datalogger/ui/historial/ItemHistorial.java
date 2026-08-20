@@ -10,10 +10,12 @@ public class ItemHistorial {
     public final long creadoEn;
     public final boolean sincronizado;
     public final String estadoLocal;
+    public final String autorCorreo;
+    public final boolean editable;
 
     public ItemHistorial(Tipo tipo, String uuid, String titulo, String detalle,
                          String fechaMuestreo, long creadoEn, boolean sincronizado,
-                         String estadoLocal) {
+                         String estadoLocal, String autorCorreo, boolean editable) {
         this.tipo = tipo;
         this.uuid = uuid;
         this.titulo = titulo;
@@ -22,6 +24,8 @@ public class ItemHistorial {
         this.creadoEn = creadoEn;
         this.sincronizado = sincronizado;
         this.estadoLocal = estadoLocal;
+        this.autorCorreo = autorCorreo;
+        this.editable = editable;
     }
 
     public boolean esEncabezado() { return tipo == Tipo.ENCABEZADO; }

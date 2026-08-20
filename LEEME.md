@@ -1,12 +1,13 @@
 # Paipay DataLogger Android
 
-Aplicación Android nativa en Java para registrar jornadas de acuicultura y movimientos de población en Paipayales. La rama `dev` contiene el desarrollo de v1.4.
+Aplicación Android nativa en Java para registrar ciclos, jornadas y movimientos
+de acuicultura en Paipayales. La rama `dev` contiene el desarrollo de v1.5-dev.
 
 ## Arquitectura
 
 ```text
 Android (Java)
-  ├─ formularios y semáforo
+  ├─ ciclos, formularios, recordatorios y semáforo
   ├─ Room: fuente local y cola offline
   ├─ WorkManager: reintentos cuando vuelve la red
   └─ Retrofit HTTPS
@@ -18,27 +19,38 @@ Neon PostgreSQL
 
 Android no conoce credenciales de PostgreSQL, no usa Neon Auth y no escribe directamente en Neon. Django es la autoridad de autenticación, permisos, validaciones, auditoría y transacciones.
 
-## Funcionalidad v1.4
+## Funcionalidad v1.5-dev
 
 - Primer inicio de sesión online con correo y contraseña administrados por Django.
 - Sesión local cifrada para poder abrir y trabajar sin conexión después del primer ingreso.
 - Catálogo de piscinas descargado desde Django y almacenado en Room.
+- Apertura y cierre explícitos de un único ciclo activo por piscina, incluso offline.
+- Predicción cacheada por mediana de supervivencia de ciclos anteriores de la
+  misma piscina; sin historia no se inventa una cifra.
 - Jornadas solo de agua, solo de biometría o mixtas.
+- Recordatorios informativos de agua semanal y biometría mensual, con dos días
+  de tolerancia; nunca bloquean un registro adicional o tardío.
 - Población estimada obligatoria en toda jornada finalizada.
 - Bloque de agua: pH, nitrato, nitrito y amoníaco total. El equipo confirmado
   es un API Freshwater Master Test Kit con escala ppm; los nombres y valores
   discretos de la tarjeta ya forman parte del contrato v1.4.
 - Peces anónimos con peso en gramos y longitud total en centímetros.
 - Borradores de jornada locales que sobreviven al cierre de la app.
-- Movimientos independientes: siembra, mortalidad, cosecha/venta, traslado, escape y ajuste.
+- Movimientos excepcionales: mortalidad, cosecha/venta parcial, traslado,
+  escape y ajuste. La siembra corresponde a la apertura del ciclo.
 - Edición y anulación lógica offline de jornadas y movimientos propios.
 - UUID para reintentos idempotentes y versión del servidor para detectar conflictos HTTP `409`.
 - Comparación visible de las versiones local/remota ante un `409`, con decisión
   explícita entre descartar el cambio local o reaplicarlo sobre la versión remota.
-- Historial móvil limitado a la cuenta activa.
+- Historial comunitario cacheado; solo el autor puede editar/anular desde la app.
 - Semáforo cacheado de la última jornada comunitaria con agua por piscina, sin importar su autor.
 - Advertencia de poco espacio y protección de registros pendientes ante almacenamiento lleno.
-- Lombricultura visible únicamente como “Próximamente”. Ensayos de laboratorio fuera de v1.4.
+- Resolución explícita de conflictos de ciclo: adoptar servidor o reintentar solo
+  un cierre compatible; las jornadas/movimientos pendientes se reasignan al ciclo
+  remoto adoptado para no perder trabajo de campo.
+- Estructura de sensores horarios preparada en Django pero deshabilitada; la app
+  todavía no registra oxígeno, temperatura ni turbidez.
+- Lombricultura visible únicamente como “Próximamente”. Ensayos de laboratorio fuera de v1.5.
 
 ## Modelo local
 
@@ -53,9 +65,14 @@ Entidades Room principales:
 - `SemaforoLocal`: último resumen comunitario descargado para consulta offline.
 - `ConflictoLocal`: instantánea remota y operación local original necesarias para
   resolver un `409` sin perder ninguna de las dos versiones.
+- `CicloLocal`: apertura, cierre, versión, estado de sincronización e instantánea
+  inmutable de predicción.
 
-El esquema Room v2 agrega `ConflictoLocal` mediante una migración `1 → 2` que
-conserva jornadas, peces, movimientos y borradores ya guardados en v1.4-dev.
+El esquema Room actual es v4. Las migraciones `1 → 2`, `2 → 3` y `3 → 4`
+conservan los registros existentes; la última añade ciclos, referencias desde
+jornadas/movimientos y el estado cacheado de recordatorios. El archivo físico
+sigue llamándose `paipay_datalogger_v14.db` para actualizar instalaciones v1.4
+sin crear una base paralela ni perder pendientes.
 
 Estados locales relevantes:
 
@@ -146,14 +163,14 @@ El APK de depuración queda en:
 app/build/outputs/apk/debug/app-debug.apk
 ```
 
-Las 38 pruebas JVM cubren el semáforo, estados de jornada, reglas de movimientos,
-mapeo del contrato API y conectividad de depuración. Las pruebas en
+Las 42 pruebas JVM cubren semáforo, estados, movimientos, predicción, mapeo del
+contrato API y conectividad de depuración. Las pruebas en
 `app/src/androidTest` validan Room y la sesión en un dispositivo o emulador; no
 se ejecutan con `testDebugUnitTest`.
 
-No se necesita conectar un teléfono para desarrollar. Las 8 pruebas instrumentadas
+No se necesita conectar un teléfono para desarrollar. Las 13 pruebas instrumentadas
 se ejecutaron sin fallos en el AVD `Paipay_API_24`, incluidas las migraciones Room
-`1 → 2` y `2 → 3`. Sin embargo, antes del uso en Paipayales sí será obligatoria una
+`1 → 2`, `2 → 3` y `3 → 4`. Sin embargo, antes del uso en Paipayales sí será obligatoria una
 prueba de aceptación en un teléfono físico, especialmente para funcionamiento
 offline, almacenamiento, formularios biométricos grandes y reconexión.
 
@@ -171,8 +188,13 @@ campo `version`; las correcciones sí envían la versión positiva conocida.
 4. No borrar pendientes para liberar espacio.
 5. No sobrescribir un conflicto de versión sin intervención del usuario.
 6. No agregar especie a cada pez o movimiento; la especie pertenece permanentemente a la piscina.
-7. No incorporar temperatura, oxígeno, laboratorio o variables de lombricultura sin una nueva decisión documentada.
+7. No activar la ingestión de temperatura, oxígeno o turbidez hasta conocer el
+   hardware y aprobar su aprovisionamiento; laboratorio y lombricultura siguen fuera.
 8. No construir SQL con datos externos. Room debe recibirlos mediante parámetros
    DAO y toda escritura remota debe atravesar los serializers/ORM de Django.
 
 El diseño funcional y las razones de arquitectura se mantienen en `../decisiones.md`. El contrato del servidor está en `../PaiPayTech_Django/API.md`.
+
+Para compartir el APK de esta versión se usa una copia fuera del repositorio:
+`../distribucion/PaiPayTech-1.5-dev-railway.apk`. El archivo de compilación dentro
+de `app/build/` y todo `*.apk` están ignorados por Git.

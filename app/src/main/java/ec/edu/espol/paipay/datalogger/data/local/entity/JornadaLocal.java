@@ -21,6 +21,7 @@ public class JornadaLocal {
 
     @PrimaryKey @NonNull public String uuid = "";
     @NonNull public String piscinaUuid = "";
+    public String cicloUuid;
     @NonNull public String piscinaCodigo = "";
     public String especieNombre;
     @NonNull public String autorCorreo = "";

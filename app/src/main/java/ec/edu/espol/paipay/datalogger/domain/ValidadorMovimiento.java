@@ -16,7 +16,7 @@ public final class ValidadorMovimiento {
         boolean destino = destinoUuid != null;
 
         if ("SIEMBRA".equals(tipo)) {
-            return !origen && destino ? null : "La siembra requiere solo una piscina de destino.";
+            return "La siembra se registra iniciando un ciclo productivo.";
         }
         if (Arrays.asList("MORTALIDAD", "COSECHA_VENTA", "ESCAPE").contains(tipo)) {
             return origen && !destino ? null : "Este movimiento requiere solo una piscina de origen.";

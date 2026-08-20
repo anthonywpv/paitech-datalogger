@@ -211,6 +211,12 @@ public class RegistroFragment extends Fragment {
             return null;
         }
         PiscinaLocal piscina = (PiscinaLocal) vista.selectorPiscina.getSelectedItem();
+        if (completar && piscina.cicloActivoUuid == null) {
+            Toast.makeText(requireContext(),
+                    "Esta piscina no tiene un ciclo activo. Inicia uno en la sección Ciclos.",
+                    Toast.LENGTH_LONG).show();
+            return null;
+        }
         Integer poblacion = entero(texto(vista.campoPoblacionTexto));
         if (completar && poblacion == null) {
             vista.campoPoblacion.setError("La población estimada es obligatoria");
@@ -227,6 +233,7 @@ public class RegistroFragment extends Fragment {
         jornada.uuid = uuidActual == null ? SeguridadUtil.nuevoUuid() : uuidActual;
         jornada.versionServidor = versionServidor;
         jornada.piscinaUuid = piscina.uuid;
+        jornada.cicloUuid = piscina.cicloActivoUuid;
         jornada.piscinaCodigo = piscina.codigo;
         jornada.especieNombre = piscina.especieNombre;
         jornada.capturadaEn = FechaUtil.isoUtc(capturadaEnMillis);
