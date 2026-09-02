@@ -15,6 +15,7 @@ public class LoginRespuestaDto {
     }
 
     public static class ComunidadDto {
+        public String id_publico;
         public String codigo;
         public String nombre;
     }

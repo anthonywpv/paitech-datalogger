@@ -6,10 +6,14 @@ import java.util.Map;
 import ec.edu.espol.paipay.datalogger.data.remote.dto.JornadaApiDto;
 import ec.edu.espol.paipay.datalogger.data.remote.dto.CicloApiDto;
 import ec.edu.espol.paipay.datalogger.data.remote.dto.CierreCicloDto;
+import ec.edu.espol.paipay.datalogger.data.remote.dto.CamaApiDto;
+import ec.edu.espol.paipay.datalogger.data.remote.dto.CicloLombriculturaApiDto;
+import ec.edu.espol.paipay.datalogger.data.remote.dto.CierreCicloLombriculturaDto;
 import ec.edu.espol.paipay.datalogger.data.remote.dto.LoginRespuestaDto;
 import ec.edu.espol.paipay.datalogger.data.remote.dto.MovimientoApiDto;
 import ec.edu.espol.paipay.datalogger.data.remote.dto.PiscinaApiDto;
 import ec.edu.espol.paipay.datalogger.data.remote.dto.SemaforoApiDto;
+import ec.edu.espol.paipay.datalogger.data.remote.dto.RegistroLombriculturaApiDto;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
@@ -30,6 +34,41 @@ public interface DjangoApiService {
 
     @GET("api/v1/catalogos/piscinas/")
     Call<List<PiscinaApiDto>> piscinas();
+
+    @GET("api/v1/catalogos/camas/")
+    Call<List<CamaApiDto>> camas();
+
+    @GET("api/v1/lombricultura/ciclos/")
+    Call<List<CicloLombriculturaApiDto>> ciclosLombricultura();
+
+    @GET("api/v1/lombricultura/ciclos/{id}/")
+    Call<CicloLombriculturaApiDto> cicloLombricultura(@Path("id") String id);
+
+    @POST("api/v1/lombricultura/ciclos/")
+    Call<CicloLombriculturaApiDto> crearCicloLombricultura(
+            @Body CicloLombriculturaApiDto ciclo);
+
+    @POST("api/v1/lombricultura/ciclos/{id}/cerrar/")
+    Call<CicloLombriculturaApiDto> cerrarCicloLombricultura(
+            @Path("id") String id, @Body CierreCicloLombriculturaDto cierre);
+
+    @GET("api/v1/lombricultura/registros/")
+    Call<List<RegistroLombriculturaApiDto>> registrosLombricultura();
+
+    @GET("api/v1/lombricultura/registros/{id}/")
+    Call<RegistroLombriculturaApiDto> registroLombricultura(@Path("id") String id);
+
+    @POST("api/v1/lombricultura/registros/")
+    Call<RegistroLombriculturaApiDto> crearRegistroLombricultura(
+            @Body RegistroLombriculturaApiDto registro);
+
+    @PUT("api/v1/lombricultura/registros/{id}/")
+    Call<RegistroLombriculturaApiDto> editarRegistroLombricultura(
+            @Path("id") String id, @Body RegistroLombriculturaApiDto registro);
+
+    @POST("api/v1/lombricultura/registros/{id}/anular/")
+    Call<RegistroLombriculturaApiDto> anularRegistroLombricultura(
+            @Path("id") String id, @Body Map<String, Object> anulacion);
 
     @GET("api/v1/ciclos/")
     Call<List<CicloApiDto>> ciclos();

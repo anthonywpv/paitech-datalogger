@@ -8,15 +8,20 @@ import com.google.gson.Gson;
 import ec.edu.espol.paipay.datalogger.data.local.PaipayDatabase;
 import ec.edu.espol.paipay.datalogger.data.local.entity.ConflictoLocal;
 import ec.edu.espol.paipay.datalogger.data.local.entity.CicloLocal;
+import ec.edu.espol.paipay.datalogger.data.local.entity.CamaLocal;
+import ec.edu.espol.paipay.datalogger.data.local.entity.CicloLombriculturaLocal;
 import ec.edu.espol.paipay.datalogger.data.local.entity.JornadaLocal;
 import ec.edu.espol.paipay.datalogger.data.local.entity.MovimientoLocal;
 import ec.edu.espol.paipay.datalogger.data.local.entity.PiscinaLocal;
+import ec.edu.espol.paipay.datalogger.data.local.entity.RegistroLombriculturaLocal;
 import ec.edu.espol.paipay.datalogger.data.local.model.JornadaConPeces;
 import ec.edu.espol.paipay.datalogger.data.remote.DjangoApiService;
 import ec.edu.espol.paipay.datalogger.data.remote.DjangoCliente;
 import ec.edu.espol.paipay.datalogger.data.remote.dto.JornadaApiDto;
 import ec.edu.espol.paipay.datalogger.data.remote.dto.CicloApiDto;
+import ec.edu.espol.paipay.datalogger.data.remote.dto.CicloLombriculturaApiDto;
 import ec.edu.espol.paipay.datalogger.data.remote.dto.MovimientoApiDto;
+import ec.edu.espol.paipay.datalogger.data.remote.dto.RegistroLombriculturaApiDto;
 import ec.edu.espol.paipay.datalogger.domain.ComparadorConflictos;
 import ec.edu.espol.paipay.datalogger.util.AppExecutors;
 import ec.edu.espol.paipay.datalogger.util.RedUtil;
@@ -51,10 +56,15 @@ public class ConflictoRepositorio {
         AppExecutors.io().execute(() -> {
             try {
                 ConflictoLocal conflicto = obtenerInstantanea(tipo, uuid);
-                DetalleConflicto detalle = ConflictoLocal.JORNADA.equals(tipo)
-                        ? detalleJornada(conflicto)
-                        : ConflictoLocal.CICLO.equals(tipo)
-                        ? detalleCiclo(conflicto) : detalleMovimiento(conflicto);
+                DetalleConflicto detalle;
+                if (ConflictoLocal.JORNADA.equals(tipo)) detalle = detalleJornada(conflicto);
+                else if (ConflictoLocal.CICLO.equals(tipo)) detalle = detalleCiclo(conflicto);
+                else if (ConflictoLocal.MOVIMIENTO.equals(tipo)) detalle = detalleMovimiento(conflicto);
+                else if (ConflictoLocal.CICLO_LOMBRICULTURA.equals(tipo)) {
+                    detalle = detalleCicloLombricultura(conflicto);
+                } else if (ConflictoLocal.REGISTRO_LOMBRICULTURA.equals(tipo)) {
+                    detalle = detalleRegistroLombricultura(conflicto);
+                } else throw new IllegalArgumentException("Tipo de conflicto no reconocido.");
                 AppExecutors.enHiloPrincipal(() -> callback.listo(detalle));
             } catch (Exception error) {
                 String mensaje = mensaje(error);
@@ -77,9 +87,17 @@ public class ConflictoRepositorio {
                 } else if (ConflictoLocal.CICLO.equals(tipo)) {
                     CicloLocal local = db.cicloDao().porUuid(uuid);
                     validarAutor(local == null ? null : local.autorCorreo);
-                } else {
+                } else if (ConflictoLocal.MOVIMIENTO.equals(tipo)) {
                     MovimientoLocal local = db.movimientoDao().porUuid(uuid);
                     validarAutor(local == null ? null : local.autorCorreo);
+                } else if (ConflictoLocal.CICLO_LOMBRICULTURA.equals(tipo)) {
+                    CicloLombriculturaLocal local = db.lombriculturaDao().ciclo(uuid);
+                    validarAutor(local == null ? null : local.autorCorreo);
+                } else if (ConflictoLocal.REGISTRO_LOMBRICULTURA.equals(tipo)) {
+                    RegistroLombriculturaLocal local = db.lombriculturaDao().registro(uuid);
+                    validarAutor(local == null ? null : local.autorCorreo);
+                } else {
+                    throw new IllegalArgumentException("Tipo de conflicto no reconocido.");
                 }
                 db.runInTransaction(() -> {
                     if (ConflictoLocal.JORNADA.equals(tipo)) {
@@ -111,10 +129,35 @@ public class ConflictoRepositorio {
                             }
                             db.catalogoDao().guardarPiscina(piscina);
                         }
-                    } else {
+                    } else if (ConflictoLocal.MOVIMIENTO.equals(tipo)) {
                         MovimientoApiDto dto = gson.fromJson(
                                 conflicto.remotoJson, MovimientoApiDto.class);
                         db.movimientoDao().guardar(MapeadorApi.aLocal(dto, sesion.getUsuario()));
+                    } else if (ConflictoLocal.CICLO_LOMBRICULTURA.equals(tipo)) {
+                        CicloLombriculturaLocal local = db.lombriculturaDao().ciclo(uuid);
+                        CicloLombriculturaApiDto dto = gson.fromJson(
+                                conflicto.remotoJson, CicloLombriculturaApiDto.class);
+                        CicloLombriculturaLocal remota = MapeadorApi.aLocal(
+                                dto, sesion.getUsuario());
+                        CamaLocal cama = db.lombriculturaDao().cama(local.camaUuid);
+                        db.lombriculturaDao().reasignarCiclo(local.uuid, remota.uuid);
+                        db.lombriculturaDao().borrarCiclo(local.uuid);
+                        db.lombriculturaDao().guardarCiclo(remota);
+                        if (cama != null) {
+                            if (CicloLombriculturaLocal.ACTIVO.equals(remota.estado)) {
+                                cama.cicloActivoUuid = remota.uuid;
+                                cama.cicloActivoNumero = remota.numero;
+                            } else if (local.uuid.equals(cama.cicloActivoUuid)) {
+                                cama.cicloActivoUuid = null;
+                                cama.cicloActivoNumero = null;
+                            }
+                            db.lombriculturaDao().guardarCama(cama);
+                        }
+                    } else if (ConflictoLocal.REGISTRO_LOMBRICULTURA.equals(tipo)) {
+                        RegistroLombriculturaApiDto dto = gson.fromJson(
+                                conflicto.remotoJson, RegistroLombriculturaApiDto.class);
+                        db.lombriculturaDao().guardarRegistro(
+                                MapeadorApi.aLocal(dto, sesion.getUsuario()));
                     }
                     db.conflictoDao().borrar(conflicto.clave);
                 });
@@ -172,7 +215,7 @@ public class ConflictoRepositorio {
                         db.cicloDao().guardar(local);
                         db.conflictoDao().borrar(conflicto.clave);
                     });
-                } else {
+                } else if (ConflictoLocal.MOVIMIENTO.equals(tipo)) {
                     MovimientoApiDto remoto = gson.fromJson(
                             conflicto.remotoJson, MovimientoApiDto.class);
                     if ("ANULADO".equals(remoto.estado)) {
@@ -189,6 +232,50 @@ public class ConflictoRepositorio {
                         db.movimientoDao().guardar(local);
                         db.conflictoDao().borrar(conflicto.clave);
                     });
+                } else if (ConflictoLocal.CICLO_LOMBRICULTURA.equals(tipo)) {
+                    CicloLombriculturaApiDto remota = gson.fromJson(
+                            conflicto.remotoJson, CicloLombriculturaApiDto.class);
+                    CicloLombriculturaLocal local = db.lombriculturaDao().ciclo(uuid);
+                    validarAutor(local == null ? null : local.autorCorreo);
+                    boolean cierreLocal = CicloLombriculturaLocal.PENDIENTE_CERRAR.equals(
+                            conflicto.operacionLocal)
+                            || CicloLombriculturaLocal.PENDIENTE_CREAR_Y_CERRAR.equals(
+                            conflicto.operacionLocal);
+                    if (!cierreLocal || !local.uuid.equals(remota.id)
+                            || !CicloLombriculturaLocal.ACTIVO.equals(remota.estado)) {
+                        throw new IllegalStateException(
+                                "No se puede sobrescribir otro ciclo activo. Adopta el servidor.");
+                    }
+                    db.runInTransaction(() -> {
+                        local.versionServidor = remota.version == null ? 0 : remota.version;
+                        local.estadoLocal = CicloLombriculturaLocal.PENDIENTE_CERRAR;
+                        local.errorSincronizacion = null;
+                        local.modificadaEn = System.currentTimeMillis();
+                        db.lombriculturaDao().guardarCiclo(local);
+                        db.conflictoDao().borrar(conflicto.clave);
+                    });
+                } else if (ConflictoLocal.REGISTRO_LOMBRICULTURA.equals(tipo)) {
+                    RegistroLombriculturaApiDto remota = gson.fromJson(
+                            conflicto.remotoJson, RegistroLombriculturaApiDto.class);
+                    if ("ANULADO".equals(remota.estado)) {
+                        throw new IllegalStateException(
+                                "El registro ya fue anulado y no puede sobrescribirse.");
+                    }
+                    RegistroLombriculturaLocal local = db.lombriculturaDao().registro(uuid);
+                    validarAutor(local == null ? null : local.autorCorreo);
+                    db.runInTransaction(() -> {
+                        local.versionServidor = remota.version == null ? 0 : remota.version;
+                        local.estadoLocal = RegistroLombriculturaLocal.PENDIENTE_ANULAR.equals(
+                                conflicto.operacionLocal)
+                                ? RegistroLombriculturaLocal.PENDIENTE_ANULAR
+                                : RegistroLombriculturaLocal.PENDIENTE_EDITAR;
+                        local.errorSincronizacion = null;
+                        local.modificadaEn = System.currentTimeMillis();
+                        db.lombriculturaDao().guardarRegistro(local);
+                        db.conflictoDao().borrar(conflicto.clave);
+                    });
+                } else {
+                    throw new IllegalArgumentException("Tipo de conflicto no reconocido.");
                 }
                 resolverListo(callback);
             } catch (Exception error) {
@@ -244,7 +331,7 @@ public class ConflictoRepositorio {
             }
             conflicto.versionRemota = remota.version == null ? 0 : remota.version;
             conflicto.remotoJson = gson.toJson(remota);
-        } else {
+        } else if (ConflictoLocal.MOVIMIENTO.equals(tipo)) {
             Response<MovimientoApiDto> respuesta = api.movimiento(uuid).execute();
             if (!respuesta.isSuccessful() || respuesta.body() == null) {
                 throw new IllegalStateException("No se pudo descargar el movimiento actual (HTTP "
@@ -252,6 +339,44 @@ public class ConflictoRepositorio {
             }
             conflicto.versionRemota = respuesta.body().version;
             conflicto.remotoJson = gson.toJson(respuesta.body());
+        } else if (ConflictoLocal.CICLO_LOMBRICULTURA.equals(tipo)) {
+            Response<CicloLombriculturaApiDto> respuesta =
+                    api.cicloLombricultura(uuid).execute();
+            CicloLombriculturaApiDto remota = respuesta.isSuccessful()
+                    ? respuesta.body() : null;
+            if (remota == null) {
+                CicloLombriculturaLocal local = db.lombriculturaDao().ciclo(uuid);
+                Response<List<CicloLombriculturaApiDto>> lista =
+                        api.ciclosLombricultura().execute();
+                if (lista.isSuccessful() && lista.body() != null && local != null) {
+                    for (CicloLombriculturaApiDto candidata : lista.body()) {
+                        if (local.camaUuid.equals(candidata.cama)
+                                && CicloLombriculturaLocal.ACTIVO.equals(candidata.estado)) {
+                            remota = candidata;
+                            break;
+                        }
+                    }
+                }
+            }
+            if (remota == null) {
+                throw new IllegalStateException(
+                        "No se encontró el ciclo de lombricultura actual en el servidor.");
+            }
+            conflicto.versionRemota = remota.version == null ? 0 : remota.version;
+            conflicto.remotoJson = gson.toJson(remota);
+        } else if (ConflictoLocal.REGISTRO_LOMBRICULTURA.equals(tipo)) {
+            Response<RegistroLombriculturaApiDto> respuesta =
+                    api.registroLombricultura(uuid).execute();
+            if (!respuesta.isSuccessful() || respuesta.body() == null) {
+                throw new IllegalStateException(
+                        "No se pudo descargar el registro actual (HTTP "
+                                + respuesta.code() + ").");
+            }
+            conflicto.versionRemota = respuesta.body().version == null
+                    ? 0 : respuesta.body().version;
+            conflicto.remotoJson = gson.toJson(respuesta.body());
+        } else {
+            throw new IllegalArgumentException("Tipo de conflicto no reconocido.");
         }
         db.conflictoDao().guardar(conflicto);
         return conflicto;
@@ -297,6 +422,42 @@ public class ConflictoRepositorio {
                 && CicloLocal.ACTIVO.equals(remoto.estado);
         return new DetalleConflicto(conflicto.tipo, conflicto.entidadUuid,
                 ComparadorConflictos.ciclo(local, remoto),
+                remoto.version == null ? 0 : remoto.version,
+                reaplicable, remoto.estado);
+    }
+
+    private DetalleConflicto detalleRegistroLombricultura(ConflictoLocal conflicto) {
+        RegistroLombriculturaLocal local = db.lombriculturaDao().registro(
+                conflicto.entidadUuid);
+        if (local == null) {
+            throw new IllegalStateException("No se encontró el registro local de lombricultura.");
+        }
+        validarAutor(local.autorCorreo);
+        RegistroLombriculturaApiDto remoto = gson.fromJson(
+                conflicto.remotoJson, RegistroLombriculturaApiDto.class);
+        boolean reaplicable = !"ANULADO".equals(remoto.estado);
+        return new DetalleConflicto(conflicto.tipo, conflicto.entidadUuid,
+                ComparadorConflictos.registroLombricultura(local, remoto),
+                remoto.version == null ? 0 : remoto.version,
+                reaplicable, remoto.estado);
+    }
+
+    private DetalleConflicto detalleCicloLombricultura(ConflictoLocal conflicto) {
+        CicloLombriculturaLocal local = db.lombriculturaDao().ciclo(conflicto.entidadUuid);
+        if (local == null) {
+            throw new IllegalStateException("No se encontró el ciclo local de lombricultura.");
+        }
+        validarAutor(local.autorCorreo);
+        CicloLombriculturaApiDto remoto = gson.fromJson(
+                conflicto.remotoJson, CicloLombriculturaApiDto.class);
+        boolean cierreLocal = CicloLombriculturaLocal.PENDIENTE_CERRAR.equals(
+                conflicto.operacionLocal)
+                || CicloLombriculturaLocal.PENDIENTE_CREAR_Y_CERRAR.equals(
+                conflicto.operacionLocal);
+        boolean reaplicable = cierreLocal && local.uuid.equals(remoto.id)
+                && CicloLombriculturaLocal.ACTIVO.equals(remoto.estado);
+        return new DetalleConflicto(conflicto.tipo, conflicto.entidadUuid,
+                ComparadorConflictos.cicloLombricultura(local, remoto),
                 remoto.version == null ? 0 : remoto.version,
                 reaplicable, remoto.estado);
     }

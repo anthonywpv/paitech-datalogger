@@ -29,6 +29,7 @@ import ec.edu.espol.paipay.datalogger.databinding.FragmentRegistroBinding;
 import ec.edu.espol.paipay.datalogger.databinding.ItemPezFormBinding;
 import ec.edu.espol.paipay.datalogger.domain.ValidadorAgua;
 import ec.edu.espol.paipay.datalogger.sync.SincronizacionWorker;
+import ec.edu.espol.paipay.datalogger.ui.lombricultura.LombriculturaFragment;
 import ec.edu.espol.paipay.datalogger.util.FechaUtil;
 import ec.edu.espol.paipay.datalogger.util.SeguridadUtil;
 
@@ -82,6 +83,11 @@ public class RegistroFragment extends Fragment {
                 getParentFragmentManager().beginTransaction()
                         .replace(R.id.contenedor, new MovimientoFragment())
                         .addToBackStack("nuevo_movimiento")
+                        .commit());
+        vista.botonLombricultura.setOnClickListener(v ->
+                getParentFragmentManager().beginTransaction()
+                        .replace(R.id.contenedor, new LombriculturaFragment())
+                        .addToBackStack("lombricultura")
                         .commit());
 
         repositorio.piscinas().observe(getViewLifecycleOwner(), lista -> {

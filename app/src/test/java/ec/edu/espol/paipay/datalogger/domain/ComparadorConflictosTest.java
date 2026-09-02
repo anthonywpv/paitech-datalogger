@@ -8,11 +8,15 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 import ec.edu.espol.paipay.datalogger.data.local.entity.JornadaLocal;
+import ec.edu.espol.paipay.datalogger.data.local.entity.CicloLombriculturaLocal;
 import ec.edu.espol.paipay.datalogger.data.local.entity.MovimientoLocal;
 import ec.edu.espol.paipay.datalogger.data.local.entity.ObservacionPezLocal;
+import ec.edu.espol.paipay.datalogger.data.local.entity.RegistroLombriculturaLocal;
 import ec.edu.espol.paipay.datalogger.data.local.model.JornadaConPeces;
 import ec.edu.espol.paipay.datalogger.data.remote.dto.JornadaApiDto;
 import ec.edu.espol.paipay.datalogger.data.remote.dto.MovimientoApiDto;
+import ec.edu.espol.paipay.datalogger.data.remote.dto.CicloLombriculturaApiDto;
+import ec.edu.espol.paipay.datalogger.data.remote.dto.RegistroLombriculturaApiDto;
 
 public class ComparadorConflictosTest {
     @Test public void jornadaMuestraAmbasVersionesYDiferenciasImportantes() {
@@ -94,5 +98,46 @@ public class ComparadorConflictosTest {
 
         assertTrue(resultado.contains("No hay diferencias visibles"));
         assertTrue(resultado.contains("SERVIDOR (v2)"));
+    }
+
+    @Test public void lombriculturaComparaPhConteoYCierreDeCiclo() {
+        RegistroLombriculturaLocal local = new RegistroLombriculturaLocal();
+        local.versionServidor = 1;
+        local.camaCodigo = "C-01";
+        local.capturadaEn = "2026-09-01T18:00:00Z";
+        local.phSuelo = 6.8d;
+        local.conteoLombrices = 120;
+        RegistroLombriculturaApiDto remoto = new RegistroLombriculturaApiDto();
+        remoto.version = 2;
+        remoto.camaCodigo = "C-01";
+        remoto.capturadaEn = local.capturadaEn;
+        remoto.phSuelo = "7.10";
+        remoto.conteoLombrices = 180;
+
+        String registro = ComparadorConflictos.registroLombricultura(local, remoto);
+        assertTrue(registro.contains("pH del suelo: teléfono «6.8» / servidor «7.1»"));
+        assertTrue(registro.contains("Conteo real: teléfono «120» / servidor «180»"));
+
+        CicloLombriculturaLocal cicloLocal = new CicloLombriculturaLocal();
+        cicloLocal.uuid = "ciclo-1";
+        cicloLocal.camaCodigo = "C-01";
+        cicloLocal.estado = "CERRADO";
+        cicloLocal.iniciadoEn = "2026-09-01T18:00:00Z";
+        cicloLocal.conteoInicial = 100;
+        cicloLocal.cerradoEn = "2027-03-01T18:00:00Z";
+        cicloLocal.conteoFinal = 160;
+        cicloLocal.versionServidor = 1;
+        CicloLombriculturaApiDto cicloRemoto = new CicloLombriculturaApiDto();
+        cicloRemoto.id = "ciclo-1";
+        cicloRemoto.camaCodigo = "C-01";
+        cicloRemoto.estado = "CERRADO";
+        cicloRemoto.iniciadoEn = cicloLocal.iniciadoEn;
+        cicloRemoto.conteoInicial = 100;
+        cicloRemoto.cerradoEn = cicloLocal.cerradoEn;
+        cicloRemoto.conteoFinal = 175;
+        cicloRemoto.version = 2;
+
+        String ciclo = ComparadorConflictos.cicloLombricultura(cicloLocal, cicloRemoto);
+        assertTrue(ciclo.contains("Conteo final: teléfono «160» / servidor «175»"));
     }
 }

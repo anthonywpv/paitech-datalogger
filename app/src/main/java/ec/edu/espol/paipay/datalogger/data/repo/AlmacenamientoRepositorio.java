@@ -50,10 +50,14 @@ public class AlmacenamientoRepositorio {
         AppExecutors.io().execute(() -> {
             int sincronizados = db.jornadaDao().contarSincronizados()
                     + db.movimientoDao().contarSincronizados()
-                    + db.cicloDao().contarSincronizados();
+                    + db.cicloDao().contarSincronizados()
+                    + db.lombriculturaDao().contarRegistrosResueltos()
+                    + db.lombriculturaDao().contarCiclosSincronizados();
             int pendientes = db.jornadaDao().contarNoResueltas()
                     + db.movimientoDao().contarNoResueltos()
-                    + db.cicloDao().contarNoResueltos();
+                    + db.cicloDao().contarNoResueltos()
+                    + db.lombriculturaDao().contarRegistrosNoResueltos()
+                    + db.lombriculturaDao().contarCiclosNoResueltos();
             Resumen resumen = new Resumen(sincronizados, pendientes,
                     bytesDeLaBase(), bytesDisponibles());
             AppExecutors.enHiloPrincipal(() -> callback.listo(resumen));
@@ -64,7 +68,9 @@ public class AlmacenamientoRepositorio {
         AppExecutors.io().execute(() -> {
             int borrados = db.jornadaDao().borrarSincronizados()
                     + db.movimientoDao().borrarSincronizados()
-                    + db.cicloDao().borrarCerradosSincronizados();
+                    + db.cicloDao().borrarCerradosSincronizados()
+                    + db.lombriculturaDao().borrarRegistrosResueltos()
+                    + db.lombriculturaDao().borrarCiclosCerradosSincronizados();
             try {
                 db.getOpenHelper().getWritableDatabase().query("VACUUM").close();
             } catch (Exception ignorada) { }

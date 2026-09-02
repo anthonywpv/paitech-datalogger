@@ -39,6 +39,9 @@ public interface CicloDao {
     @Query("SELECT COUNT(*) FROM ciclo_local WHERE estadoLocal IN ('PENDIENTE_CREAR','PENDIENTE_CERRAR','PENDIENTE_CREAR_Y_CERRAR','CONFLICTO')")
     int contarNoResueltos();
 
+    @Query("SELECT DISTINCT autorCorreo FROM ciclo_local WHERE estadoLocal IN ('PENDIENTE_CREAR','PENDIENTE_CERRAR','PENDIENTE_CREAR_Y_CERRAR','CONFLICTO')")
+    List<String> autoresNoResueltos();
+
     @Query("SELECT COUNT(*) FROM ciclo_local WHERE estadoLocal = 'SINCRONIZADO'")
     int contarSincronizados();
 

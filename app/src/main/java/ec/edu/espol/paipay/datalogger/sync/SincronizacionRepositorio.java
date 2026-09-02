@@ -11,20 +11,26 @@ import java.util.Map;
 
 import ec.edu.espol.paipay.datalogger.data.local.PaipayDatabase;
 import ec.edu.espol.paipay.datalogger.data.local.entity.ConflictoLocal;
+import ec.edu.espol.paipay.datalogger.data.local.entity.CamaLocal;
+import ec.edu.espol.paipay.datalogger.data.local.entity.CicloLombriculturaLocal;
 import ec.edu.espol.paipay.datalogger.data.local.entity.CicloLocal;
 import ec.edu.espol.paipay.datalogger.data.local.entity.JornadaLocal;
 import ec.edu.espol.paipay.datalogger.data.local.entity.MovimientoLocal;
 import ec.edu.espol.paipay.datalogger.data.local.entity.PiscinaLocal;
 import ec.edu.espol.paipay.datalogger.data.local.entity.SemaforoLocal;
+import ec.edu.espol.paipay.datalogger.data.local.entity.RegistroLombriculturaLocal;
 import ec.edu.espol.paipay.datalogger.data.local.model.JornadaConPeces;
 import ec.edu.espol.paipay.datalogger.data.remote.DjangoApiService;
 import ec.edu.espol.paipay.datalogger.data.remote.DjangoCliente;
 import ec.edu.espol.paipay.datalogger.data.remote.dto.JornadaApiDto;
 import ec.edu.espol.paipay.datalogger.data.remote.dto.CicloApiDto;
 import ec.edu.espol.paipay.datalogger.data.remote.dto.CierreCicloDto;
+import ec.edu.espol.paipay.datalogger.data.remote.dto.CamaApiDto;
+import ec.edu.espol.paipay.datalogger.data.remote.dto.CicloLombriculturaApiDto;
 import ec.edu.espol.paipay.datalogger.data.remote.dto.MovimientoApiDto;
 import ec.edu.espol.paipay.datalogger.data.remote.dto.PiscinaApiDto;
 import ec.edu.espol.paipay.datalogger.data.remote.dto.SemaforoApiDto;
+import ec.edu.espol.paipay.datalogger.data.remote.dto.RegistroLombriculturaApiDto;
 import ec.edu.espol.paipay.datalogger.data.repo.MapeadorApi;
 import ec.edu.espol.paipay.datalogger.data.repo.DispositivoManager;
 import ec.edu.espol.paipay.datalogger.data.repo.SesionManager;
@@ -68,8 +74,11 @@ public class SincronizacionRepositorio {
                 else movimientos++;
             }
             int ciclos = db.cicloDao().pendientes().size();
+            int registrosLombricultura = db.lombriculturaDao().registrosPendientes().size();
+            int ciclosLombricultura = db.lombriculturaDao().ciclosPendientes().size();
             ResumenPendientes resumen = new ResumenPendientes(
-                    jornadas, movimientos, ciclos, anulaciones);
+                    jornadas, movimientos, ciclos, anulaciones,
+                    registrosLombricultura, ciclosLombricultura);
             AppExecutors.enHiloPrincipal(() -> callback.listo(resumen));
         });
     }
@@ -154,6 +163,65 @@ public class SincronizacionRepositorio {
             }
         }
 
+        List<CicloLombriculturaLocal> ciclosLombricultura =
+                db.lombriculturaDao().ciclosPendientes();
+        if (!ciclosLombricultura.isEmpty()) {
+            notificar(callback, "Sincronizando ciclos de lombricultura…");
+        }
+        for (CicloLombriculturaLocal local : ciclosLombricultura) {
+            if (!mismoAutor(local.autorCorreo)) {
+                fallidos++;
+                errores.append("autor distinto en ciclo de lombricultura ")
+                        .append(local.uuid).append("; ");
+                continue;
+            }
+            try {
+                boolean crear = CicloLombriculturaLocal.PENDIENTE_CREAR.equals(local.estadoLocal)
+                        || CicloLombriculturaLocal.PENDIENTE_CREAR_Y_CERRAR.equals(local.estadoLocal);
+                boolean cerrarDespues = CicloLombriculturaLocal.PENDIENTE_CREAR_Y_CERRAR
+                        .equals(local.estadoLocal);
+                Response<CicloLombriculturaApiDto> respuesta;
+                if (crear) {
+                    respuesta = api.crearCicloLombricultura(
+                            MapeadorApi.aDto(local, dispositivoId)).execute();
+                    if (respuesta.isSuccessful() && respuesta.body() != null && cerrarDespues) {
+                        CicloLombriculturaLocal creado = MapeadorApi.aLocal(
+                                respuesta.body(), sesion.getUsuario());
+                        creado.cerradoEn = local.cerradoEn;
+                        creado.conteoFinal = local.conteoFinal;
+                        creado.observacionesCierre = local.observacionesCierre;
+                        respuesta = api.cerrarCicloLombricultura(
+                                creado.uuid, MapeadorApi.cierreDto(creado)).execute();
+                    }
+                } else {
+                    respuesta = api.cerrarCicloLombricultura(
+                            local.uuid, MapeadorApi.cierreDto(local)).execute();
+                }
+                if (respuesta.code() == 401 || respuesta.code() == 403) {
+                    expirada = true;
+                    fallidos++;
+                } else if (respuesta.code() == 409) {
+                    sesion.registrarValidacionServidor(System.currentTimeMillis());
+                    registrarConflictoCicloLombricultura(api, local);
+                    fallidos++;
+                } else if (respuesta.isSuccessful() && respuesta.body() != null) {
+                    sesion.registrarValidacionServidor(System.currentTimeMillis());
+                    db.lombriculturaDao().guardarCiclo(
+                            MapeadorApi.aLocal(respuesta.body(), sesion.getUsuario()));
+                    borrarConflicto(ConflictoLocal.CICLO_LOMBRICULTURA, local.uuid);
+                    subidos++;
+                } else {
+                    local.errorSincronizacion = "HTTP " + respuesta.code();
+                    db.lombriculturaDao().guardarCiclo(local);
+                    fallidos++;
+                }
+            } catch (Exception error) {
+                fallidos++;
+                errores.append("ciclo de lombricultura: ")
+                        .append(error.getMessage()).append("; ");
+            }
+        }
+
         List<JornadaConPeces> jornadas = db.jornadaDao().pendientes();
         if (!jornadas.isEmpty()) notificar(callback, "Sincronizando jornadas…");
         for (JornadaConPeces local : jornadas) {
@@ -201,6 +269,57 @@ public class SincronizacionRepositorio {
             } catch (Exception error) {
                 fallidos++;
                 errores.append("jornada: ").append(error.getMessage()).append("; ");
+            }
+        }
+
+        List<RegistroLombriculturaLocal> registrosLombricultura =
+                db.lombriculturaDao().registrosPendientes();
+        if (!registrosLombricultura.isEmpty()) {
+            notificar(callback, "Sincronizando registros de lombricultura…");
+        }
+        for (RegistroLombriculturaLocal local : registrosLombricultura) {
+            if (!mismoAutor(local.autorCorreo)) {
+                fallidos++;
+                errores.append("autor distinto en registro de lombricultura ")
+                        .append(local.uuid).append("; ");
+                continue;
+            }
+            try {
+                Response<RegistroLombriculturaApiDto> respuesta;
+                if (RegistroLombriculturaLocal.PENDIENTE_ANULAR.equals(local.estadoLocal)) {
+                    Map<String, Object> anulacion = new HashMap<>();
+                    anulacion.put("version", local.versionServidor);
+                    anulacion.put("motivo", local.motivoCambio);
+                    respuesta = api.anularRegistroLombricultura(local.uuid, anulacion).execute();
+                } else if (RegistroLombriculturaLocal.PENDIENTE_EDITAR.equals(local.estadoLocal)) {
+                    respuesta = api.editarRegistroLombricultura(
+                            local.uuid, MapeadorApi.aDto(local, dispositivoId)).execute();
+                } else {
+                    respuesta = api.crearRegistroLombricultura(
+                            MapeadorApi.aDto(local, dispositivoId)).execute();
+                }
+                if (respuesta.code() == 401 || respuesta.code() == 403) {
+                    expirada = true;
+                    fallidos++;
+                } else if (respuesta.code() == 409) {
+                    sesion.registrarValidacionServidor(System.currentTimeMillis());
+                    registrarConflictoRegistroLombricultura(api, local);
+                    fallidos++;
+                } else if (respuesta.isSuccessful() && respuesta.body() != null) {
+                    sesion.registrarValidacionServidor(System.currentTimeMillis());
+                    db.lombriculturaDao().guardarRegistro(
+                            MapeadorApi.aLocal(respuesta.body(), sesion.getUsuario()));
+                    borrarConflicto(ConflictoLocal.REGISTRO_LOMBRICULTURA, local.uuid);
+                    subidos++;
+                } else {
+                    local.errorSincronizacion = "HTTP " + respuesta.code();
+                    db.lombriculturaDao().guardarRegistro(local);
+                    fallidos++;
+                }
+            } catch (Exception error) {
+                fallidos++;
+                errores.append("registro de lombricultura: ")
+                        .append(error.getMessage()).append("; ");
             }
         }
 
@@ -259,7 +378,9 @@ public class SincronizacionRepositorio {
         ResultadoSincronizacion.Estado estado;
         if (expirada) estado = ResultadoSincronizacion.Estado.SESION_EXPIRADA;
         else if (subidos == 0 && fallidos == 0 && ciclos.isEmpty()
-                && jornadas.isEmpty() && movimientos.isEmpty()) estado = ResultadoSincronizacion.Estado.SIN_PENDIENTES;
+                && jornadas.isEmpty() && movimientos.isEmpty()
+                && ciclosLombricultura.isEmpty()
+                && registrosLombricultura.isEmpty()) estado = ResultadoSincronizacion.Estado.SIN_PENDIENTES;
         else if (fallidos == 0) estado = ResultadoSincronizacion.Estado.EXITO;
         else if (subidos > 0) estado = ResultadoSincronizacion.Estado.PARCIAL;
         else estado = ResultadoSincronizacion.Estado.ERROR;
@@ -307,6 +428,28 @@ public class SincronizacionRepositorio {
             }
             db.catalogoDao().guardarPiscinas(locales);
         }
+        Response<List<CamaApiDto>> camas = api.camas().execute();
+        if (camas.code() == 401 || camas.code() == 403) {
+            throw new SesionExpiradaException();
+        }
+        if (camas.isSuccessful() && camas.body() != null) {
+            servidorValido = true;
+            List<CamaLocal> locales = new ArrayList<>();
+            for (CamaApiDto item : camas.body()) {
+                CamaLocal local = MapeadorApi.cama(item);
+                CamaLocal anterior = db.lombriculturaDao().cama(local.uuid);
+                if (anterior != null && anterior.cicloActivoUuid != null) {
+                    CicloLombriculturaLocal cicloLocal =
+                            db.lombriculturaDao().cicloActivo(anterior.uuid);
+                    if (cicloLocal != null && cicloLocal.pendiente()) {
+                        local.cicloActivoUuid = anterior.cicloActivoUuid;
+                        local.cicloActivoNumero = anterior.cicloActivoNumero;
+                    }
+                }
+                locales.add(local);
+            }
+            db.lombriculturaDao().guardarCamas(locales);
+        }
         Response<List<CicloApiDto>> ciclos = api.ciclos().execute();
         if (ciclos.code() == 401 || ciclos.code() == 403) {
             throw new SesionExpiradaException();
@@ -320,6 +463,21 @@ public class SincronizacionRepositorio {
                 }
             }
         }
+        Response<List<CicloLombriculturaApiDto>> ciclosLombricultura =
+                api.ciclosLombricultura().execute();
+        if (ciclosLombricultura.code() == 401 || ciclosLombricultura.code() == 403) {
+            throw new SesionExpiradaException();
+        }
+        if (ciclosLombricultura.isSuccessful() && ciclosLombricultura.body() != null) {
+            servidorValido = true;
+            for (CicloLombriculturaApiDto item : ciclosLombricultura.body()) {
+                String estado = db.lombriculturaDao().estadoLocalCiclo(item.id);
+                if (estado == null || CicloLombriculturaLocal.SINCRONIZADO.equals(estado)) {
+                    db.lombriculturaDao().guardarCiclo(
+                            MapeadorApi.aLocal(item, sesion.getUsuario()));
+                }
+            }
+        }
         Response<List<JornadaApiDto>> jornadas = api.jornadas().execute();
         if (jornadas.code() == 401 || jornadas.code() == 403) {
             throw new SesionExpiradaException();
@@ -327,6 +485,25 @@ public class SincronizacionRepositorio {
         if (jornadas.isSuccessful() && jornadas.body() != null) {
             servidorValido = true;
             for (JornadaApiDto item : jornadas.body()) guardarJornadaRemota(item, false);
+        }
+        Response<List<RegistroLombriculturaApiDto>> registrosLombricultura =
+                api.registrosLombricultura().execute();
+        if (registrosLombricultura.code() == 401
+                || registrosLombricultura.code() == 403) {
+            throw new SesionExpiradaException();
+        }
+        if (registrosLombricultura.isSuccessful()
+                && registrosLombricultura.body() != null) {
+            servidorValido = true;
+            for (RegistroLombriculturaApiDto item : registrosLombricultura.body()) {
+                String estado = db.lombriculturaDao().estadoLocalRegistro(item.id);
+                if (estado == null
+                        || RegistroLombriculturaLocal.SINCRONIZADO.equals(estado)
+                        || RegistroLombriculturaLocal.ANULADO.equals(estado)) {
+                    db.lombriculturaDao().guardarRegistro(
+                            MapeadorApi.aLocal(item, sesion.getUsuario()));
+                }
+            }
         }
         Response<List<SemaforoApiDto>> semaforos = api.semaforos().execute();
         if (semaforos.isSuccessful() && semaforos.body() != null) {
@@ -449,6 +626,48 @@ public class SincronizacionRepositorio {
         local.errorSincronizacion = "Existe un ciclo o una versión incompatible en el servidor.";
         db.runInTransaction(() -> {
             db.cicloDao().guardar(local);
+            db.conflictoDao().guardar(conflicto);
+        });
+    }
+
+    private void registrarConflictoCicloLombricultura(
+            DjangoApiService api, CicloLombriculturaLocal local) {
+        ConflictoLocal conflicto = conflictoBase(
+                ConflictoLocal.CICLO_LOMBRICULTURA, local.uuid, local.estadoLocal);
+        try {
+            Response<CicloLombriculturaApiDto> actual =
+                    api.cicloLombricultura(local.uuid).execute();
+            if (actual.isSuccessful() && actual.body() != null) {
+                conflicto.versionRemota = actual.body().version == null
+                        ? 0 : actual.body().version;
+                conflicto.remotoJson = gson.toJson(actual.body());
+            }
+        } catch (Exception ignorado) { }
+        local.estadoLocal = CicloLombriculturaLocal.CONFLICTO;
+        local.errorSincronizacion = "Existe un ciclo o versión incompatible en el servidor.";
+        db.runInTransaction(() -> {
+            db.lombriculturaDao().guardarCiclo(local);
+            db.conflictoDao().guardar(conflicto);
+        });
+    }
+
+    private void registrarConflictoRegistroLombricultura(
+            DjangoApiService api, RegistroLombriculturaLocal local) {
+        ConflictoLocal conflicto = conflictoBase(
+                ConflictoLocal.REGISTRO_LOMBRICULTURA, local.uuid, local.estadoLocal);
+        try {
+            Response<RegistroLombriculturaApiDto> actual =
+                    api.registroLombricultura(local.uuid).execute();
+            if (actual.isSuccessful() && actual.body() != null) {
+                conflicto.versionRemota = actual.body().version == null
+                        ? 0 : actual.body().version;
+                conflicto.remotoJson = gson.toJson(actual.body());
+            }
+        } catch (Exception ignorado) { }
+        local.estadoLocal = RegistroLombriculturaLocal.CONFLICTO;
+        local.errorSincronizacion = "El servidor tiene una versión más reciente.";
+        db.runInTransaction(() -> {
+            db.lombriculturaDao().guardarRegistro(local);
             db.conflictoDao().guardar(conflicto);
         });
     }

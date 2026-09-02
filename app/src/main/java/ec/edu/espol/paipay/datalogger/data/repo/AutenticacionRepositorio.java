@@ -11,9 +11,11 @@ import java.util.Map;
 
 import ec.edu.espol.paipay.datalogger.data.local.PaipayDatabase;
 import ec.edu.espol.paipay.datalogger.data.local.entity.PiscinaLocal;
+import ec.edu.espol.paipay.datalogger.data.local.entity.CamaLocal;
 import ec.edu.espol.paipay.datalogger.data.remote.DjangoCliente;
 import ec.edu.espol.paipay.datalogger.data.remote.dto.LoginRespuestaDto;
 import ec.edu.espol.paipay.datalogger.data.remote.dto.PiscinaApiDto;
+import ec.edu.espol.paipay.datalogger.data.remote.dto.CamaApiDto;
 import ec.edu.espol.paipay.datalogger.util.AppExecutors;
 import ec.edu.espol.paipay.datalogger.util.RedUtil;
 import retrofit2.Response;
@@ -31,7 +33,8 @@ public class AutenticacionRepositorio {
     }
 
     public enum Resultado {
-        EXITO, CREDENCIALES_INVALIDAS, DATOS_DE_OTRA_CUENTA, RECHAZADO_POR_SERVIDOR,
+        EXITO, CREDENCIALES_INVALIDAS, DATOS_DE_OTRA_CUENTA,
+        DATOS_PENDIENTES_DE_OTRA_COMUNIDAD, RECHAZADO_POR_SERVIDOR,
         SIN_INTERNET, CUENTA_BLOQUEADA, ERROR_SERVIDOR
     }
 
@@ -63,8 +66,7 @@ public class AutenticacionRepositorio {
                 }
                 String correoAnterior = sesion.getPropietarioLocal();
                 if (correoAnterior.isEmpty()) correoAnterior = sesion.getUsuario();
-                sesion.cerrarSesion();
-                DjangoCliente.reiniciar();
+                String comunidadAnterior = sesion.getComunidadId();
                 Map<String, String> credenciales = new HashMap<>();
                 credenciales.put("email", correoNormalizado);
                 credenciales.put("password", clave);
@@ -86,17 +88,36 @@ public class AutenticacionRepositorio {
                     return;
                 }
                 LoginRespuestaDto cuerpo = respuesta.body();
+                if (cuerpo.usuario.comunidad == null
+                        || cuerpo.usuario.comunidad.id_publico == null
+                        || cuerpo.usuario.comunidad.id_publico.isEmpty()) {
+                    limpiarTokenNuevo(cuerpo.token);
+                    informar(callback, Resultado.ERROR_SERVIDOR);
+                    return;
+                }
+                String comunidadNueva = cuerpo.usuario.comunidad.id_publico;
+                boolean cambiaComunidad = !comunidadAnterior.isEmpty()
+                        && !comunidadAnterior.equals(comunidadNueva);
+                if (cambiaComunidad && hayDatosNoResueltos()) {
+                    limpiarTokenNuevo(cuerpo.token);
+                    informar(callback, Resultado.DATOS_PENDIENTES_DE_OTRA_COMUNIDAD);
+                    return;
+                }
+                boolean cambiaCuenta = !correoAnterior.isEmpty()
+                        && !correoAnterior.equalsIgnoreCase(correoNormalizado);
+                if (cambiaComunidad || cambiaCuenta) {
+                    db.clearAllTables();
+                    sesion.cerrarSesionCompletaLocal();
+                }
                 sesion.guardarSesion(
                         cuerpo.usuario.correo,
                         cuerpo.usuario.nombre,
                         cuerpo.token,
-                        cuerpo.debe_cambiar_clave);
+                        cuerpo.debe_cambiar_clave,
+                        cuerpo.usuario.comunidad.id_publico,
+                        cuerpo.usuario.comunidad.codigo,
+                        cuerpo.usuario.comunidad.nombre);
                 DjangoCliente.reiniciar();
-
-                if (!correoAnterior.isEmpty()
-                        && !correoAnterior.equalsIgnoreCase(correoNormalizado)) {
-                    db.clearAllTables();
-                }
 
                 if (cuerpo.debe_cambiar_clave) {
                     AppExecutors.enHiloPrincipal(() ->
@@ -115,6 +136,16 @@ public class AutenticacionRepositorio {
                 List<PiscinaLocal> locales = new ArrayList<>();
                 for (PiscinaApiDto piscina : catalogo.body()) locales.add(MapeadorApi.piscina(piscina));
                 db.catalogoDao().guardarPiscinas(locales);
+                Response<List<CamaApiDto>> catalogoCamas = DjangoCliente.api(contexto)
+                        .camas().execute();
+                if (!catalogoCamas.isSuccessful() || catalogoCamas.body() == null) {
+                    limpiarLoginIncompleto(cuerpo.token);
+                    informar(callback, Resultado.ERROR_SERVIDOR);
+                    return;
+                }
+                List<CamaLocal> camas = new ArrayList<>();
+                for (CamaApiDto cama : catalogoCamas.body()) camas.add(MapeadorApi.cama(cama));
+                db.lombriculturaDao().guardarCamas(camas);
                 AppExecutors.enHiloPrincipal(() -> callback.onExito(cuerpo.usuario.nombre, false));
             } catch (Exception error) {
                 String tokenIncompleto = sesion.getToken();
@@ -137,11 +168,35 @@ public class AutenticacionRepositorio {
         DjangoCliente.reiniciar();
     }
 
+    private void limpiarTokenNuevo(String token) {
+        if (token == null || token.isEmpty()) return;
+        try { DjangoCliente.api(contexto).cerrarSesion("Token " + token).execute(); }
+        catch (Exception ignorada) { }
+        DjangoCliente.reiniciar();
+    }
+
+    private boolean hayDatosNoResueltos() {
+        return !db.jornadaDao().pendientes().isEmpty()
+                || db.movimientoDao().contarNoResueltos() > 0
+                || db.cicloDao().contarNoResueltos() > 0
+                || db.lombriculturaDao().contarRegistrosNoResueltos() > 0
+                || db.lombriculturaDao().contarCiclosNoResueltos() > 0;
+    }
+
     private boolean hayDatosNoResueltosDeOtraCuenta(String correo) {
         for (String autor : db.jornadaDao().autoresNoResueltos()) {
             if (autor != null && !autor.equalsIgnoreCase(correo)) return true;
         }
         for (String autor : db.movimientoDao().autoresNoResueltos()) {
+            if (autor != null && !autor.equalsIgnoreCase(correo)) return true;
+        }
+        for (String autor : db.cicloDao().autoresNoResueltos()) {
+            if (autor != null && !autor.equalsIgnoreCase(correo)) return true;
+        }
+        for (String autor : db.lombriculturaDao().autoresNoResueltos()) {
+            if (autor != null && !autor.equalsIgnoreCase(correo)) return true;
+        }
+        for (String autor : db.lombriculturaDao().autoresCiclosNoResueltos()) {
             if (autor != null && !autor.equalsIgnoreCase(correo)) return true;
         }
         return false;

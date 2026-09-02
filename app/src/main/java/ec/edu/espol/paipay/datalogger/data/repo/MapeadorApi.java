@@ -4,16 +4,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ec.edu.espol.paipay.datalogger.data.local.entity.JornadaLocal;
+import ec.edu.espol.paipay.datalogger.data.local.entity.CamaLocal;
+import ec.edu.espol.paipay.datalogger.data.local.entity.CicloLombriculturaLocal;
 import ec.edu.espol.paipay.datalogger.data.local.entity.CicloLocal;
 import ec.edu.espol.paipay.datalogger.data.local.entity.MovimientoLocal;
 import ec.edu.espol.paipay.datalogger.data.local.entity.ObservacionPezLocal;
 import ec.edu.espol.paipay.datalogger.data.local.entity.PiscinaLocal;
+import ec.edu.espol.paipay.datalogger.data.local.entity.RegistroLombriculturaLocal;
 import ec.edu.espol.paipay.datalogger.data.local.model.JornadaConPeces;
 import ec.edu.espol.paipay.datalogger.data.remote.dto.JornadaApiDto;
+import ec.edu.espol.paipay.datalogger.data.remote.dto.CamaApiDto;
+import ec.edu.espol.paipay.datalogger.data.remote.dto.CicloLombriculturaApiDto;
+import ec.edu.espol.paipay.datalogger.data.remote.dto.CierreCicloLombriculturaDto;
 import ec.edu.espol.paipay.datalogger.data.remote.dto.CicloApiDto;
 import ec.edu.espol.paipay.datalogger.data.remote.dto.CierreCicloDto;
 import ec.edu.espol.paipay.datalogger.data.remote.dto.MovimientoApiDto;
 import ec.edu.espol.paipay.datalogger.data.remote.dto.PiscinaApiDto;
+import ec.edu.espol.paipay.datalogger.data.remote.dto.RegistroLombriculturaApiDto;
 import ec.edu.espol.paipay.datalogger.util.SeguridadUtil;
 import ec.edu.espol.paipay.datalogger.util.FechaUtil;
 
@@ -37,6 +44,102 @@ public final class MapeadorApi {
                 || dto.recordatorios.biometria == null
                 ? null : dto.recordatorios.biometria.estado;
         local.recordatoriosActualizadosEn = FechaUtil.isoUtc(System.currentTimeMillis());
+        return local;
+    }
+
+    public static CamaLocal cama(CamaApiDto dto) {
+        CamaLocal local = new CamaLocal();
+        local.uuid = dto.id;
+        local.codigo = dto.codigo;
+        local.nombre = dto.nombre;
+        local.descripcion = dto.descripcion;
+        local.areaM2 = nullableDecimal(dto.areaM2);
+        local.activa = true;
+        local.cicloActivoUuid = dto.cicloActivo == null ? null : dto.cicloActivo.id;
+        local.cicloActivoNumero = dto.cicloActivo == null ? null : dto.cicloActivo.numero;
+        return local;
+    }
+
+    public static CicloLombriculturaApiDto aDto(
+            CicloLombriculturaLocal local, String dispositivoId) {
+        CicloLombriculturaApiDto dto = new CicloLombriculturaApiDto();
+        dto.id = local.uuid;
+        dto.cama = local.camaUuid;
+        dto.iniciadoEn = local.iniciadoEn;
+        dto.conteoInicial = local.conteoInicial;
+        dto.observacionesApertura = local.observacionesApertura;
+        dto.dispositivoId = dispositivoId;
+        return dto;
+    }
+
+    public static CierreCicloLombriculturaDto cierreDto(
+            CicloLombriculturaLocal local) {
+        CierreCicloLombriculturaDto dto = new CierreCicloLombriculturaDto();
+        dto.version = local.versionServidor;
+        dto.cerradoEn = local.cerradoEn;
+        dto.conteoFinal = local.conteoFinal == null ? 0 : local.conteoFinal;
+        dto.observacionesCierre = local.observacionesCierre;
+        return dto;
+    }
+
+    public static CicloLombriculturaLocal aLocal(
+            CicloLombriculturaApiDto dto, String correoSesion) {
+        CicloLombriculturaLocal local = new CicloLombriculturaLocal();
+        local.uuid = dto.id;
+        local.camaUuid = dto.cama;
+        local.camaCodigo = dto.camaCodigo == null ? "" : dto.camaCodigo;
+        local.numero = dto.numero;
+        local.estado = dto.estado;
+        local.iniciadoEn = dto.iniciadoEn;
+        local.conteoInicial = dto.conteoInicial;
+        local.observacionesApertura = dto.observacionesApertura;
+        local.autorCorreo = dto.autorApertura != null && dto.autorApertura.correo != null
+                ? dto.autorApertura.correo : correoSesion;
+        local.cerradoEn = dto.cerradoEn;
+        local.conteoFinal = dto.conteoFinal;
+        local.observacionesCierre = dto.observacionesCierre;
+        local.estadoLocal = CicloLombriculturaLocal.SINCRONIZADO;
+        local.versionServidor = dto.version == null ? 0 : dto.version;
+        local.creadaEn = System.currentTimeMillis();
+        local.modificadaEn = System.currentTimeMillis();
+        return local;
+    }
+
+    public static RegistroLombriculturaApiDto aDto(
+            RegistroLombriculturaLocal local, String dispositivoId) {
+        RegistroLombriculturaApiDto dto = new RegistroLombriculturaApiDto();
+        dto.id = local.uuid;
+        dto.cama = local.camaUuid;
+        dto.ciclo = local.cicloUuid;
+        dto.capturadaEn = local.capturadaEn;
+        dto.phSuelo = String.valueOf(local.phSuelo);
+        dto.conteoLombrices = local.conteoLombrices;
+        dto.observaciones = local.observaciones == null ? "" : local.observaciones;
+        dto.dispositivoId = dispositivoId;
+        dto.version = local.versionServidor > 0 ? local.versionServidor : null;
+        dto.motivoCorreccion = local.motivoCambio == null ? "" : local.motivoCambio;
+        return dto;
+    }
+
+    public static RegistroLombriculturaLocal aLocal(
+            RegistroLombriculturaApiDto dto, String correoSesion) {
+        RegistroLombriculturaLocal local = new RegistroLombriculturaLocal();
+        local.uuid = dto.id;
+        local.camaUuid = dto.cama;
+        local.camaCodigo = dto.camaCodigo == null ? "" : dto.camaCodigo;
+        local.cicloUuid = dto.ciclo;
+        local.autorCorreo = dto.autor != null && dto.autor.correo != null
+                ? dto.autor.correo : correoSesion;
+        local.capturadaEn = dto.capturadaEn;
+        local.phSuelo = decimal(dto.phSuelo);
+        local.conteoLombrices = dto.conteoLombrices;
+        local.observaciones = dto.observaciones;
+        local.estadoLocal = "ANULADO".equals(dto.estado)
+                ? RegistroLombriculturaLocal.ANULADO
+                : RegistroLombriculturaLocal.SINCRONIZADO;
+        local.versionServidor = dto.version == null ? 0 : dto.version;
+        local.creadaEn = System.currentTimeMillis();
+        local.modificadaEn = System.currentTimeMillis();
         return local;
     }
 

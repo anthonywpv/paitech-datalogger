@@ -16,6 +16,9 @@ public class SesionManager {
     private static final String K_ULTIMA_VALIDACION = "ultima_validacion_servidor";
     private static final String K_PROPIETARIO_LOCAL = "propietario_datos_locales";
     private static final String K_CAMBIO_CLAVE_REQUERIDO = "cambio_clave_requerido";
+    private static final String K_COMUNIDAD_ID = "comunidad_id_publico";
+    private static final String K_COMUNIDAD_CODIGO = "comunidad_codigo";
+    private static final String K_COMUNIDAD_NOMBRE = "comunidad_nombre";
     public static final long VIGENCIA_OFFLINE_MS = 30L * 24L * 60L * 60L * 1000L;
     private static volatile SesionManager INSTANCIA;
     private final SharedPreferences prefs;
@@ -51,9 +54,18 @@ public class SesionManager {
 
     public void guardarSesion(String correo, String nombre, String token,
                               boolean cambioClaveRequerido) {
+        guardarSesion(correo, nombre, token, cambioClaveRequerido, "", "", "");
+    }
+
+    public void guardarSesion(String correo, String nombre, String token,
+                              boolean cambioClaveRequerido, String comunidadId,
+                              String comunidadCodigo, String comunidadNombre) {
         prefs.edit().putString(K_CORREO, correo).putString(K_NOMBRE, nombre)
                 .putString(K_TOKEN, token)
                 .putString(K_PROPIETARIO_LOCAL, correo)
+                .putString(K_COMUNIDAD_ID, comunidadId == null ? "" : comunidadId)
+                .putString(K_COMUNIDAD_CODIGO, comunidadCodigo == null ? "" : comunidadCodigo)
+                .putString(K_COMUNIDAD_NOMBRE, comunidadNombre == null ? "" : comunidadNombre)
                 .putBoolean(K_CAMBIO_CLAVE_REQUERIDO, cambioClaveRequerido)
                 .putLong(K_ULTIMA_VALIDACION, System.currentTimeMillis()).apply();
     }
@@ -76,12 +88,17 @@ public class SesionManager {
     }
     public String getToken() { return prefs.getString(K_TOKEN, ""); }
     public String getPropietarioLocal() { return prefs.getString(K_PROPIETARIO_LOCAL, ""); }
+    public String getComunidadId() { return prefs.getString(K_COMUNIDAD_ID, ""); }
+    public String getComunidadCodigo() { return prefs.getString(K_COMUNIDAD_CODIGO, ""); }
+    public String getComunidadNombre() { return prefs.getString(K_COMUNIDAD_NOMBRE, ""); }
     public boolean requiereCambioClave() {
         return prefs.getBoolean(K_CAMBIO_CLAVE_REQUERIDO, false);
     }
     public void cerrarSesion() {
         prefs.edit().remove(K_CORREO).remove(K_NOMBRE).remove(K_TOKEN)
-                .remove(K_ULTIMA_VALIDACION).remove(K_CAMBIO_CLAVE_REQUERIDO).apply();
+                .remove(K_ULTIMA_VALIDACION).remove(K_CAMBIO_CLAVE_REQUERIDO)
+                .remove(K_COMUNIDAD_ID).remove(K_COMUNIDAD_CODIGO)
+                .remove(K_COMUNIDAD_NOMBRE).apply();
     }
 
     public void cerrarSesionCompletaLocal() {

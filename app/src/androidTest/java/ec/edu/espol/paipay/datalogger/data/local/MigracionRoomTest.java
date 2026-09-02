@@ -18,6 +18,7 @@ public class MigracionRoomTest {
     private static final String BASE_PRUEBA_CONFLICTOS = "migracion-conflictos";
     private static final String BASE_PRUEBA_AGUA = "migracion-agua-kit";
     private static final String BASE_PRUEBA_CICLOS = "migracion-ciclos-v15";
+    private static final String BASE_PRUEBA_LOMBRICULTURA = "migracion-lombricultura-v16";
 
     @Rule
     public MigrationTestHelper helper = new MigrationTestHelper(
@@ -102,6 +103,31 @@ public class MigracionRoomTest {
         assertEquals(true, jornadas.isNull(0));
         jornadas.close();
         Cursor ciclos = db.query("SELECT COUNT(*) FROM ciclo_local");
+        ciclos.moveToFirst();
+        assertEquals(0, ciclos.getInt(0));
+        ciclos.close();
+        db.close();
+    }
+
+    @Test public void migracionCuatroACincoAgregaCamasSinAlterarAcuicultura()
+            throws Exception {
+        SupportSQLiteDatabase db = helper.createDatabase(BASE_PRUEBA_LOMBRICULTURA, 4);
+        db.execSQL("INSERT INTO piscina_local "
+                + "(uuid,codigo,nombre,tipo,activa) VALUES "
+                + "('p-v16','P-01','Piscina conservada','PECES',1)");
+        db.close();
+
+        db = helper.runMigrationsAndValidate(
+                BASE_PRUEBA_LOMBRICULTURA, 5, true, PaipayDatabase.MIGRACION_4_5);
+        Cursor piscinas = db.query("SELECT COUNT(*) FROM piscina_local WHERE uuid='p-v16'");
+        piscinas.moveToFirst();
+        assertEquals(1, piscinas.getInt(0));
+        piscinas.close();
+        Cursor camas = db.query("SELECT COUNT(*) FROM cama_local");
+        camas.moveToFirst();
+        assertEquals(0, camas.getInt(0));
+        camas.close();
+        Cursor ciclos = db.query("SELECT COUNT(*) FROM ciclo_lombricultura_local");
         ciclos.moveToFirst();
         assertEquals(0, ciclos.getInt(0));
         ciclos.close();

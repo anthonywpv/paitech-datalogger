@@ -14,6 +14,7 @@
     <string name="login_error_vacio">Escribe tu usuario y tu contraseña</string>
     <string name="login_error_credenciales">Usuario o contraseña incorrectos</string>
     <string name="login_error_otra_cuenta">Este teléfono conserva borradores o cambios sin resolver de otra cuenta. Inicia sesión con esa cuenta y sincronízalos antes de cambiar de usuario.</string>
+    <string name="login_error_otra_comunidad">No puedes cambiar de comunidad porque este teléfono conserva datos pendientes. Vuelve a la comunidad anterior, sincroniza o resuelve los conflictos y luego intenta nuevamente.</string>
     <string name="login_error_sin_internet">Necesitas internet solo para este primer ingreso</string>
     <string name="login_verificando">Verificando…</string>
     <string name="login_error_rechazado">El servidor rechazó la conexión. Revisa la configuración de la API Django.</string>

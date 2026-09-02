@@ -10,10 +10,14 @@ import ec.edu.espol.paipay.datalogger.data.local.entity.JornadaLocal;
 import ec.edu.espol.paipay.datalogger.data.local.entity.CicloLocal;
 import ec.edu.espol.paipay.datalogger.data.local.entity.MovimientoLocal;
 import ec.edu.espol.paipay.datalogger.data.local.entity.ObservacionPezLocal;
+import ec.edu.espol.paipay.datalogger.data.local.entity.CicloLombriculturaLocal;
+import ec.edu.espol.paipay.datalogger.data.local.entity.RegistroLombriculturaLocal;
 import ec.edu.espol.paipay.datalogger.data.local.model.JornadaConPeces;
 import ec.edu.espol.paipay.datalogger.data.remote.dto.JornadaApiDto;
 import ec.edu.espol.paipay.datalogger.data.remote.dto.CicloApiDto;
 import ec.edu.espol.paipay.datalogger.data.remote.dto.MovimientoApiDto;
+import ec.edu.espol.paipay.datalogger.data.remote.dto.CicloLombriculturaApiDto;
+import ec.edu.espol.paipay.datalogger.data.remote.dto.RegistroLombriculturaApiDto;
 
 /** Construye una comparación legible sin decidir por el usuario. */
 public final class ComparadorConflictos {
@@ -104,6 +108,48 @@ public final class ComparadorConflictos {
                 + "\n\nDIFERENCIAS DETECTADAS\n" + listaDiferencias(diferencias);
     }
 
+    public static String registroLombricultura(RegistroLombriculturaLocal local,
+                                                RegistroLombriculturaApiDto remoto) {
+        List<String> diferencias = new ArrayList<>();
+        agregar(diferencias, "Cama", local.camaCodigo, remoto.camaCodigo);
+        agregar(diferencias, "Fecha y hora", local.capturadaEn, remoto.capturadaEn);
+        agregar(diferencias, "pH del suelo", decimal(local.phSuelo),
+                decimal(remoto.phSuelo));
+        agregar(diferencias, "Conteo real", texto(local.conteoLombrices),
+                texto(remoto.conteoLombrices));
+        agregar(diferencias, "Observaciones", vacio(local.observaciones),
+                vacio(remoto.observaciones));
+        return "TU REGISTRO EN EL TELÉFONO (basado en v" + local.versionServidor + ")\n"
+                + resumenRegistroLombricultura(local.camaCodigo, local.capturadaEn,
+                decimal(local.phSuelo), local.conteoLombrices, local.observaciones)
+                + "\n\nVERSIÓN ACTUAL DEL SERVIDOR (v" + remoto.version + ")\n"
+                + resumenRegistroLombricultura(remoto.camaCodigo, remoto.capturadaEn,
+                decimal(remoto.phSuelo), remoto.conteoLombrices, remoto.observaciones)
+                + "\n\nDIFERENCIAS DETECTADAS\n" + listaDiferencias(diferencias);
+    }
+
+    public static String cicloLombricultura(CicloLombriculturaLocal local,
+                                             CicloLombriculturaApiDto remoto) {
+        List<String> diferencias = new ArrayList<>();
+        agregar(diferencias, "Identificador", local.uuid, remoto.id);
+        agregar(diferencias, "Cama", local.camaCodigo, remoto.camaCodigo);
+        agregar(diferencias, "Estado", local.estado, remoto.estado);
+        agregar(diferencias, "Fecha de inicio", local.iniciadoEn, remoto.iniciadoEn);
+        agregar(diferencias, "Conteo inicial", texto(local.conteoInicial),
+                texto(remoto.conteoInicial));
+        agregar(diferencias, "Fecha de cierre", vacio(local.cerradoEn),
+                vacio(remoto.cerradoEn));
+        agregar(diferencias, "Conteo final", texto(local.conteoFinal),
+                texto(remoto.conteoFinal));
+        return "TU CICLO EN EL TELÉFONO (basado en v" + local.versionServidor + ")\n"
+                + resumenCicloLombricultura(local.uuid, local.camaCodigo, local.estado,
+                local.iniciadoEn, local.conteoInicial, local.cerradoEn, local.conteoFinal)
+                + "\n\nCICLO ACTUAL DEL SERVIDOR (v" + remoto.version + ")\n"
+                + resumenCicloLombricultura(remoto.id, remoto.camaCodigo, remoto.estado,
+                remoto.iniciadoEn, remoto.conteoInicial, remoto.cerradoEn, remoto.conteoFinal)
+                + "\n\nDIFERENCIAS DETECTADAS\n" + listaDiferencias(diferencias);
+    }
+
     private static String resumenJornada(String piscina, String fecha, Integer poblacion,
                                           String observaciones, boolean incluyeAgua,
                                           String ph, String nitrato, String nitrito,
@@ -143,6 +189,29 @@ public final class ComparadorConflictos {
                 + "\nCierre: " + vacio(cierre)
                 + "\nDestino: " + vacio(destino)
                 + "\nPoblación final: " + texto(poblacionFinal);
+    }
+
+    private static String resumenRegistroLombricultura(String cama, String fecha,
+                                                        String ph, int conteo,
+                                                        String observaciones) {
+        return "Cama: " + vacio(cama)
+                + "\nFecha y hora: " + vacio(fecha)
+                + "\npH del suelo: " + ph
+                + "\nConteo real: " + conteo
+                + "\nObservaciones: " + vacio(observaciones);
+    }
+
+    private static String resumenCicloLombricultura(String uuid, String cama,
+                                                     String estado, String inicio,
+                                                     int conteoInicial, String cierre,
+                                                     Integer conteoFinal) {
+        return "UUID: " + vacio(uuid)
+                + "\nCama: " + vacio(cama)
+                + "\nEstado: " + vacio(estado)
+                + "\nInicio: " + vacio(inicio)
+                + "\nConteo inicial: " + conteoInicial
+                + "\nCierre: " + vacio(cierre)
+                + "\nConteo final: " + texto(conteoFinal);
     }
 
     private static String resumenPecesLocales(List<ObservacionPezLocal> peces) {

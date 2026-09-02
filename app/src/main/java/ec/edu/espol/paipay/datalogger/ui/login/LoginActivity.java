@@ -114,6 +114,9 @@ public class LoginActivity extends AppCompatActivity {
                     case DATOS_DE_OTRA_CUENTA:
                         mensaje = R.string.login_error_otra_cuenta;
                         break;
+                    case DATOS_PENDIENTES_DE_OTRA_COMUNIDAD:
+                        mensaje = R.string.login_error_otra_comunidad;
+                        break;
                     case RECHAZADO_POR_SERVIDOR:
                         mensaje = R.string.login_error_rechazado;
                         break;

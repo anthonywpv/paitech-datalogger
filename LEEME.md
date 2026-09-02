@@ -1,7 +1,7 @@
 # Paipay DataLogger Android
 
-Aplicación Android nativa en Java para registrar ciclos, jornadas y movimientos
-de acuicultura en Paipayales. La rama `dev` contiene el desarrollo de v1.5-dev.
+Aplicación Android nativa en Java para registrar acuicultura y lombricultura en
+comunidades aisladas. La rama `dev` contiene el desarrollo de v1.6-dev.
 
 ## Arquitectura
 
@@ -19,11 +19,14 @@ Neon PostgreSQL
 
 Android no conoce credenciales de PostgreSQL, no usa Neon Auth y no escribe directamente en Neon. Django es la autoridad de autenticación, permisos, validaciones, auditoría y transacciones.
 
-## Funcionalidad v1.5-dev
+## Funcionalidad v1.6-dev
 
 - Primer inicio de sesión online con correo y contraseña administrados por Django.
 - Sesión local cifrada para poder abrir y trabajar sin conexión después del primer ingreso.
-- Catálogo de piscinas descargado desde Django y almacenado en Room.
+- Catálogos de piscinas y camas descargados desde Django y almacenados en Room.
+- Sesión vinculada al UUID público de una comunidad. Cambiar de cuenta o
+  comunidad exige no tener pendientes/conflictos y limpia la caché antes de
+  descargar el nuevo tenant.
 - Apertura y cierre explícitos de un único ciclo activo por piscina, incluso offline.
 - Predicción cacheada por mediana de supervivencia de ciclos anteriores de la
   misma piscina; sin historia no se inventa una cifra.
@@ -32,8 +35,8 @@ Android no conoce credenciales de PostgreSQL, no usa Neon Auth y no escribe dire
   de tolerancia; nunca bloquean un registro adicional o tardío.
 - Población estimada obligatoria en toda jornada finalizada.
 - Bloque de agua: pH, nitrato, nitrito y amoníaco total. El equipo confirmado
-  es un API Freshwater Master Test Kit con escala ppm; los nombres y valores
-  discretos de la tarjeta ya forman parte del contrato v1.4.
+  es un API Freshwater Master Test Kit con escala ppm; los cuatro campos aceptan
+  escritura numérica manual dentro de los rangos validados por Django.
 - Peces anónimos con peso en gramos y longitud total en centímetros.
 - Borradores de jornada locales que sobreviven al cierre de la app.
 - Movimientos excepcionales: mortalidad, cosecha/venta parcial, traslado,
@@ -50,7 +53,11 @@ Android no conoce credenciales de PostgreSQL, no usa Neon Auth y no escribe dire
   remoto adoptado para no perder trabajo de campo.
 - Estructura de sensores horarios preparada en Django pero deshabilitada; la app
   todavía no registra oxígeno, temperatura ni turbidez.
-- Lombricultura visible únicamente como “Próximamente”. Ensayos de laboratorio fuera de v1.5.
+- Lombricultura offline: selección de cama, apertura/cierre de ciclo, pH del
+  suelo manual de 0 a 14 con incrementos de 0,01, conteo real, observaciones,
+  historial, edición, anulación auditada y resolución de conflictos `409`.
+- Sin recordatorios, movimientos, predicción ni semáforo para lombricultura en
+  esta versión. Ensayos de laboratorio permanecen fuera del alcance.
 
 ## Modelo local
 
@@ -67,10 +74,13 @@ Entidades Room principales:
   resolver un `409` sin perder ninguna de las dos versiones.
 - `CicloLocal`: apertura, cierre, versión, estado de sincronización e instantánea
   inmutable de predicción.
+- `CamaLocal`: catálogo de camas de la comunidad y referencia al ciclo activo.
+- `CicloLombriculturaLocal`: apertura/cierre y conteos reales del ciclo de cama.
+- `RegistroLombriculturaLocal`: pH del suelo, conteo, autor, versión y cola offline.
 
-El esquema Room actual es v4. Las migraciones `1 → 2`, `2 → 3` y `3 → 4`
-conservan los registros existentes; la última añade ciclos, referencias desde
-jornadas/movimientos y el estado cacheado de recordatorios. El archivo físico
+El esquema Room actual es v5. Las migraciones `1 → 2`, `2 → 3`, `3 → 4` y
+`4 → 5` conservan los registros existentes; la última añade camas, ciclos y
+registros de lombricultura sin alterar las tablas acuícolas. El archivo físico
 sigue llamándose `paipay_datalogger_v14.db` para actualizar instalaciones v1.4
 sin crear una base paralela ni perder pendientes.
 
@@ -163,14 +173,14 @@ El APK de depuración queda en:
 app/build/outputs/apk/debug/app-debug.apk
 ```
 
-Las 42 pruebas JVM cubren semáforo, estados, movimientos, predicción, mapeo del
-contrato API y conectividad de depuración. Las pruebas en
+Las 45 pruebas JVM cubren semáforo, estados, movimientos, predicción, mapeo del
+contrato API, comparaciones de lombricultura y conectividad de depuración. Las pruebas en
 `app/src/androidTest` validan Room y la sesión en un dispositivo o emulador; no
 se ejecutan con `testDebugUnitTest`.
 
-No se necesita conectar un teléfono para desarrollar. Las 13 pruebas instrumentadas
-se ejecutaron sin fallos en el AVD `Paipay_API_24`, incluidas las migraciones Room
-`1 → 2`, `2 → 3` y `3 → 4`. Sin embargo, antes del uso en Paipayales sí será obligatoria una
+No se necesita conectar un teléfono para compilar. Las 14 pruebas instrumentadas
+se ejecutaron en el AVD `Paipay_API_24` con Android 7/API 24 e incluyen la
+migración Room `4 → 5`. Antes del uso de campo sigue siendo obligatoria una
 prueba de aceptación en un teléfono físico, especialmente para funcionamiento
 offline, almacenamiento, formularios biométricos grandes y reconexión.
 
@@ -189,12 +199,22 @@ campo `version`; las correcciones sí envían la versión positiva conocida.
 5. No sobrescribir un conflicto de versión sin intervención del usuario.
 6. No agregar especie a cada pez o movimiento; la especie pertenece permanentemente a la piscina.
 7. No activar la ingestión de temperatura, oxígeno o turbidez hasta conocer el
-   hardware y aprobar su aprovisionamiento; laboratorio y lombricultura siguen fuera.
+   hardware y aprobar su aprovisionamiento; laboratorio sigue fuera.
 8. No construir SQL con datos externos. Room debe recibirlos mediante parámetros
    DAO y toda escritura remota debe atravesar los serializers/ORM de Django.
+9. No convertir una cama en piscina ni guardar lombrices como peces: sus ciclos y
+   registros son agregados independientes.
+10. No cambiar de comunidad con pendientes o conflictos. Sin pendientes, limpiar
+    Room antes de descargar piscinas y camas de la nueva comunidad.
 
 El diseño funcional y las razones de arquitectura se mantienen en `../decisiones.md`. El contrato del servidor está en `../PaiPayTech_Django/API.md`.
 
 Para compartir el APK de esta versión se usa una copia fuera del repositorio:
-`../distribucion/PaiPayTech-1.5.1-dev-railway.apk`. El archivo de compilación dentro
+`../distribucion/PaiPayTech-1.6.0-dev-railway.apk`. El archivo de compilación dentro
 de `app/build/` y todo `*.apk` están ignorados por Git.
+
+La copia actual pesa `9.844.952` bytes, usa firma debug con APK Signature Scheme
+v2 y tiene SHA-256
+`312343F28FCCE135B78A7764A75E9370A8E22319D5F59225A350846DC6AAAC56`.
+Debe desplegarse primero el backend `1.6-dev`; una app nueva contra un backend
+anterior no encontrará el catálogo de camas requerido durante el login.

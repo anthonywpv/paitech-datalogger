@@ -13,21 +13,26 @@ import ec.edu.espol.paipay.datalogger.data.local.dao.CatalogoDao;
 import ec.edu.espol.paipay.datalogger.data.local.dao.CicloDao;
 import ec.edu.espol.paipay.datalogger.data.local.dao.ConflictoDao;
 import ec.edu.espol.paipay.datalogger.data.local.dao.JornadaDao;
+import ec.edu.espol.paipay.datalogger.data.local.dao.LombriculturaDao;
 import ec.edu.espol.paipay.datalogger.data.local.dao.MovimientoDao;
 import ec.edu.espol.paipay.datalogger.data.local.entity.ConflictoLocal;
+import ec.edu.espol.paipay.datalogger.data.local.entity.CamaLocal;
+import ec.edu.espol.paipay.datalogger.data.local.entity.CicloLombriculturaLocal;
 import ec.edu.espol.paipay.datalogger.data.local.entity.CicloLocal;
 import ec.edu.espol.paipay.datalogger.data.local.entity.JornadaLocal;
 import ec.edu.espol.paipay.datalogger.data.local.entity.MovimientoLocal;
 import ec.edu.espol.paipay.datalogger.data.local.entity.ObservacionPezLocal;
 import ec.edu.espol.paipay.datalogger.data.local.entity.PiscinaLocal;
+import ec.edu.espol.paipay.datalogger.data.local.entity.RegistroLombriculturaLocal;
 import ec.edu.espol.paipay.datalogger.data.local.entity.SemaforoLocal;
 
 /** Base offline nueva de v1.4. El archivo v1.3 no se abre ni se modifica. */
 @Database(
         entities = {JornadaLocal.class, ObservacionPezLocal.class, PiscinaLocal.class,
                 SemaforoLocal.class, MovimientoLocal.class, ConflictoLocal.class,
-                CicloLocal.class},
-        version = 4,
+                CicloLocal.class, CamaLocal.class, CicloLombriculturaLocal.class,
+                RegistroLombriculturaLocal.class},
+        version = 5,
         exportSchema = true
 )
 public abstract class PaipayDatabase extends RoomDatabase {
@@ -39,6 +44,7 @@ public abstract class PaipayDatabase extends RoomDatabase {
     public abstract MovimientoDao movimientoDao();
     public abstract ConflictoDao conflictoDao();
     public abstract CicloDao cicloDao();
+    public abstract LombriculturaDao lombriculturaDao();
 
     public static final Migration MIGRACION_1_2 = new Migration(1, 2) {
         @Override
@@ -171,13 +177,54 @@ public abstract class PaipayDatabase extends RoomDatabase {
         }
     };
 
+    public static final Migration MIGRACION_4_5 = new Migration(4, 5) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase db) {
+            db.execSQL("CREATE TABLE IF NOT EXISTS `cama_local` ("
+                    + "`uuid` TEXT NOT NULL, `codigo` TEXT NOT NULL, `nombre` TEXT NOT NULL, "
+                    + "`descripcion` TEXT, `areaM2` REAL, `activa` INTEGER NOT NULL, "
+                    + "`cicloActivoUuid` TEXT, `cicloActivoNumero` INTEGER, PRIMARY KEY(`uuid`))");
+            db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_cama_local_codigo` ON `cama_local` (`codigo`)");
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_cama_local_activa` ON `cama_local` (`activa`)");
+
+            db.execSQL("CREATE TABLE IF NOT EXISTS `ciclo_lombricultura_local` ("
+                    + "`uuid` TEXT NOT NULL, `camaUuid` TEXT NOT NULL, `camaCodigo` TEXT NOT NULL, "
+                    + "`numero` INTEGER NOT NULL, `estado` TEXT NOT NULL, `iniciadoEn` TEXT NOT NULL, "
+                    + "`conteoInicial` INTEGER NOT NULL, `observacionesApertura` TEXT, "
+                    + "`autorCorreo` TEXT NOT NULL, `cerradoEn` TEXT, `conteoFinal` INTEGER, "
+                    + "`observacionesCierre` TEXT, `estadoLocal` TEXT NOT NULL, "
+                    + "`versionServidor` INTEGER NOT NULL, `errorSincronizacion` TEXT, "
+                    + "`creadaEn` INTEGER NOT NULL, `modificadaEn` INTEGER NOT NULL, PRIMARY KEY(`uuid`))");
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_ciclo_lombricultura_local_camaUuid` ON `ciclo_lombricultura_local` (`camaUuid`)");
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_ciclo_lombricultura_local_estado` ON `ciclo_lombricultura_local` (`estado`)");
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_ciclo_lombricultura_local_estadoLocal` ON `ciclo_lombricultura_local` (`estadoLocal`)");
+            db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_ciclo_lombricultura_local_camaUuid_numero` ON `ciclo_lombricultura_local` (`camaUuid`, `numero`)");
+
+            db.execSQL("CREATE TABLE IF NOT EXISTS `registro_lombricultura_local` ("
+                    + "`uuid` TEXT NOT NULL, `camaUuid` TEXT NOT NULL, `camaCodigo` TEXT NOT NULL, "
+                    + "`cicloUuid` TEXT NOT NULL, `autorCorreo` TEXT NOT NULL, "
+                    + "`capturadaEn` TEXT NOT NULL, `phSuelo` REAL NOT NULL, "
+                    + "`conteoLombrices` INTEGER NOT NULL, `observaciones` TEXT, "
+                    + "`estadoLocal` TEXT NOT NULL, `versionServidor` INTEGER NOT NULL, "
+                    + "`motivoCambio` TEXT, `errorSincronizacion` TEXT, "
+                    + "`creadaEn` INTEGER NOT NULL, `modificadaEn` INTEGER NOT NULL, PRIMARY KEY(`uuid`))");
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_registro_lombricultura_local_camaUuid` ON `registro_lombricultura_local` (`camaUuid`)");
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_registro_lombricultura_local_cicloUuid` ON `registro_lombricultura_local` (`cicloUuid`)");
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_registro_lombricultura_local_capturadaEn` ON `registro_lombricultura_local` (`capturadaEn`)");
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_registro_lombricultura_local_estadoLocal` ON `registro_lombricultura_local` (`estadoLocal`)");
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_registro_lombricultura_local_autorCorreo` ON `registro_lombricultura_local` (`autorCorreo`)");
+        }
+    };
+
     public static PaipayDatabase obtener(Context contexto) {
         if (INSTANCIA == null) {
             synchronized (PaipayDatabase.class) {
                 if (INSTANCIA == null) {
                     INSTANCIA = Room.databaseBuilder(
                             contexto.getApplicationContext(), PaipayDatabase.class, ARCHIVO
-                    ).addMigrations(MIGRACION_1_2, MIGRACION_2_3, MIGRACION_3_4).build();
+                    ).addMigrations(
+                            MIGRACION_1_2, MIGRACION_2_3, MIGRACION_3_4, MIGRACION_4_5
+                    ).build();
                 }
             }
         }

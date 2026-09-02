@@ -201,15 +201,13 @@
             android:layout_marginTop="@dimen/espacio_m"
             android:text="Registrar movimiento poblacional" />
 
-        <com.google.android.material.card.MaterialCardView
-            android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/espacio_l" android:layout_marginBottom="@dimen/espacio_l"
-            app:cardBackgroundColor="@color/paipay_fondo" app:cardCornerRadius="16dp"
-            app:contentPadding="@dimen/espacio_m">
-            <TextView
-                android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:text="Lombricultura · Próximamente\nLas variables biológicas todavía están por definirse."
-                android:textColor="@color/paipay_gris_bajo" />
-        </com.google.android.material.card.MaterialCardView>
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/botonLombricultura"
+            style="@style/Paipay.Boton.Secundario"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/espacio_l"
+            android:layout_marginBottom="@dimen/espacio_l"
+            android:text="Abrir lombricultura" />
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

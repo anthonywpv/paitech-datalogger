@@ -19,6 +19,8 @@ public class ConflictoLocal {
     public static final String JORNADA = "JORNADA";
     public static final String MOVIMIENTO = "MOVIMIENTO";
     public static final String CICLO = "CICLO";
+    public static final String CICLO_LOMBRICULTURA = "CICLO_LOMBRICULTURA";
+    public static final String REGISTRO_LOMBRICULTURA = "REGISTRO_LOMBRICULTURA";
 
     @PrimaryKey @NonNull public String clave = "";
     @NonNull public String tipo = "";

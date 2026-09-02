@@ -138,7 +138,7 @@ public class MainActivity extends AppCompatActivity {
     private void pintarMenuLateral() {
         boolean hay = sesion.haySesionActiva();
         vista.menuLateral.textoSesionMenu.setText(hay
-                ? sesion.getNombre()
+                ? sesion.getNombre() + "\n" + sesion.getComunidadNombre()
                 : getString(R.string.sesion_sin_iniciar));
 
         boolean puede = puedeCerrarSesion();
