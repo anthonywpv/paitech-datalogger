@@ -12,7 +12,7 @@ Android (Java)
   ├─ WorkManager: reintentos cuando vuelve la red
   └─ Retrofit HTTPS
           ↓
-Django REST Framework en Railway
+Django REST Framework en Vercel
           ↓
 Neon PostgreSQL
 ```
@@ -110,10 +110,23 @@ Crear `local.properties` en la raíz del repositorio. No debe versionarse:
 
 ```properties
 sdk.dir=C\:\\Users\\TU_USUARIO\\AppData\\Local\\Android\\Sdk
-API_BASE_URL=https://TU-SERVICIO.up.railway.app/
+API_BASE_URL=https://TU-PROYECTO.vercel.app/
 ```
 
 La URL debe terminar en `/`. El valor de ejemplo del proyecto no es un servidor funcional; antes de probar login debe apuntar al despliegue Django real.
+
+Para cambiar de Railway a Vercel, utiliza el dominio estable del proyecto y
+vuelve a compilar el APK. También puedes sobrescribir el valor de
+`local.properties` para una compilación concreta:
+
+```powershell
+.\gradlew.bat assembleDebug -PAPI_BASE_URL=https://TU-PROYECTO.vercel.app/
+```
+
+Los APK anteriores conservan su URL de Railway. Instala la nueva compilación
+como actualización con la misma firma y un `versionCode` superior antes de
+retirar Railway; no desinstales ni borres datos offline pendientes. La guía
+completa está en `../PaiPayTech_Django/DESPLIEGUE_VERCEL.md`.
 
 Para probar contra Django ejecutándose en la misma computadora que el emulador:
 

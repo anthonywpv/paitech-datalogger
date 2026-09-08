@@ -1,18 +1,28 @@
 package ec.edu.espol.paipay.datalogger.ui.main;
 
 import android.app.KeyguardManager;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
+import androidx.annotation.RawRes;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GravityCompat;
 import androidx.fragment.app.Fragment;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 import ec.edu.espol.paipay.datalogger.R;
 import ec.edu.espol.paipay.datalogger.data.repo.AlmacenamientoRepositorio;
@@ -30,11 +40,30 @@ import ec.edu.espol.paipay.datalogger.ui.sync.SincronizacionFragment;
 /** Contenedor principal: las cuatro secciones más el menú lateral. */
 public class MainActivity extends AppCompatActivity {
 
+    private static final String DRIVE_APK_URL =
+            "https://drive.google.com/drive/folders/1Yvy9CwyEFOKCLgKGB7nig4FBN5NUm-vT?usp=sharing";
+
     private ActivityMainBinding vista;
     private SesionManager sesion;
     private AlmacenamientoRepositorio almacenamiento;
     private boolean avisoEspacioMostrado;
     private boolean avisoDispositivoMostrado;
+    private int recursoManualPendiente;
+
+    private final ActivityResultLauncher<Intent> selectorDestinoManual =
+            registerForActivityResult(
+                    new ActivityResultContracts.StartActivityForResult(),
+                    resultado -> {
+                        if (resultado.getResultCode() != Activity.RESULT_OK
+                                || resultado.getData() == null
+                                || resultado.getData().getData() == null
+                                || recursoManualPendiente == 0) {
+                            recursoManualPendiente = 0;
+                            return;
+                        }
+                        guardarManual(resultado.getData().getData(), recursoManualPendiente);
+                        recursoManualPendiente = 0;
+                    });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -114,12 +143,7 @@ public class MainActivity extends AppCompatActivity {
 
         vista.menuLateral.opcionManual.setOnClickListener(v -> {
             cerrarMenu();
-            new MaterialAlertDialogBuilder(this)
-                    .setTitle(R.string.menu_manual)
-                    .setIcon(R.drawable.ic_info)
-                    .setMessage(R.string.menu_manual_mensaje)
-                    .setPositiveButton(R.string.aceptar, null)
-                    .show();
+            mostrarManuales();
         });
 
         vista.menuLateral.opcionCerrarSesion.setOnClickListener(v -> {
@@ -158,6 +182,88 @@ public class MainActivity extends AppCompatActivity {
 
     private void cerrarMenu() {
         vista.cajon.closeDrawer(GravityCompat.START);
+    }
+
+    private void mostrarManuales() {
+        String[] opciones = {
+                getString(R.string.manual_acuicultor),
+                getString(R.string.manual_administrador),
+                getString(R.string.manual_instalacion),
+                getString(R.string.manual_revisar_apk)
+        };
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.menu_manual)
+                .setIcon(R.drawable.ic_info)
+                .setItems(opciones, (dialogo, cual) -> {
+                    if (cual == 0) {
+                        elegirDestinoManual(
+                                R.raw.manual_acuicultor_paipaytech,
+                                "manual_acuicultor_paipaytech.pdf");
+                    } else if (cual == 1) {
+                        elegirDestinoManual(
+                                R.raw.manual_administrador_paipaytech,
+                                "manual_administrador_paipaytech.pdf");
+                    } else if (cual == 2) {
+                        elegirDestinoManual(
+                                R.raw.guia_instalacion_paipaytech,
+                                "guia_instalacion_paipaytech.pdf");
+                    } else {
+                        abrirCarpetaApk();
+                    }
+                })
+                .setNegativeButton(R.string.cancelar, null)
+                .show();
+    }
+
+    private void elegirDestinoManual(@RawRes int recurso, String nombre) {
+        recursoManualPendiente = recurso;
+        Intent destino = new Intent(Intent.ACTION_CREATE_DOCUMENT)
+                .addCategory(Intent.CATEGORY_OPENABLE)
+                .setType("application/pdf")
+                .putExtra(Intent.EXTRA_TITLE, nombre);
+        selectorDestinoManual.launch(destino);
+    }
+
+    private void guardarManual(Uri destino, @RawRes int recurso) {
+        try (InputStream entrada = getResources().openRawResource(recurso);
+             OutputStream salida = getContentResolver().openOutputStream(destino, "w")) {
+            if (salida == null) throw new IOException("Android no abrió el destino");
+            byte[] bloque = new byte[16 * 1024];
+            int leidos;
+            while ((leidos = entrada.read(bloque)) != -1) {
+                salida.write(bloque, 0, leidos);
+            }
+            salida.flush();
+            mostrarManualGuardado(destino);
+        } catch (IOException error) {
+            Toast.makeText(this, R.string.manual_guardado_error, Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void mostrarManualGuardado(Uri destino) {
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.manual_guardado_titulo)
+                .setMessage(R.string.manual_guardado_mensaje)
+                .setNegativeButton(R.string.aceptar, null)
+                .setPositiveButton(R.string.manual_abrir, (dialogo, cual) -> {
+                    Intent abrir = new Intent(Intent.ACTION_VIEW)
+                            .setDataAndType(destino, "application/pdf")
+                            .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    try {
+                        startActivity(Intent.createChooser(abrir, getString(R.string.manual_abrir)));
+                    } catch (Exception error) {
+                        Toast.makeText(this, R.string.manual_sin_lector, Toast.LENGTH_LONG).show();
+                    }
+                })
+                .show();
+    }
+
+    private void abrirCarpetaApk() {
+        try {
+            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(DRIVE_APK_URL)));
+        } catch (Exception error) {
+            Toast.makeText(this, R.string.manual_drive_error, Toast.LENGTH_LONG).show();
+        }
     }
 
     // ------------------------------------------------------------------

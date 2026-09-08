@@ -1,8 +1,9 @@
 # Android Studio genera sdk.dir automáticamente.
 # sdk.dir=C\:\\Users\\TU_USUARIO\\AppData\\Local\\Android\\Sdk
 
-# URL pública HTTPS del servicio Django en Railway. Debe terminar en /.
-API_BASE_URL=https://TU-SERVICIO.up.railway.app/
+# URL pública HTTPS estable del proyecto Django en Vercel. Debe terminar en /.
+API_BASE_URL=https://TU-PROYECTO.vercel.app/
+# También se puede sobrescribir al compilar con -PAPI_BASE_URL=https://.../
 
 # Para desarrollo local desde un AVD se puede usar temporalmente:
 # API_BASE_URL=http://10.0.2.2:8000/

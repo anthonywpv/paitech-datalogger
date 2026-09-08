@@ -17,15 +17,15 @@ android {
         applicationId = "ec.edu.espol.paipay.datalogger"
         minSdk = 24
         targetSdk = 35
-        versionCode = 8
-        versionName = "1.6.0-dev"
+        versionCode = 9
+        versionName = "1.6.1-dev"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
 
         // URL del único backend autorizado para la app: Django REST Framework.
         buildConfigField "String", "API_BASE_URL",
-                "\"${localProps.getProperty('API_BASE_URL', 'https://CONFIGURA-TU-SERVICIO.up.railway.app/')}\""
+                "\"${providers.gradleProperty('API_BASE_URL').getOrElse(localProps.getProperty('API_BASE_URL', 'https://CONFIGURA-TU-PROYECTO.vercel.app/'))}\""
 
         javaCompileOptions {
             annotationProcessorOptions {
@@ -80,7 +80,7 @@ dependencies {
     implementation 'androidx.room:room-runtime:2.8.4'
     annotationProcessor 'androidx.room:room-compiler:2.8.4'
 
-    // Retrofit - consumo exclusivo de la API Django en Railway
+    // Retrofit - consumo exclusivo de la API Django en Vercel
     implementation 'com.squareup.retrofit2:retrofit:3.0.0'
     implementation 'com.squareup.retrofit2:converter-gson:3.0.0'
     // Retrofit 3.0.0 declara OkHttp 4.12 como su línea soportada.
